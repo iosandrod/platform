@@ -1,7 +1,7 @@
 // For more information about this file see https://dove.feathersjs.com/guides/cli/databases.html
-import { app } from './src/app'
-
-// Load our database connection info from the app configuration
-const config = app.get('postgresql')
-
-module.exports = config
+import { createApp } from './src/app'
+// import config from 'config'
+// let pgConfig = config.get('postgresql')
+const app = createApp()
+const pgConfig = app.get('postgresql')
+module.exports = pgConfig//

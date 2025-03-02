@@ -18,9 +18,7 @@ export function createApp() {
   app.use(serveStatic(app.get('public')))
   app.use(errorHandler())
   app.use(parseAuthentication())
-  app.use(bodyParser())
-
-  // Configure services and transports
+  app.use(bodyParser())//
   app.configure(rest())
   app.configure(
     socketio({
@@ -47,6 +45,13 @@ export function createApp() {
       async (context: HookContext) => {
         const app = context.app
         const postgresqlClient = app.get('postgresqlClient')
+        const services = app.services
+        const cService = app.service('company')
+        const allServices = Object.values(services)
+        for (const service of allServices) {
+          //@ts-ignore
+          await service.setup()
+        }
       }
     ],
     teardown: []

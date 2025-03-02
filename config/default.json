@@ -11,6 +11,6 @@
   },
   "postgresql": {
     "client": "pg",
-    "connection": "postgres://postgres:123456@localhost:5432/plaform"
+    "connection": "postgres://postgres:123456@localhost:5432/platform"
   }
 }
