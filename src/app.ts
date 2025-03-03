@@ -1,6 +1,6 @@
 // For more information about this file see https://dove.feathersjs.com/guides/cli/application.html
 import { feathers, HookContext } from '@feathersjs/feathers'
-// import configuration from '@feathersjs/configuration'
+import 'reflect-metadata'
 import { koa, rest, bodyParser, errorHandler, parseAuthentication, cors, serveStatic } from '@feathersjs/koa'
 import socketio from '@feathersjs/socketio'
 import { services } from './services/index'
@@ -11,14 +11,16 @@ import { postgresql } from './postgresql'
 // import { services } from './services/index'
 import { channels } from './channels'
 import { configuration } from './config'
+import { createFeathers } from './feather'
 export function createApp() {
-  const app: Application = koa(feathers())
+  const f=createFeathers()
+  const app: Application = koa(f)//
   app.configure(configuration)
   app.use(cors())
   app.use(serveStatic(app.get('public')))
   app.use(errorHandler())
   app.use(parseAuthentication())
-  app.use(bodyParser())//
+  app.use(bodyParser()) //
   app.configure(rest())
   app.configure(
     socketio({
@@ -42,7 +44,14 @@ export function createApp() {
   // Register application setup and teardown hooks here
   app.hooks({
     setup: [
-      async (context: HookContext) => {
+      async (context: HookContext, next: any) => {
+        //构建所有子应用
+        const app = context.app //
+        await next() //
+      },
+      //@ts-ignore
+      async (context: HookContext, next: any) => {
+        console.log('我执行到这')
         const app = context.app
         const postgresqlClient = app.get('postgresqlClient')
         const services = app.services
@@ -50,7 +59,7 @@ export function createApp() {
         const allServices = Object.values(services)
         for (const service of allServices) {
           //@ts-ignore
-          await service.setup()
+          await service.setup() //
         }
       }
     ],
