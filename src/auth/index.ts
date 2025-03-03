@@ -18,10 +18,9 @@ export const auth = (app: Application) => {
         koa: {
             before: [
                 async (context, next) => {
-                    console.log('我是auth中间件')//
                     await next()//
                 }
-            ]
+            ]//
         }//
     })//
 }

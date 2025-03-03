@@ -19,6 +19,8 @@ export const services = (app: Application) => {
     const service = obj.service
     let routes = service.routes || [] //
     let routesMethods = routes.map(route => route.path)
+    // let methods = [...defaultServiceMethods, ...routesMethods]
+    // console.log(methods, 'testMethods')//
     //@ts-ignore
     let ts = app.use(p, service, {
       methods: [...defaultServiceMethods, ...routesMethods], // //
@@ -42,19 +44,22 @@ export const services = (app: Application) => {
     })
   }
 }
-export const mergeServiceOptions = (options1: KnexAdapterOptions, options2: KnexAdapterOptions) => {}
+export const mergeServiceOptions = (options1: KnexAdapterOptions, options2: KnexAdapterOptions) => { }
 //构建service实例
 export const createServices = (serverName: keyof typeof createMap, options: any, app: Application) => {
   let createClass = createMap[serverName]
   let _options: KnexAdapterOptions = options || {}
   const methods = defaultServiceMethods //
   let Model = app.get('postgresqlClient')
-  _.merge(_options, { methods, name: serverName, Model, schema: serverName } as KnexAdapterOptions) //
+  _.merge(_options, {
+    methods, name: serverName, Model,
+    // schema: serverName 
+  } as KnexAdapterOptions) //
   let service = new createClass(_options) //
   //@ts-ignore
   let routes = service.routes
-  if (Array.isArray(routes) && routes.length > 0) {
-  }
+  // if (Array.isArray(routes) && routes.length > 0) {
+  // }
   return service
 }
 

@@ -5,15 +5,17 @@ import { koa, rest, bodyParser, errorHandler, parseAuthentication, cors, serveSt
 import socketio from '@feathersjs/socketio'
 import { services } from './services/index'
 import { configurationValidator } from './configuration'
-import type { Application } from './declarations'
+import type { Application, serviceMap } from './declarations'
 import { logError } from './hooks/log-error'
 import { postgresql } from './postgresql'
 // import { services } from './services/index'
 import { channels } from './channels'
 import { configuration } from './config'
 import { createFeathers } from './feather'
+import { BaseService } from './services/base.service'
 export function createApp() {
-  const f=createFeathers()
+  const f = createFeathers()
+  //@ts-ignore
   const app: Application = koa(f)//
   app.configure(configuration)
   app.use(cors())
@@ -46,20 +48,20 @@ export function createApp() {
     setup: [
       async (context: HookContext, next: any) => {
         //构建所有子应用
-        const app = context.app //
         await next() //
       },
       //@ts-ignore
       async (context: HookContext, next: any) => {
-        console.log('我执行到这')
         const app = context.app
         const postgresqlClient = app.get('postgresqlClient')
-        const services = app.services
+        const services = app.services as serviceMap
         const cService = app.service('company')
         const allServices = Object.values(services)
         for (const service of allServices) {
+          // console.log(service)//
+          // const config=service.getOptions()
           //@ts-ignore
-          await service.setup() //
+          await service.setup(app) //
         }
       }
     ],

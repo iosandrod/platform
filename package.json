@@ -58,10 +58,13 @@
     "@feathersjs/socketio": "5.0.33",
     "@feathersjs/transport-commons": "5.0.33",
     "@feathersjs/typebox": "5.0.33",
+    "@scaleleap/pg-format": "^1.0.0",
     "@types/lodash": "^4.17.16",
+    "ajv": "^8.17.1",
     "knex": "3.1.0",
     "lodash": "^4.17.21",
     "pg": "8.13.3",
+    "pg-format": "^1.0.4",
     "reflect-metadata": "^0.2.2",
     "winston": "^3.17.0"
   },
