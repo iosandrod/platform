@@ -13,7 +13,13 @@ import { channels } from './channels/channels'
 import { configuration } from './config'
 import { createFeathers } from './feather'
 import { BaseService } from './services/base.service'
-export function createApp() {
+export const appArr = [
+  {
+    companyid: '1',
+    name: 'erp',
+  }
+]
+export async function createApp() {
   const f = createFeathers()
   //@ts-ignore
   const app: Application = koa(f) //
@@ -43,6 +49,10 @@ export function createApp() {
     after: {},
     error: {}
   })
+  for (const sApp of appArr) {
+    //@ts-ignore
+    await app.registerSubApp(sApp.name, sApp.companyid)
+  }
   // Register application setup and teardown hooks here
   app.hooks({
     setup: [

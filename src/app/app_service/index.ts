@@ -54,13 +54,13 @@ export const createServices = (serverName: keyof typeof createMap, options: any,
     let createClass = createMap[serverName]
     let _options: KnexAdapterOptions = options || {}
     const methods = defaultServiceMethods //
-    let Model = app.get('postgresqlClient')
+    let Model = app.get('postgresqlClient')//
     _.merge(_options, {
         methods, name: serverName, Model,
     } as KnexAdapterOptions) //
     let service = new createClass(_options) //
     //@ts-ignore
-    let routes = service.routes
+    // let routes = service.routes
     return service
 }
 
