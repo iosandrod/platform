@@ -12,5 +12,9 @@
   "postgresql": {
     "client": "pg",
     "connection": "postgres://postgres:123456@localhost:5432/platform"
+  },
+  "appDb":{
+    "client": "pg",
+    "connection": "postgres://postgres:123456@localhost:5432/erp"
   }
 }

@@ -26,6 +26,7 @@ export class BaseService extends KnexService {
     hooks(this, {
       create: [
         async function (context, next) {
+          //新建的时候进行数据校验
           await next()
         }
       ],
@@ -106,7 +107,7 @@ export class BaseService extends KnexService {
     let _rows: any[] = rows //
     return _rows //
   }
-  async multiCraete(data: any, params?: any) {}
+  async multiCraete(data: any, params?: any) { }
   async buildDbSchema() {
     const columnInfo = this.columnInfo
     const schema = columnInfo.reduce((result: any, item) => {

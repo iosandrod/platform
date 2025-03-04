@@ -18,4 +18,3 @@ export class BaseEntity extends TypeOrmBaseEntity {
   @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
   updatedAt: Date
 }
- 

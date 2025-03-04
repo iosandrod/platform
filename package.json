@@ -43,9 +43,11 @@
     "test": "cross-env NODE_ENV=test npm run migrate && npm run mocha",
     "bundle:client": "npm run compile && npm pack --pack-destination ./public",
     "migrate": "knex migrate:latest",
-    "migrate:make": "knex migrate:make"
+    "migrate:make": "knex migrate:make",
+    "migrate:app": "cross-env NODE_ENV=development ts-node ./dbScript.ts"
   },
   "dependencies": {
+    "@casl/ability": "^6.7.3",
     "@feathersjs/adapter-commons": "5.0.33",
     "@feathersjs/authentication": "5.0.33",
     "@feathersjs/authentication-client": "5.0.33",
@@ -61,6 +63,7 @@
     "@scaleleap/pg-format": "^1.0.0",
     "@types/lodash": "^4.17.16",
     "ajv": "^8.17.1",
+    "feathers-casl": "^2.2.0",
     "feathers-hooks-common": "^8.2.1",
     "knex": "3.1.0",
     "lodash": "^4.17.21",

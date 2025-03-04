@@ -9,7 +9,7 @@ import type { Application, serviceMap } from './declarations'
 import { logError } from './hooks/log-error'
 import { postgresql } from './postgresql'
 // import { services } from './services/index'
-import { channels } from './channels'
+import { channels } from './channels/channels'
 import { configuration } from './config'
 import { createFeathers } from './feather'
 import { BaseService } from './services/base.service'
@@ -58,8 +58,6 @@ export function createApp() {
         const cService = app.service('company')
         const allServices = Object.values(services)
         for (const service of allServices) {
-          // console.log(service)//
-          // const config=service.getOptions()
           //@ts-ignore
           await service.setup(app) //
         }

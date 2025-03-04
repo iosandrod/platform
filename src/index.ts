@@ -1,5 +1,5 @@
 import { createApp } from './app'
-import { logger } from './logger'
+import { logger } from './utils/logger'//
 async function main() {
   let app = await createApp()
   const port = app.get('port')

@@ -9,6 +9,13 @@
   dependencies:
     regenerator-runtime "^0.14.0"
 
+"@casl/ability@^6.7.3":
+  version "6.7.3"
+  resolved "https://registry.npmmirror.com/@casl/ability/-/ability-6.7.3.tgz#3c831c8230ccd32bd8eebc6d10f3d7e28e473958"
+  integrity sha512-A4L28Ko+phJAsTDhRjzCOZWECQWN2jzZnJPnROWWHjJpyMq1h7h9ZqjwS2WbIUa3Z474X1ZPSgW0f1PboZGC0A==
+  dependencies:
+    "@ucast/mongo2js" "^1.3.0"
+
 "@colors/colors@1.6.0", "@colors/colors@^1.6.0":
   version "1.6.0"
   resolved "https://registry.npmmirror.com/@colors/colors/-/colors-1.6.0.tgz#ec6cd237440700bc23ca23087f513c75508958b0"
@@ -166,7 +173,7 @@
     inquirer "^9.3.2"
     tsx "^4.19.1"
 
-"@feathersjs/adapter-commons@5.0.33", "@feathersjs/adapter-commons@^5.0.33":
+"@feathersjs/adapter-commons@5.0.33", "@feathersjs/adapter-commons@^5.0.31", "@feathersjs/adapter-commons@^5.0.33":
   version "5.0.33"
   resolved "https://registry.npmmirror.com/@feathersjs/adapter-commons/-/adapter-commons-5.0.33.tgz#6e24ac674febe5d7a13b2fa1d647491b8e802382"
   integrity sha512-2IZLSccDF99zaoYyIXHtwR+CCjywxLGHs3SMYYqM6jvonSAfyKJ5Fp3eIvh6CQZoLnukFIKTU8Ow14mYOlVKyQ==
@@ -227,12 +234,12 @@
     "@types/config" "^3.3.5"
     config "^3.3.12"
 
-"@feathersjs/errors@5.0.33", "@feathersjs/errors@^5.0.29", "@feathersjs/errors@^5.0.33":
+"@feathersjs/errors@5.0.33", "@feathersjs/errors@^5.0.29", "@feathersjs/errors@^5.0.31", "@feathersjs/errors@^5.0.33":
   version "5.0.33"
   resolved "https://registry.npmmirror.com/@feathersjs/errors/-/errors-5.0.33.tgz#e1e0a79bf1774d2bbfa4e8983d089330652a8018"
   integrity sha512-roM6xxEUdcm7b9OAtCBViafTF7K0tjW45p9IxAN3Q6VAo7bT2qb7Hh22VgBOtKxVTSYTncON4eQv8F0yVRSCSg==
 
-"@feathersjs/feathers@5.0.33", "@feathersjs/feathers@^5.0.33":
+"@feathersjs/feathers@5.0.33", "@feathersjs/feathers@^5.0.31", "@feathersjs/feathers@^5.0.33":
   version "5.0.33"
   resolved "https://registry.npmmirror.com/@feathersjs/feathers/-/feathers-5.0.33.tgz#f8054ba66e3f3dff210bba8f69104868f5adc317"
   integrity sha512-bEcperDJVXJkJQYTUKgneXshC54w0h334TjeBCda8BTPVp7DX5p2q5QvsSvz91RS2si537Vy4E/xp+s4Nsi+ng==
@@ -324,7 +331,7 @@
     "@feathersjs/transport-commons" "^5.0.33"
     socket.io "^4.8.1"
 
-"@feathersjs/transport-commons@5.0.33", "@feathersjs/transport-commons@^5.0.33":
+"@feathersjs/transport-commons@5.0.33", "@feathersjs/transport-commons@^5.0.31", "@feathersjs/transport-commons@^5.0.33":
   version "5.0.33"
   resolved "https://registry.npmmirror.com/@feathersjs/transport-commons/-/transport-commons-5.0.33.tgz#85743ff104d771cd238534fc510a01e8219f69ab"
   integrity sha512-mlqcxxfphQTPCBenJLE+8buRpKwOa+1FmJuMXn4QcYpOaK+Y1QlDBRTuXbKmccwFlkld+j4DzmyiF2MCFNZk3w==
@@ -697,6 +704,34 @@
   version "1.3.5"
   resolved "https://registry.npmmirror.com/@types/triple-beam/-/triple-beam-1.3.5.tgz#74fef9ffbaa198eb8b588be029f38b00299caa2c"
   integrity sha512-6WaYesThRMCl19iryMYP7/x2OVgCtbIVflDGFpWnb9irXI3UjYE4AzmYuiUKY1AJstGijoY+MgUszMgRxIYTYw==
+
+"@ucast/core@^1.0.0", "@ucast/core@^1.4.1", "@ucast/core@^1.6.1":
+  version "1.10.2"
+  resolved "https://registry.npmmirror.com/@ucast/core/-/core-1.10.2.tgz#30b6b893479823265368e528b61b042f752f2c92"
+  integrity sha512-ons5CwXZ/51wrUPfoduC+cO7AS1/wRb0ybpQJ9RrssossDxVy4t49QxWoWgfBDvVKsz9VXzBk9z0wqTdZ+Cq8g==
+
+"@ucast/js@^3.0.0":
+  version "3.0.4"
+  resolved "https://registry.npmmirror.com/@ucast/js/-/js-3.0.4.tgz#c57ec2182505c9ad63a5b08ff5911f89ac605262"
+  integrity sha512-TgG1aIaCMdcaEyckOZKQozn1hazE0w90SVdlpIJ/er8xVumE11gYAtSbw/LBeUnA4fFnFWTcw3t6reqseeH/4Q==
+  dependencies:
+    "@ucast/core" "^1.0.0"
+
+"@ucast/mongo2js@^1.3.0":
+  version "1.4.0"
+  resolved "https://registry.npmmirror.com/@ucast/mongo2js/-/mongo2js-1.4.0.tgz#9c24219f78cbd30d130236daf250f08465aae6ca"
+  integrity sha512-vR9RJ3BHlkI3RfKJIZFdVktxWvBCQRiSTeJSWN9NPxP5YJkpfXvcBWAMLwvyJx4HbB+qib5/AlSDEmQiuQyx2w==
+  dependencies:
+    "@ucast/core" "^1.6.1"
+    "@ucast/js" "^3.0.0"
+    "@ucast/mongo" "^2.4.0"
+
+"@ucast/mongo@^2.4.0":
+  version "2.4.3"
+  resolved "https://registry.npmmirror.com/@ucast/mongo/-/mongo-2.4.3.tgz#92b1dd7c0ab06a907f2ab1422aa3027518ccc05e"
+  integrity sha512-XcI8LclrHWP83H+7H2anGCEeDq0n+12FU2mXCTz6/Tva9/9ddK/iacvvhCyW6cijAAOILmt0tWplRyRhVyZLsA==
+  dependencies:
+    "@ucast/core" "^1.4.1"
 
 accepts@^1.3.5, accepts@~1.3.4:
   version "1.3.8"
@@ -1429,6 +1464,11 @@ fast-deep-equal@^3.1.1, fast-deep-equal@^3.1.3:
   resolved "https://registry.npmmirror.com/fast-deep-equal/-/fast-deep-equal-3.1.3.tgz#3a7d56b559d6cbc3eb512325244e619a65c6c525"
   integrity sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==
 
+fast-equals@^5.0.1:
+  version "5.2.2"
+  resolved "https://registry.npmmirror.com/fast-equals/-/fast-equals-5.2.2.tgz#885d7bfb079fac0ce0e8450374bce29e9b742484"
+  integrity sha512-V7/RktU11J3I36Nwq2JnZEM7tNm17eBJz+u25qdxBZeCKiX6BkVSZQjwWIr+IobgnZy+ag73tTZgZi7tr0LrBw==
+
 fast-json-stable-stringify@^2.0.0:
   version "2.1.0"
   resolved "https://registry.npmmirror.com/fast-json-stable-stringify/-/fast-json-stable-stringify-2.1.0.tgz#874bf69c6f404c2b5d99c481341399fd55892633"
@@ -1438,6 +1478,18 @@ fast-uri@^3.0.1:
   version "3.0.6"
   resolved "https://registry.npmmirror.com/fast-uri/-/fast-uri-3.0.6.tgz#88f130b77cfaea2378d56bf970dea21257a68748"
   integrity sha512-Atfo14OibSv5wAp4VWNsFYE1AchQRTv9cBGWET4pZWHzYshFSS9NQI6I57rdKn9croWVMbYFbLhJ+yJvmZIIHw==
+
+feathers-casl@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.npmmirror.com/feathers-casl/-/feathers-casl-2.2.0.tgz#2628dd9703519533a53f90877c58e496bdc1beb4"
+  integrity sha512-17d1To8d3qy91KHZEmWXODYkzCZodzzo0Mwz5nBWh4uoEm4Xlz3t8msH0pbGpWQX/qWubjRtum+bErvPAgTz1w==
+  dependencies:
+    "@feathersjs/errors" "^5.0.31"
+    "@feathersjs/feathers" "^5.0.31"
+    "@feathersjs/transport-commons" "^5.0.31"
+    feathers-hooks-common "^8.2.1"
+    feathers-utils "^7.0.0"
+    lodash "^4.17.21"
 
 feathers-hooks-common@^8.2.1:
   version "8.2.1"
@@ -1450,6 +1502,18 @@ feathers-hooks-common@^8.2.1:
     graphql "^16.9.0"
     lodash "^4.17.21"
     neotraverse "^0.6.14"
+
+feathers-utils@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.npmmirror.com/feathers-utils/-/feathers-utils-7.0.0.tgz#bb70972a84c07c417f568ef52fa3c14ddaac43a2"
+  integrity sha512-TtQCqH2S0Y0wgCwTJIF96/8ivS+AG3WIqdXGvg14BDCDxiOlM3MyI3HC8f1Ku78QyBt2e1D5XnAH01kqMTc0UA==
+  dependencies:
+    "@feathersjs/adapter-commons" "^5.0.31"
+    "@feathersjs/errors" "^5.0.31"
+    "@feathersjs/feathers" "^5.0.31"
+    fast-equals "^5.0.1"
+    feathers-hooks-common "^8.2.1"
+    lodash "^4.17.21"
 
 fecha@^4.2.0:
   version "4.2.3"
@@ -2804,7 +2868,16 @@ statuses@2.0.1:
   resolved "https://registry.npmmirror.com/statuses/-/statuses-1.5.0.tgz#161c7dac177659fd9811f43771fa99381478628c"
   integrity sha512-OpZ3zP+jT1PI7I8nemJX4AKmAX070ZkYPVWV/AaKTJl+tXCTGyVdC1a4SL8RUQYEwk/f34ZX8UTykN68FwrqAA==
 
-"string-width-cjs@npm:string-width@^4.2.0", string-width@^4.1.0, string-width@^4.2.0, string-width@^4.2.3:
+"string-width-cjs@npm:string-width@^4.2.0":
+  version "4.2.3"
+  resolved "https://registry.npmmirror.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
+  integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
+  dependencies:
+    emoji-regex "^8.0.0"
+    is-fullwidth-code-point "^3.0.0"
+    strip-ansi "^6.0.1"
+
+string-width@^4.1.0, string-width@^4.2.0, string-width@^4.2.3:
   version "4.2.3"
   resolved "https://registry.npmmirror.com/string-width/-/string-width-4.2.3.tgz#269c7117d27b05ad2e536830a8ec895ef9c6d010"
   integrity sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==
@@ -2829,7 +2902,14 @@ string_decoder@^1.1.1:
   dependencies:
     safe-buffer "~5.2.0"
 
-"strip-ansi-cjs@npm:strip-ansi@^6.0.1", strip-ansi@^6.0.0, strip-ansi@^6.0.1:
+"strip-ansi-cjs@npm:strip-ansi@^6.0.1":
+  version "6.0.1"
+  resolved "https://registry.npmmirror.com/strip-ansi/-/strip-ansi-6.0.1.tgz#9e26c63d30f53443e9489495b2105d37b67a85d9"
+  integrity sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==
+  dependencies:
+    ansi-regex "^5.0.1"
+
+strip-ansi@^6.0.0, strip-ansi@^6.0.1:
   version "6.0.1"
   resolved "https://registry.npmmirror.com/strip-ansi/-/strip-ansi-6.0.1.tgz#9e26c63d30f53443e9489495b2105d37b67a85d9"
   integrity sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==
@@ -3091,7 +3171,7 @@ workerpool@^6.5.1:
   resolved "https://registry.npmmirror.com/workerpool/-/workerpool-6.5.1.tgz#060f73b39d0caf97c6db64da004cd01b4c099544"
   integrity sha512-Fs4dNYcsdpYSAfVxhnl1L5zTksjvOJxtC5hzMNl+1t9B8hTJTdKDyZ5ju7ztgPy+ft9tBFXoOlDNiOT9WUXZlA==
 
-"wrap-ansi-cjs@npm:wrap-ansi@^7.0.0", wrap-ansi@^7.0.0:
+"wrap-ansi-cjs@npm:wrap-ansi@^7.0.0":
   version "7.0.0"
   resolved "https://registry.npmmirror.com/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"
   integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==
@@ -3104,6 +3184,15 @@ wrap-ansi@^6.2.0:
   version "6.2.0"
   resolved "https://registry.npmmirror.com/wrap-ansi/-/wrap-ansi-6.2.0.tgz#e9393ba07102e6c91a3b221478f0257cd2856e53"
   integrity sha512-r6lPcBGxZXlIcymEu7InxDMhdW0KDxpLgoFLcguasxCaJ/SOIZwINatK9KY/tf+ZrlywOKU0UDj3ATXUBfxJXA==
+  dependencies:
+    ansi-styles "^4.0.0"
+    string-width "^4.1.0"
+    strip-ansi "^6.0.0"
+
+wrap-ansi@^7.0.0:
+  version "7.0.0"
+  resolved "https://registry.npmmirror.com/wrap-ansi/-/wrap-ansi-7.0.0.tgz#67e145cff510a6a6984bdf1152911d69d2eb9e43"
+  integrity sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==
   dependencies:
     ansi-styles "^4.0.0"
     string-width "^4.1.0"
