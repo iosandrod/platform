@@ -16,12 +16,25 @@ import { addFormats } from '@feathersjs/schema'
 const RETURNING_CLIENTS = ['postgresql', 'pg', 'oracledb', 'mssql', 'sqlite3']
 
 export type columnInfo = Partial<Knex.ColumnInfo & { field: string }>
+import { hooks } from '@feathersjs/hooks'
 export class BaseService extends KnexService {
   vSchema?: ValidateFunction
   totalSchema?: TObject
   pickSchame?: TPick<any, any>
   constructor(options: any) {
     super(options)
+    hooks(this, {
+      create: [
+        async function (context, next) {
+          await next()
+        }
+      ],
+      update: [
+        async function (context, next) {
+          await next()
+        }
+      ]
+    })
     // this.schema = options.schema//
   }
   routes?: routeConfig[]
@@ -47,7 +60,7 @@ export class BaseService extends KnexService {
     const errors = vSchema.errors || []
     // console.log(errors?.length, data, '错误长度')
     // console.log(result, vSchema.errors)
-    return errors//
+    return errors //
   }
   async create(data: any, params?: any): Promise<any> {
     // let _create = super.create
@@ -60,41 +73,40 @@ export class BaseService extends KnexService {
     const resolveData = Object.entries(data).reduce((result: any, [key, value]) => {
       if (columns.includes(key)) {
         result[key] = value
-      }//
+      } //
       return result
-    }, {})//
+    }, {}) //
     //@ts-ignore
-    let vResult = await this.validate(resolveData, params)//
+    let vResult = await this.validate(resolveData, params) //
     if (vResult?.length! > 0) {
       let fError = vResult[0]
-      throw new Error(`数据校验出错,出错信息${JSON.stringify(fError)}`)//
+      throw new Error(`数据校验出错,出错信息${JSON.stringify(fError)}`) //
     }
-    return 1
+    const _res = await this._create(resolveData, params) //
+    return _res //
     // return vResult
   }
   //@ts-ignore
-  async _create(
-    _data: any,
-    _params: ServiceParams = {} as ServiceParams
-  ) {
-    const data = _data as any
+  async _create(_data: any, _params: ServiceParams = {} as ServiceParams) {
+    let data = _data as any
+    console.log(_data, '_data') //
     const params = _params as KnexAdapterParams
     //@ts-ignore
     const { client } = this.db(params)
     const returning = RETURNING_CLIENTS.includes(client.driverName) ? [this.id] : []
     const rows: any = await this.db(params)
       .insert(data, returning, { includeTriggerModifications: true })
-      .catch(errorHandler)//
+      .catch(errorHandler) //
     //@ts-ignore
-    const id = data[this.id] || rows[0][this.id] || rows[0]//
+    const id = data[this.id] || rows[0][this.id] || rows[0] //
     if (!id) {
       return rows
     }
     //返回新增的数组
-    let _rows: any[] = rows//
-    return _rows//
+    let _rows: any[] = rows //
+    return _rows //
   }
-  async multiCraete(data: any, params?: any) { }
+  async multiCraete(data: any, params?: any) {}
   async buildDbSchema() {
     const columnInfo = this.columnInfo
     const schema = columnInfo.reduce((result: any, item) => {
@@ -103,7 +115,7 @@ export class BaseService extends KnexService {
       let nullable = item.nullable
       let _obj1 = typeMap[type]
       let _obj = null
-      if ((nullable == true || this.id == field && typeof _obj1 == 'function')) {
+      if (nullable == true || (this.id == field && typeof _obj1 == 'function')) {
         try {
           _obj = Type.Optional(_obj1())
         } catch (error) {
@@ -113,11 +125,11 @@ export class BaseService extends KnexService {
       } else {
         _obj = _obj1()
       }
-      result[field] = _obj//
+      result[field] = _obj //
       return result
     }, {})
     // console.log(schema)
-    this.totalSchema = Type.Object(schema)//
+    this.totalSchema = Type.Object(schema) //
     let aj = new Ajv()
     let formatArr = [
       'date-time',
@@ -136,7 +148,7 @@ export class BaseService extends KnexService {
       'regex'
     ]
     let validate = addFormats(aj, formatArr as any)
-    let vSchema = validate.compile(this.totalSchema)//
+    let vSchema = validate.compile(this.totalSchema) //
     this.vSchema = vSchema
     //@ts-ignore
   }

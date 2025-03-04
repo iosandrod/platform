@@ -16,7 +16,7 @@ import { BaseService } from './services/base.service'
 export function createApp() {
   const f = createFeathers()
   //@ts-ignore
-  const app: Application = koa(f)//
+  const app: Application = koa(f) //
   app.configure(configuration)
   app.use(cors())
   app.use(serveStatic(app.get('public')))
@@ -24,6 +24,7 @@ export function createApp() {
   app.use(parseAuthentication())
   app.use(bodyParser()) //
   app.configure(rest())
+  //处理用户认证的事情//
   app.configure(
     socketio({
       cors: {
@@ -34,7 +35,6 @@ export function createApp() {
   app.configure(postgresql)
   app.configure(services)
   app.configure(channels)
-  // Register hooks that run on all service methods
   app.hooks({
     around: {
       all: [logError]
