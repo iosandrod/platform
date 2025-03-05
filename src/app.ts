@@ -11,8 +11,9 @@ import { postgresql } from './postgresql'
 // import { services } from './services/index'
 import { channels } from './channels/channels'
 import { configuration } from './config'
-import { createFeathers } from './feather'
+import { createFeathers, myFeathers } from './feather'
 import { BaseService } from './services/base.service'
+import { mainAuth } from './auth'
 export const appArr = [
   {
     companyid: '1',
@@ -41,6 +42,8 @@ export async function createApp() {
   app.configure(postgresql)
   app.configure(services)
   app.configure(channels)
+  //设置用户认证
+  app.configure(mainAuth)//
   app.hooks({
     around: {
       all: [logError]
@@ -62,14 +65,27 @@ export async function createApp() {
       },
       //@ts-ignore
       async (context: HookContext, next: any) => {
-        const app = context.app
-        const postgresqlClient = app.get('postgresqlClient')
+        //@ts-ignore
+        const app: myFeathers = context.app
+        // const postgresqlClient = app.get('postgresqlClient')
         const services = app.services as serviceMap
-        const cService = app.service('company')
+        // const cService = app.service('company')
         const allServices = Object.values(services)
         for (const service of allServices) {
+          if (typeof service.init !== 'function') continue
           //@ts-ignore
-          await service.setup(app) //
+          await service.init(app) //
+        }
+        const subApp = app.subApp
+        const allSubApp = Object.entries(subApp)
+        for (const [key, sApp] of allSubApp) {
+          const services = sApp.services as serviceMap
+          const allServices = Object.values(services)
+          for (const service of allServices) {
+            if (typeof service.init !== 'function') continue
+            //@ts-ignore 
+            await service.init(sApp) //
+          }
         }
       }
     ],

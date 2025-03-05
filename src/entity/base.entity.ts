@@ -13,8 +13,8 @@ import {
 export class BaseEntity extends TypeOrmBaseEntity {
   @PrimaryGeneratedColumn()
   id: number
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ nullable: true, type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date
-  @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  @UpdateDateColumn({ nullable: true, type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
   updatedAt: Date
 }

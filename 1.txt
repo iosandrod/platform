@@ -1,0 +1,108 @@
+let createTransformer = {
+    password: async (value: any, data: any, context: HookContext) => {
+        const { app, params } = context
+        let options = { strategy: 'local', authentication: 'jwt' }//
+        const { strategy = 'local' } = options
+        //@ts-ignore
+        const authService = app!.defaultAuthentication(options.authentication)
+        const [localStrategy] = authService.getStrategies(strategy) as LocalStrategy[]
+        if (!localStrategy || typeof localStrategy.hashPassword !== 'function') {
+            throw new BadRequest(`Could not find '${strategy}' strategy to hash password`)
+        }
+        let field = authService.configuration.local?.passwordField || 'password'
+        let addHashedPassword = async (data: any) => {
+            const password = get(data, field)
+            if (password === undefined) {
+                debug(`hook.data.${field} is undefined, not hashing password`)
+                throw new BadRequest(`hook.data.${field} is undefined, not hashing password`)
+            }
+            const hashedPassword: string = await localStrategy.hashPassword(password, params)
+            let d1 = set(cloneDeep(data), field, hashedPassword)
+            return d1
+        }
+        let rData = await addHashedPassword(data)
+        context.data = rData
+    }
+}
+
+
+export default function hashPassword(field: string, options: HashPasswordOptions = {}) {
+    if (!field) {
+        throw new Error('The hashPassword hook requires a field name option')
+    }
+    return async (context: HookContext, next?: NextFunction) => {
+        const { app, data, params } = context
+
+        if (data !== undefined) {
+            //@ts-ignore
+            const authService = app!.defaultAuthentication(options.authentication)
+            const { strategy = 'local' } = options
+
+            if (!authService || typeof authService.getStrategies !== 'function') {
+                throw new BadRequest('Could not find an authentication service to hash password')
+            }
+
+            const [localStrategy] = authService.getStrategies(strategy) as LocalStrategy[]
+
+            if (!localStrategy || typeof localStrategy.hashPassword !== 'function') {
+                throw new BadRequest(`Could not find '${strategy}' strategy to hash password`)
+            }
+
+            const addHashedPassword = async (data: any) => {
+                const password = get(data, field)
+
+                if (password === undefined) {
+                    debug(`hook.data.${field} is undefined, not hashing password`)
+                    return data
+                }
+
+                const hashedPassword: string = await localStrategy.hashPassword(password, params)
+
+                return set(cloneDeep(data), field, hashedPassword)
+            }
+            context.data = Array.isArray(data)
+                ? await Promise.all(data.map(addHashedPassword))
+                : await addHashedPassword(data)
+        }
+        if (typeof next === 'function') {
+            return next()
+        }
+    }
+}
+
+
+
+
+
+ hooks(this, {
+            create: [
+                async function (context: HookContext, next) {
+                    // console.log(Object.keys(context), '111')//
+                    // const data1 = context.data
+                    // console.log(data1, 'testData')//
+                    const { app, params, data } = context
+                    let options = { strategy: 'local', authentication: 'authentication' }//
+                    const { strategy = 'local' } = options
+                    //@ts-ignore
+                    const authService = app!.defaultAuthentication(options.authentication)
+                    const [localStrategy] = authService.getStrategies(strategy) as LocalStrategy[]
+                    if (!localStrategy || typeof localStrategy.hashPassword !== 'function') {
+                        throw new BadRequest(`Could not find '${strategy}' strategy to hash password`)
+                    }
+                    let field = authService.configuration.local?.passwordField || 'password'
+                    let addHashedPassword = async (data: any) => {
+                        const password = get(data, field)
+                        if (password === undefined) {
+                            debug(`hook.data.${field} is undefined, not hashing password`)
+                            throw new BadRequest(`hook.data.${field} is undefined, not hashing password`)
+                        }
+                        const hashedPassword: string = await localStrategy.hashPassword(password, params)
+                        let d1 = set(cloneDeep(data), field, hashedPassword)
+                        return d1
+                    }
+                    let rData = await addHashedPassword(data)
+                    context.data = rData
+                    await next()
+                }
+            ]
+        })

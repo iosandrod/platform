@@ -25,6 +25,7 @@ export const channels = (app: Application) => {
   }) //
   // eslint-disable-next-line no-unused-vars
   app.publish((data: any, context: HookContext) => {
+    //所有消息都发送到这里来了
     return app.channel('authenticated')
   })
 }

@@ -18,30 +18,17 @@ const RETURNING_CLIENTS = ['postgresql', 'pg', 'oracledb', 'mssql', 'sqlite3']
 export type columnInfo = Partial<Knex.ColumnInfo & { field: string }>
 import { hooks } from '@feathersjs/hooks'
 export class BaseService extends KnexService {
+  hooksMetaData: any = {}
   vSchema?: ValidateFunction
   totalSchema?: TObject
   pickSchame?: TPick<any, any>
   constructor(options: any) {
     super(options)
-    hooks(this, {
-      create: [
-        async function (context, next) {
-          //新建的时候进行数据校验
-          await next()
-        }
-      ],
-      update: [
-        async function (context, next) {
-          await next()
-        }
-      ]
-    })
-    // this.schema = options.schema//
   }
-  routes?: routeConfig[]
+  routes?: routeConfig[] = []
   columns: string[] = []
   columnInfo: columnInfo[] = []
-  async setup(mainApp?: Application) {
+  async init(mainApp?: Application) {
     const Model = this.Model
     let table = Model(this.options.name) //
     let columns = await table.columnInfo()
@@ -53,18 +40,16 @@ export class BaseService extends KnexService {
       return _value
     }) //设置
     await this.buildDbSchema()
-  } //模型校验
+  }
+  //类型校验
   async validate(data: any, params: Params) {
     //必录入校验
     let vSchema = this.vSchema!
-    let result = vSchema(data)
+    await vSchema(data)
     const errors = vSchema.errors || []
-    // console.log(errors?.length, data, '错误长度')
-    // console.log(result, vSchema.errors)
     return errors //
   }
   async create(data: any, params?: any): Promise<any> {
-    // let _create = super.create
     //获取数据库的字段
     if (Array.isArray(data)) {
       let result = await this.multiCraete(data, params)
@@ -90,7 +75,6 @@ export class BaseService extends KnexService {
   //@ts-ignore
   async _create(_data: any, _params: ServiceParams = {} as ServiceParams) {
     let data = _data as any
-    console.log(_data, '_data') //
     const params = _params as KnexAdapterParams
     //@ts-ignore
     const { client } = this.db(params)

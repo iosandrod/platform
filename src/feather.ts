@@ -22,7 +22,7 @@ export class myFeathers extends Feathers<any, any> {
     const createFn = subAppCreateMap[appName] //
     if (typeof createFn !== 'function') return// 不存在的服务不需要注册
     //@ts-ignore
-    const subApp = createFn(this) //
+    const subApp = createFn(this, companyId) //
     let key = `${appName}_${companyId}`//
     let routePath = `/${key}`//
     this.use(routePath, subApp)

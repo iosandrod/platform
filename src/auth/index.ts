@@ -2,6 +2,7 @@ import { AuthenticationBase, AuthenticationRequest, AuthenticationService } from
 import { Application } from '@feathersjs/feathers'
 import { IncomingMessage, ServerResponse } from 'http'
 import { JWTStrategy } from '@feathersjs/authentication'
+import { LocalStrategy } from '@feathersjs/authentication-local'
 export class myAuth extends AuthenticationService {
   //   constructor(app: Application, configKey: string, options: any) {
   //     super(app, configKey, options)
@@ -11,16 +12,9 @@ export class myAuth extends AuthenticationService {
     return result //
   }
 }
-export const auth = (app: Application) => {
+export const mainAuth = (app: Application) => {
   let s = new myAuth(app, 'authentication', {}) //
   s.register('jwt', new JWTStrategy())
-  app.use('authentication', s, {
-    koa: {
-      before: [
-        async (context, next) => {
-          await next() //
-        }
-      ] //
-    } //
-  }) //
+  s.register('local', new LocalStrategy())
+  app.use('authentication', s)
 }

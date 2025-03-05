@@ -27,6 +27,7 @@ export const services = (app: Application) => {
         let routesMethods = routes.map(route => route.path)
         //@ts-ignore
         let ts = app.use(p, service, {
+            //@ts-ignore
             methods: [...defaultServiceMethods, ...routesMethods], // //
             koa: {
                 before: [
@@ -35,15 +36,14 @@ export const services = (app: Application) => {
                     }
                 ]
             }
-        })
-        //
+        })//
         ts.hooks({
             around: {
                 all: [
                     async (context: HookContext, next) => {
                         await next()
                     }
-                ] //
+                ]
             }
         })
     }
