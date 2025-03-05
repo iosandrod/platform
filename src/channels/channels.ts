@@ -2,9 +2,8 @@
 import type { RealTimeConnection, Params } from '@feathersjs/feathers'
 import type { AuthenticationResult } from '@feathersjs/authentication'
 import '@feathersjs/transport-commons'
-import type { Application, HookContext } from './declarations'
-import { logger } from './logger'
-
+import type { Application, HookContext } from '../declarations'
+import { logger } from '../utils/logger'
 export const channels = (app: Application) => {
   logger.warn(
     'Publishing all events to all authenticated users. See `channels.ts` and https://dove.feathersjs.com/api/channels.html for more information.'
@@ -26,6 +25,7 @@ export const channels = (app: Application) => {
   }) //
   // eslint-disable-next-line no-unused-vars
   app.publish((data: any, context: HookContext) => {
+    //所有消息都发送到这里来了
     return app.channel('authenticated')
   })
 }

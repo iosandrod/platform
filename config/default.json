@@ -9,8 +9,39 @@
     "default": 10,
     "max": 50
   },
+  "authentication": {
+    "entity": "user",
+    "service": "users",
+    "secret": "VL59H5Mz4td/nR/oxTumJrwCKOgeltEZ",
+    "authStrategies": [
+      "jwt",
+      "local"
+    ],
+    "jwtOptions": {
+      "header": { 
+        "typ": "access"
+      },
+      "audience": "https://yourdomain.com",
+      "algorithm": "HS256",
+      "expiresIn": "1d"
+    },
+    "local": {
+      "usernameField": "email",
+      "passwordField": "password"
+    },
+    "oauth": {
+      "github": {
+        "key": "",
+        "secret": ""
+      }
+    }
+  },
   "postgresql": {
     "client": "pg",
     "connection": "postgres://postgres:123456@localhost:5432/platform"
+  },
+  "appDb":{
+    "client": "pg",
+    "connection": "postgres://postgres:123456@localhost:5432/erp"
   }
 }

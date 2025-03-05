@@ -44,7 +44,6 @@ export const services = (app: Application) => {
     })
   }
 }
-export const mergeServiceOptions = (options1: KnexAdapterOptions, options2: KnexAdapterOptions) => { }
 //构建service实例
 export const createServices = (serverName: keyof typeof createMap, options: any, app: Application) => {
   let createClass = createMap[serverName]
@@ -53,13 +52,9 @@ export const createServices = (serverName: keyof typeof createMap, options: any,
   let Model = app.get('postgresqlClient')
   _.merge(_options, {
     methods, name: serverName, Model,
-    // schema: serverName 
   } as KnexAdapterOptions) //
   let service = new createClass(_options) //
   //@ts-ignore
-  let routes = service.routes
-  // if (Array.isArray(routes) && routes.length > 0) {
-  // }
   return service
 }
 
