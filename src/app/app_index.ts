@@ -5,6 +5,7 @@ import { appPostgresql } from './db/app_postgresql'
 import { services } from './app_service'
 import { routing } from '@feathersjs/transport-commons'
 import { appAuthenticate } from './app_auth/app_authenticate'
+import { appSocketio } from './socketio/app_socketio'//
 
 export const createApp = (mainApp: Application, companyId: string) => {
   const app = feathers()
@@ -18,6 +19,11 @@ export const createApp = (mainApp: Application, companyId: string) => {
   app.configure(appPostgresql)//设置数据库
   app.configure(services)//设置服务
   app.configure(appAuthenticate)//设置认证
+  //@ts-ignore
+  app.configure(appSocketio({
+    namespace: `erp_${companyId}`,
+    origin: app.get('origins')
+  }))//
   //先进行普通的用户校验
   return app
 }

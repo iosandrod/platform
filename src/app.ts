@@ -87,6 +87,7 @@ export async function createApp() {
             await service.init(sApp) //
           }
         }
+        await next()//
       }
     ],
     teardown: []
