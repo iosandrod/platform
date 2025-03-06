@@ -6,15 +6,18 @@ import { services } from './app_service'
 import { routing } from '@feathersjs/transport-commons'
 import { appAuthenticate } from './app_auth/app_authenticate'
 import { appSocketio } from './socketio/app_socketio'//
+import { koa } from '@feathersjs/koa'
 
 export const createApp = (mainApp: Application, companyId: string) => {
-  const app = feathers()
+  const app1 = feathers()
+  // const app = koa(app1)//
+  const app = app1
   //@ts-ignore
   app.mainApp = mainApp //
   app.set('appName', 'erp')//
   app.set('companyid', companyId)
   app.configure(configuration(configurationValidator))
-  app.configure(routing)//设置路由和认证相关的//
+  app.configure(routing())//设置路由和认证相关的//
   //前台需要知道用户的角色和ID才可以进行操作
   app.configure(appPostgresql)//设置数据库
   app.configure(services)//设置服务

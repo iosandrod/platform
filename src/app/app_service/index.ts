@@ -6,6 +6,7 @@ import { RoleService } from './roles.service'
 import { KnexAdapterOptions } from '@feathersjs/knex'
 import _ from 'lodash'//
 import { FeathersKoaContext } from '@feathersjs/koa'
+import { hooks } from '@feathersjs/hooks'//
 
 const createMap = {
     users: UsersService,
@@ -14,7 +15,6 @@ const createMap = {
 }
 
 export const services = (app: Application) => {
-    // All services will be registered here
     let names = Object.keys(createMap) //
     let allServices = names.map((name: any) => {
         let obj = { path: name, service: createServices(name, null, app) }
@@ -23,6 +23,15 @@ export const services = (app: Application) => {
     for (const obj of allServices) {
         const p: string = obj.path //装饰
         const service = obj.service
+        // if(!hooksMetaData){
+
+        // }
+        let hooksMetaData = service.hooksMetaData
+        if (hooksMetaData != null && Array.isArray(hooksMetaData)) {
+            for (const hook of hooksMetaData) {
+                hooks(service, hook)
+            }
+        }
         let routes = service.routes || [] //
         let routesMethods = routes.map(route => route.path)
         //@ts-ignore
@@ -36,7 +45,7 @@ export const services = (app: Application) => {
                     }
                 ]
             }
-        })//
+        })
         ts.hooks({
             around: {
                 all: [
@@ -46,6 +55,7 @@ export const services = (app: Application) => {
                 ]
             }
         })
+
     }
 }
 

@@ -125,7 +125,7 @@ export function socket({ done, emit, socketMap, socketKey, getParams }: any) {
                     return result
                 }, {} as any)
                 Object.keys(methodHandlers).forEach((key) => {
-                    // console.log(connection,'testConnect')//
+                    // console.log(connection, 'testConnect')//
                     connection.on(key, (...args: any[]) => {
                         methodHandlers[key](...args)
                     })
@@ -206,6 +206,7 @@ export async function runMethod(
         if (lookup === null) {
             throw new NotFound(path === null ? `Invalid service path` : `Service '${path}' not found`)
         }
+        // console.log('我执行到这里')//
         const { service, params: route = {} } = lookup
         const { methods } = getServiceOptions(service)
         // Only service methods are allowed

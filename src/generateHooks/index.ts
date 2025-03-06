@@ -34,3 +34,30 @@ export const createUsersPasswordHook = (config?: any) => {
         }
     }
 }
+
+export const createPasswordTransform = (tConfig?: any) => {
+    //@ts-ignore
+    return async (value, data, context) => {
+        const { app, params } = context//
+        let options = { strategy: 'local', authentication: 'authentication' }//
+        const { strategy = 'local' } = options
+        //@ts-ignore
+        const authService = app!.defaultAuthentication(options.authentication)
+        const [localStrategy] = authService.getStrategies(strategy) as LocalStrategy[]
+        if (!localStrategy || typeof localStrategy.hashPassword !== 'function') {
+            throw new BadRequest(`Could not find '${strategy}' strategy to hash password`)
+        }
+        let field = authService.configuration.local?.passwordField || 'password'
+        let addHashedPassword = async (data: any) => {
+            const password = get(data, field)
+            if (password === undefined) {
+                debug(`hook.data.${field} is undefined, not hashing password`)
+                throw new BadRequest(`hook.data.${field} is undefined, not hashing password`)
+            }
+            const hashedPassword: string = await localStrategy.hashPassword(password, params)
+            return hashedPassword
+        }
+        let nPassword = await addHashedPassword(data)
+        return nPassword
+    }
+}

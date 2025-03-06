@@ -18,14 +18,15 @@ const RETURNING_CLIENTS = ['postgresql', 'pg', 'oracledb', 'mssql', 'sqlite3']
 export type columnInfo = Partial<Knex.ColumnInfo & { field: string }>
 import { hooks } from '@feathersjs/hooks'
 export class BaseService extends KnexService {
-  hooksMetaData: any = {}
+  hooksMetaData?: any[]
+  transformMetaData?: any
   vSchema?: ValidateFunction
   totalSchema?: TObject
   pickSchame?: TPick<any, any>
   constructor(options: any) {
     super(options)
   }
-  routes?: routeConfig[] = []
+  routes?: routeConfig[]
   columns: string[] = []
   columnInfo: columnInfo[] = []
   async init(mainApp?: Application) {
@@ -39,6 +40,7 @@ export class BaseService extends KnexService {
       let _value = { ...value, field: key }
       return _value
     }) //设置
+    //构建校验
     await this.buildDbSchema()
   }
   //类型校验
