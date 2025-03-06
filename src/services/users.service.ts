@@ -14,8 +14,7 @@ export class UsersService extends BaseService {
     hooks(this, {
       create: [
         async function (context: HookContext, next) {
-          console.log(Object.keys(context), '111')//
-          await next()
+          await next() //
         }
       ],
       //这种写法适合有methods的//
@@ -30,6 +29,6 @@ export class UsersService extends BaseService {
   async getSomeUser(context: any, params: any) {
     return {
       test: 1
-    }
-  }
+    } //
+  } //
 }
