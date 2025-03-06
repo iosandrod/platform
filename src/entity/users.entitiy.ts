@@ -9,7 +9,7 @@ export class User extends BaseEntity {
   username: string
   @Column({ type: 'varchar', unique: true })
   email: string
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar',nullable: true })
   password: string //
   @Column({ type: 'varchar', nullable: true })//
   companyid: string
@@ -18,4 +18,4 @@ export class User extends BaseEntity {
   @ManyToMany(() => Role, { nullable: true })
   @JoinTable({ name: "user_roles" }) // 用户角色表
   roles: Role[]
-}
+}//
