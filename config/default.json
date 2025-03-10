@@ -3,7 +3,8 @@
   "port": 3031,
   "public": "./public/",
   "origins": [
-    "http://localhost:3031"
+    "http://localhost:3031",
+    "https://localhost:5173"
   ],
   "paginate": {
     "default": 10,

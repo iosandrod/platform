@@ -26,7 +26,6 @@ export const createApp = (mainApp: Application, companyId: string) => {
   app.configure(appSocketio({
     namespace: `erp_${companyId}`,
     origin: app.get('origins')
-  }))//
-  //先进行普通的用户校验
+  }))
   return app
 }
