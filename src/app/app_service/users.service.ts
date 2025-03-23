@@ -18,7 +18,7 @@ export class UsersService extends BaseService {
     //创建用户l
     @useMethodTransform({
         //@ts-ignore
-        password: createPasswordTransform()
+        password: createPasswordTransform(),
     })
     async create(...args: any[]) {
         //@ts-ignore
