@@ -5,8 +5,7 @@ import { HookContext, hooks } from '@feathersjs/hooks'
 import { BadRequest } from '@feathersjs/errors'
 import { cloneDeep, get, set } from 'lodash'
 import { debug } from 'feathers-hooks-common'
-import { createPasswordTransform, } from '../generateHooks'
-// @useTransformHooks(createUsersPasswordHook())//
+import { createPasswordTransform } from '../generateHooks'
 export class UsersService extends BaseService {
   constructor(options: any) {
     super(options) //
@@ -17,7 +16,7 @@ export class UsersService extends BaseService {
     return {
       test: 111
     }
-  }
+  } //
   @useMethodTransform({
     //@ts-ignore
     password: createPasswordTransform()
@@ -27,8 +26,9 @@ export class UsersService extends BaseService {
     return await super.create(...args)
   }
   @useRoute()
-  @useAuthenticate()//
-  async getOneUser(context: any, params: any) {//
+  @useAuthenticate() //
+  async getOneUser(context: any, params: any) {
+    //
     return {
       test: 2
     }
