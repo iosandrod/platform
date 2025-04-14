@@ -16,3 +16,4 @@ export class BaseService extends MainBaseService {
     await super.init(mainApp)//
   }
 }
+export default BaseService

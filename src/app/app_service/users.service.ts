@@ -25,3 +25,4 @@ export class UsersService extends BaseService {
         return await super.create(...args)
     }
 }
+export default UsersService

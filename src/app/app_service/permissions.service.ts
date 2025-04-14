@@ -5,3 +5,4 @@ export class PermissinoService extends BaseService {
         super(options)
     }
 }
+export default PermissinoService

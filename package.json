@@ -44,7 +44,7 @@
     "bundle:client": "npm run compile && npm pack --pack-destination ./public",
     "migrate": "knex migrate:latest",
     "migrate:make": "knex migrate:make",
-    "migrate:app": "cross-env NODE_ENV=development ts-node ./dbScript.ts",
+    "migrate:app": "cross-env NODE_ENV=development ts-node ./appDbScript.ts",
     "migrate:main": "cross-env NODE_ENV=main ts-node ./dbScript.ts"
   },
   "dependencies": {

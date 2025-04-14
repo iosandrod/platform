@@ -6,7 +6,7 @@ import { BadRequest } from '@feathersjs/errors'
 import { cloneDeep, get, set } from 'lodash'
 import { debug } from 'feathers-hooks-common'
 import { createPasswordTransform } from '../generateHooks'
-export class UsersService extends BaseService {
+export class EntityService extends BaseService {
   constructor(options: any) {
     super(options) //
   }
@@ -34,4 +34,5 @@ export class UsersService extends BaseService {
     }
   }
 }
-export default UsersService
+
+export default EntityService

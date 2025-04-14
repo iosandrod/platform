@@ -8,24 +8,23 @@ import { RolePermission } from './src/entity/role_permission.entity'
 import { DataSource, DataSourceOptions } from 'typeorm'
 import { UserRole } from './src/entity/user_role.entity'
 import { Navs } from './src/entity/navs.entity'
+import {} from './src/entity/columns.entity'
 import { ServiceEnitty } from './src/entity/services.entity'
 import { ColumnEntity } from './src/entity/columns.entity'
-import { Entity } from './src/entity/entity.entity'
-import { Company } from './src/entity/company.entity'
 function main() {
   let dbConfig: DataSourceOptions = {
     type: 'postgres',
     host: 'localhost',
     port: 5432,
-    username: 'postgres',//
+    username: 'postgres',
     password: '123456',
-    database: 'platform',
-    synchronize: true, ////
-    entities: [Entity, User, Role, Permission, RolePermission, UserRole, Navs, ColumnEntity,Company]
+    database: 'erp', //
+    synchronize: true,
+    entities: [User, Role, Permission, RolePermission, UserRole] //
   }
   const dataSource = new DataSource(dbConfig)
   dataSource.initialize().then(() => {
-    console.log('主数据库创建成功') //
-  }) //
+    console.log('数据库创建成功') //
+  })
 }
 main()

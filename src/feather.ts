@@ -2,8 +2,9 @@ import { Feathers } from '@feathersjs/feathers'
 // import { Service } from '@feathersjs/feathers'
 import { Application } from './declarations'
 import { createApp } from './app/app_index'
+import knex, { Knex } from 'knex'
 export const subAppCreateMap = {
-  erp: createApp,//
+  erp: createApp //
 }
 //构建自己的feather
 export class myFeathers extends Feathers<any, any> {
@@ -11,20 +12,46 @@ export class myFeathers extends Feathers<any, any> {
     [key: string]: Application
   } = {}
   async getAllSubApp() {
-    const services = this.services//
-  }//
+    const services = this.services //
+  } //
   async getAllCompany() {
     const companyService = this.service('company') //
-    const company = await companyService.find()
+    const company = await companyService.find() //
+    return company //
+  } //
+  async getDefaultEntity(companyId: string) {
+    let client = this.get('postgresqlClient')
+    let allCompany = await client('company').select() //
   }
-  async getAllApp() { }
+  async createCompany(config: any) {
+    let client = this.get('postgresqlClient')
+    let name = config.name
+    let companies = await client('company').where('name', name).select()
+    if (companies.length === 0) {
+      let connection = config.connection
+      let type = config.type
+      if (connection == null) {
+        return
+      }
+      let _client = knex({
+        client: type,
+        connection: connection
+      })
+      await client('company').insert(config) //
+    }
+  }
+  async getAllApp() {}
   async registerSubApp(appName: keyof typeof subAppCreateMap, companyId: string) {
+    const allEn = null
+    let c: Knex = this.get('postgresqlClient')
+    // let entities = await c('entity').select() //
+    await this.getDefaultEntity(companyId) //
     const createFn = subAppCreateMap[appName] //
-    if (typeof createFn !== 'function') return// 不存在的服务不需要注册
+    if (typeof createFn !== 'function') return // 不存在的服务不需要注册
     //@ts-ignore
-    const subApp = createFn(this, companyId) //
-    let key = `${appName}_${companyId}`//
-    let routePath = `/${key}`//
+    const subApp = await createFn(this, companyId) //
+    let key = `${appName}_${companyId}` //
+    let routePath = `/${key}` //
     this.use(routePath, subApp)
     let subAppMap = this.subApp
     //@ts-ignore
@@ -34,6 +61,6 @@ export class myFeathers extends Feathers<any, any> {
 }
 export const createFeathers = () => {
   //@ts-ignore
-  const feathers = new myFeathers() as Application//
-  return feathers//
+  const feathers = new myFeathers() as Application //
+  return feathers //
 }

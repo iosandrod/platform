@@ -94,7 +94,6 @@ export function useMethodTransform(config: methodTransform) {
 
 
 export function useTransformHooks(config: tranformConfig) {
-  // console.log(config, 'testConfig')//
   return function (target: any) {//
     let newConstruction = function (...args: any[]) {
       let obj = new target(...args)

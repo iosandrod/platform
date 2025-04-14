@@ -17,3 +17,5 @@ export class RoleService extends BaseService {
         }
     }
 }
+
+export default RoleService

@@ -7,9 +7,11 @@ import _ from 'lodash'
 import { FeathersKoaContext } from '@feathersjs/koa'
 import { AppService } from './app.service'
 import { UsersService } from './users.service'
-import { hooks } from '@feathersjs/hooks'//
+import { hooks } from '@feathersjs/hooks' //
+import * as fs from 'fs'
+import * as path from 'path'
+import { pathToFileURL } from 'url'
 export const services = (app: Application) => {
-  // All services will be registered here
   let names = Object.keys(createMap) //
   let allServices = names.map((name: any) => {
     let obj = { path: name, service: createServices(name, null, app) }
@@ -48,7 +50,9 @@ export const createServices = (serverName: keyof typeof createMap, options: any,
   const methods = defaultServiceMethods //
   let Model = app.get('postgresqlClient')
   _.merge(_options, {
-    methods, name: serverName, Model,
+    methods,
+    name: serverName,
+    Model
   } as KnexAdapterOptions) //
   let service = new createClass(_options) //
   //@ts-ignore
@@ -59,4 +63,26 @@ const createMap = {
   company: CompanyService,
   app: AppService,
   users: UsersService
+}
+export async function importModulesFromFolder(directory: string) {
+  const files = await fs.readdirSync(directory)
+  const modules = [] as any
+  for (const file of files) {
+    let fileName = file.split('\\').pop()
+    if (!/service/.test(fileName || '') || fileName === 'base.service.ts') {
+      continue
+    }
+    const ext = path.extname(file)
+    if (ext !== '.ts' && ext !== '.js') continue
+    if (fileName == null) {
+      continue
+    }
+    const module = await import(path.join(__dirname, fileName)) //
+    let _default = module.default //
+    if (_default == null) {
+      continue
+    }
+    modules.push(_default) // 支持 default 导出
+  }
+  return modules
 }

@@ -1,3 +1,7 @@
 import { BaseService } from './base.service'
 
-export class CompanyService extends BaseService { }
+export class CompanyService extends BaseService {
+    
+}
+
+export default CompanyService
