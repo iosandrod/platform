@@ -3,11 +3,13 @@ import { Feathers } from '@feathersjs/feathers'
 import { Application } from './declarations'
 import { createApp } from './app/app_index'
 import knex, { Knex } from 'knex'
+import { cacheValue } from './decoration'
 export const subAppCreateMap = {
   erp: createApp //
 }
 //构建自己的feather
 export class myFeathers extends Feathers<any, any> {
+  cache: { [key: string]: any } = {}
   cacheKnex: { [key: string]: Knex } = {}
   subApp: {
     [key: string]: Application
@@ -54,7 +56,7 @@ export class myFeathers extends Feathers<any, any> {
       let companyInfo = await client('company').where('name', company).select() //
       let row = companyInfo[0]
       if (row == null) {
-        throw new Error(`company ${company} not found` ) //
+        throw new Error(`company ${company} not found`) //
       }
       let connection = companyInfo[0].connection //
       let type = companyInfo[0].type //
@@ -78,11 +80,25 @@ export class myFeathers extends Feathers<any, any> {
       return _client
     }
   }
+  @cacheValue() //
   async getCompanyTable(companyid: string) {
     let _connect = await this.getCompanyConnection(companyid) //
-    let sql = `select * from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE'`//
+    let sql = `select * from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE'` //
     let tables = await _connect.raw(sql) //
     return tables //
+  }
+  clearCache(fnName: string, key: string) {
+    if (fnName == null) {
+      return
+    }
+    let cache = this.cache
+    let allKeys = Object.keys(cache)
+    for (const key of allKeys) {
+      let reg = new RegExp(`^${fnName}--`)
+      if (reg.test(key)) {
+        delete cache[key] //
+      }
+    }
   }
   getClient() {
     return this.get('postgresqlClient')

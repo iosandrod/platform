@@ -120,7 +120,7 @@ export function useHook(config: HookOptions<any, any>) {
   }
 }
 
-export function cacheValue(config: any) {
+export function cacheValue(config?: Function) {
   let cacheReturnValue = function cacheReturnValue(
     target: any,
     propertyKey: string,
@@ -133,6 +133,12 @@ export function cacheValue(config: any) {
         let cache = this.cache //
         let id = args[0]
         let _key = `${propertyKey}--${id}`
+        if (typeof config === 'function') {
+          let _key1 = await config.apply(this, args)
+          if (typeof _key1 === 'string') {
+            _key = _key1
+          }
+        }
         let _value = cache[_key]
         if (_value != null) {
           //
@@ -151,9 +157,14 @@ export function cacheValue(config: any) {
         let cache = this.cache //
         let id = args[0]
         let _key = `${propertyKey}--${id}`
+        if (typeof config === 'function') {
+          let _key1 = config.apply(this, args) //
+          if (typeof _key1 === 'string') {
+            _key = _key1
+          }
+        }
         let _value = cache[_key]
         if (_value != null) {
-          //
           return _value //
         }
         let result = originalMethod.apply(this, args)
@@ -162,4 +173,5 @@ export function cacheValue(config: any) {
       } //
     }
   }
+  return cacheReturnValue
 }
