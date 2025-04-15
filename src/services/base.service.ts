@@ -100,7 +100,7 @@ export class BaseService extends KnexService {
       let field = item.field!
       let type = item.type as keyof typeof typeMap
       let nullable = item.nullable
-      let _obj1 = typeMap[type]
+      let _obj1 = typeMap[type]//构建校验的函数//
       let _obj = null
       if (nullable == true || (this.id == field && typeof _obj1 == 'function')) {
         try {
@@ -110,6 +110,11 @@ export class BaseService extends KnexService {
           console.log('字段类型没有映射', this.options.name, item.field, item.type)
         }
       } else {
+        if (typeof _obj1 != 'function') {
+          //@ts-ignore
+          console.log('字段类型没有函数映射',  this.options.name, item.field, item.type)
+          return result
+        }
         _obj = _obj1()
       }
       result[field] = _obj //

@@ -14,7 +14,7 @@ import { myFeathers } from '../feather'
       const app: myFeathers = context.app
       for (const res of result) {
         //获取所有表格//
-        let name = res.name //
+        let name = res.companyid //
         let allTable = await app.getCompanyTable(name)//
         res.entities = allTable ////
       }

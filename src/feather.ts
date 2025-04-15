@@ -53,7 +53,7 @@ export class myFeathers extends Feathers<any, any> {
       if (_knex != null) {
         return _knex //
       }
-      let companyInfo = await client('company').where('name', company).select() //
+      let companyInfo = await client('company').where('companyid', company).select() //
       let row = companyInfo[0]
       if (row == null) {
         throw new Error(`company ${company} not found`) //
@@ -83,8 +83,36 @@ export class myFeathers extends Feathers<any, any> {
   @cacheValue() //
   async getCompanyTable(companyid: string) {
     let _connect = await this.getCompanyConnection(companyid) //
-    let sql = `select * from information_schema.tables where table_schema = 'public' and table_type = 'BASE TABLE'` //
-    let tables = await _connect.raw(sql) //
+    let sql = `SELECT 
+    table_schema,
+    table_name,
+    column_name,
+    ordinal_position,
+    data_type,
+    character_maximum_length,
+    numeric_precision,
+    numeric_scale,
+    is_nullable,
+    column_default
+FROM information_schema.columns
+WHERE table_schema = 'public'
+ORDER BY table_schema, table_name, ordinal_position`
+
+    let allColumns = await _connect.raw(sql) ////
+    allColumns = allColumns.rows
+    let tables = allColumns.reduce((p: any, column: any) => {
+      let table_name = column.table_name //
+      let tableObj = p[table_name]
+      if (tableObj == null) {
+        p[table_name] = {
+          columns: [],
+          tableName: table_name //
+        }
+        tableObj = p[table_name]
+      }
+      tableObj.columns.push(column) ////
+      return p //
+    }, {})
     return tables //
   }
   clearCache(fnName: string, key: string) {
