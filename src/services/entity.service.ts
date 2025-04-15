@@ -1,5 +1,5 @@
 import { LocalStrategy } from '@feathersjs/authentication-local'
-import { useAuthenticate, useMethodTransform, useRoute, useTransformHooks } from '../decoration'
+import { useAuthenticate, useMethodTransform, useRoute,  } from '../decoration'
 import { BaseService } from './base.service'
 import { HookContext, hooks } from '@feathersjs/hooks'
 import { BadRequest } from '@feathersjs/errors'

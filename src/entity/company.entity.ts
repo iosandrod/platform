@@ -1,6 +1,8 @@
 import { Column, Entity } from 'typeorm'
 import { BaseEntity } from './base.entity'
+import { useHook } from '../decoration'
 @Entity('company') //
+
 export class Company extends BaseEntity {
   @Column({ nullable: true })
   name: string //

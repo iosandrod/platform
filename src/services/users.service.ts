@@ -1,12 +1,19 @@
 import { LocalStrategy } from '@feathersjs/authentication-local'
-import { useAuthenticate, useMethodTransform, useRoute, useTransformHooks } from '../decoration'
+import { useAuthenticate, useHook, useMethodTransform, useRoute } from '../decoration'
 import { BaseService } from './base.service'
 import { HookContext, hooks } from '@feathersjs/hooks'
 import { BadRequest } from '@feathersjs/errors'
 import { cloneDeep, get, set } from 'lodash'
 import { debug } from 'feathers-hooks-common'
 import { createPasswordTransform } from '../generateHooks'
-export class UsersService extends BaseService {
+@useHook({
+  create: [
+    async function (context: any, next: any) {
+      await next()
+    }
+  ]
+}) //
+export class UsersService extends BaseService { 
   constructor(options: any) {
     super(options) //
   }

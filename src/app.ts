@@ -53,7 +53,7 @@ export async function createApp() {
     error: {}
   })
   const allCompany=await app.getAllCompany()
-  console.log(allCompany,'testCompany')//
+  // console.log(allCompany,'testCompany')//
   for (const sApp of appArr) {
     //@ts-ignore
     await app.registerSubApp(sApp.name, sApp.companyid)
