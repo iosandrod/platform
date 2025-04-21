@@ -131,8 +131,8 @@ export function cacheValue(config?: Function) {
       descriptor.value = async function (...args: any[]) {
         //@ts-ignore
         let cache = this.cache //
-        let id = args[0]
-        let _key = `${propertyKey}--${id}`
+        let id = args[0] || ''
+        let _key = `${propertyKey}--${id}` //
         if (typeof config === 'function') {
           let _key1 = await config.apply(this, args)
           if (typeof _key1 === 'string') {
@@ -155,7 +155,7 @@ export function cacheValue(config?: Function) {
       descriptor.value = function (...args: any[]) {
         //@ts-ignore
         let cache = this.cache //
-        let id = args[0]
+        let id = args[0] || '' //
         let _key = `${propertyKey}--${id}`
         if (typeof config === 'function') {
           let _key1 = config.apply(this, args) //

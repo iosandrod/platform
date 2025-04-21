@@ -4,11 +4,14 @@ import { Application } from './declarations'
 import { createApp } from './app/app_index'
 import knex, { Knex } from 'knex'
 import { cacheValue } from './decoration'
+import { nanoid } from './utils'
+// const nanoid = () => 'xxxxx' //
 export const subAppCreateMap = {
   erp: createApp //
 }
 //构建自己的feather
 export class myFeathers extends Feathers<any, any> {
+  mainApp?: myFeathers
   cache: { [key: string]: any } = {}
   cacheKnex: { [key: string]: Knex } = {}
   subApp: {
@@ -20,16 +23,12 @@ export class myFeathers extends Feathers<any, any> {
   async getAllCompany() {
     const companyService = this.service('company') //
     const company = await companyService.find() //
-    return company //
+    return company ////
   } //
-  async getDefaultEntity(companyId: string) {
-    let client = this.get('postgresqlClient')
-    let allCompany = await client('company').select() //
-  }
   async createCompany(config: any) {
-    let client = this.get('postgresqlClient')
-    let name = config.name
-    let companies = await client('company').where('name', name).select()
+    let client: Knex = this.get('postgresqlClient')
+    let name = config.name //创建公司
+    let companies = await client('company').where('name', name).select() //
     if (companies.length === 0) {
       let connection = config.connection
       let type = config.type
@@ -45,15 +44,21 @@ export class myFeathers extends Feathers<any, any> {
   }
   async getAllApp() {} //
   //@ts-ignore
-  async getCompanyConnection(company: any): Promise<Knex> {
+  async getCompanyConnection(company: any, appName = 'erp'): Promise<Knex> {
     let client = this.getClient()
     if (typeof company === 'string') {
       let cacheKnex = this.cacheKnex
-      let _knex = cacheKnex[company]
+      let _key = `${appName}--${company}`
+      let _knex = cacheKnex[_key]
       if (_knex != null) {
         return _knex //
       }
-      let companyInfo = await client('company').where('companyid', company).select() //
+      let companyInfo = await client('company')
+        .where({
+          companyid: company,
+          appName: appName //
+        })
+        .select() ////
       let row = companyInfo[0]
       if (row == null) {
         throw new Error(`company ${company} not found`) //
@@ -64,7 +69,7 @@ export class myFeathers extends Feathers<any, any> {
         client: type,
         connection: connection
       })
-      cacheKnex[company] = _client //
+      cacheKnex[_key] = _client ////
       return _client
     }
     if (typeof company === 'object') {
@@ -81,8 +86,13 @@ export class myFeathers extends Feathers<any, any> {
     }
   }
   @cacheValue() //
-  async getCompanyTable(companyid: string) {
-    let _connect = await this.getCompanyConnection(companyid) //
+  async getCompanyTable(companyid?: string, appName = 'erp') {
+    let _connect = null
+    if (companyid == null) {
+      _connect = this.get('postgresqlClient')
+    } else {
+      _connect = await this.getCompanyConnection(companyid, appName) //
+    }
     let sql = `SELECT 
     table_schema,
     table_name,
@@ -116,13 +126,14 @@ ORDER BY table_schema, table_name, ordinal_position`
     return tables //
   }
   clearCache(fnName: string, key: string) {
+    //
     if (fnName == null) {
       return
     }
     let cache = this.cache
     let allKeys = Object.keys(cache)
     for (const key of allKeys) {
-      let reg = new RegExp(`^${fnName}--`)
+      let reg = new RegExp(`^${fnName}--`) //
       if (reg.test(key)) {
         delete cache[key] //
       }
@@ -135,7 +146,7 @@ ORDER BY table_schema, table_name, ordinal_position`
     const allEn = null
     let c: Knex = this.get('postgresqlClient')
     // let entities = await c('entity').select() //
-    await this.getDefaultEntity(companyId) //
+    // await this.getDefaultEntity(companyId) //
     const createFn = subAppCreateMap[appName] //
     if (typeof createFn !== 'function') return // 不存在的服务不需要注册
     //@ts-ignore
@@ -147,6 +158,91 @@ ORDER BY table_schema, table_name, ordinal_position`
     //@ts-ignore
     subAppMap[key] = subApp
     return subApp
+  }
+  getMainApp() {
+    return this.mainApp //
+  }
+  uuid() {
+    return nanoid() //
+  }
+  createIdKey(type: string, config?: any) {
+    let id = this.uuid()
+    let key = `${type}_${id}`
+    let obj = {
+      id: id,
+      key: key,
+      type: type,
+      style: {},
+      options: config //
+    }
+    if (config == null) {
+      delete obj.options
+    }
+    return obj
+  }
+  createFieldKey() {}
+  async getDefaultPageLayout(tableName: string) {
+    let allTable = await this.getCompanyTable()
+    let tableConfig = allTable[tableName]
+    let config = {
+      layout: {
+        pc: [
+          {
+            columns: [],
+            ...this.createIdKey('inline'),
+            style: {
+              height: '100%' //
+            }
+          }
+        ],
+        mobile: [
+          {
+            columns: [],
+            ...this.createIdKey('inline')
+          }
+        ]
+      },
+      fields: [
+        {
+          ...this.createIdKey('entity', tableConfig)
+        }
+      ],
+      data: {},
+      logic: {}
+    }
+    let pcLayout = config.layout.pc
+    let res = this.getLastNodeInLayout(pcLayout) //
+    let res1 = this.getLastNodeInLayout(config.layout.mobile)
+    res.forEach((item, i) => {
+      let _field = config.fields[i]
+      if (_field) {
+        item.columns.push(_field.id)
+      }
+    })
+    res1.forEach((item, i) => {
+      let _field = config.fields[i]
+      if (_field) {
+        item.columns.push(_field.id) //
+      }
+    })
+    return config //
+  }
+  getLastNodeInLayout(layout: any[], res: any[] = []) {
+    layout.forEach(item => {
+      if (item.type == 'inline') {
+        let columns = item.columns
+        if (columns.length == 0) {
+          res.push(item)
+        }
+        return
+      } else {
+        let children = [...(item.list || []), ...(item.columns || []), ...(item.rows || [])]
+        if (children.length > 0) {
+          this.getLastNodeInLayout(children, res)
+        }
+      }
+    })
+    return res
   }
 }
 export const createFeathers = () => {

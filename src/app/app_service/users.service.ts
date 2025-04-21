@@ -7,16 +7,18 @@ import { HashPasswordOptions } from '@feathersjs/authentication-local/lib/hooks/
 import { BadRequest } from '@feathersjs/errors'
 import { cloneDeep, get, set } from 'lodash'
 import { debug } from 'feathers-hooks-common'
-import { useAuthenticate, useHook, useMethodTransform } from '../../decoration'
+import { useAuthenticate, useHook, useMethodTransform, useRoute } from '../../decoration'
 import { createPasswordTransform } from '../../generateHooks'
 //创建数据转换器
-useHook({
-  
-})
+useHook({})
 export class UsersService extends BaseService {
   constructor(options: any) {
     //
     super(options)
+  }
+  @useRoute()
+  async getAllTable() {
+    return [] //
   }
   //创建用户l
   @useMethodTransform({

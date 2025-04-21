@@ -13,7 +13,7 @@ import { createPasswordTransform } from '../generateHooks'
     }
   ]
 }) //
-export class UsersService extends BaseService { 
+export class UsersService extends BaseService {
   constructor(options: any) {
     super(options) //
   }
@@ -24,6 +24,11 @@ export class UsersService extends BaseService {
       test: 111
     }
   } //
+  @useRoute() //
+  async getAllTable(context: any) {
+    console.log(context, 'testContext') ////
+    return
+  }
   @useMethodTransform({
     //@ts-ignore
     password: createPasswordTransform()

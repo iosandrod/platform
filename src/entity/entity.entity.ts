@@ -7,5 +7,4 @@ export class Entity extends BaseEntity {
   tableName: string
   @Column({ type: 'integer', nullable: true })
   navId: number
-}
-//
+} //

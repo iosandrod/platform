@@ -32,3 +32,4 @@ export const createClient = <Configuration = any,>(
 
   return client
 }
+
