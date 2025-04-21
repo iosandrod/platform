@@ -9,10 +9,16 @@ export const typeMap: Record<string, any> = {
   numeric: () => Type.Number(), // 精确浮点数
   real: () => Type.Number(), // 4字节浮点数
   'double precision': () => Type.Number(), // 8字节浮点数
-
+  bit: () => Type.Integer({ minimum: 0, maximum: 1 }), // 1字节
+  money: () =>
+    Type.Number({
+      minimum: 0
+    }), // 8字节浮点数
   // 📝 字符串类型
+  xml: () => Type.String(),
   char: (length = 1) => Type.String({ minLength: length, maxLength: length }), // 固定长度
   varchar: (length = 255) => Type.String({ maxLength: length }), // 可变长度
+  character: () => Type.String(),
   text: () => Type.String(), // 无限长度文本
 
   // ✅ 布尔类型

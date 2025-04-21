@@ -1,11 +1,11 @@
 import { errorHandler, KnexAdapterParams, KnexService } from '@feathersjs/knex'
 import { Knex } from 'knex'
 import { Application } from '../declarations'
-import { routeConfig } from '../decoration'
+import { routeConfig, useHook } from '../decoration'
 import { typeMap } from './validate/typeMap'
 import { AdapterQuery } from '@feathersjs/adapter-commons'
 import { ServiceParams } from '@feathersjs/transport-commons/lib/http'
-import _ from 'lodash'
+import _, { result } from 'lodash'
 //@ts-ignore
 import { format } from '@scaleleap/pg-format'
 import { Params } from '@feathersjs/feathers'
@@ -17,6 +17,7 @@ const RETURNING_CLIENTS = ['postgresql', 'pg', 'oracledb', 'mssql', 'sqlite3']
 
 export type columnInfo = Partial<Knex.ColumnInfo & { field: string }>
 import { hooks } from '@feathersjs/hooks'
+import { myFeathers } from '../feather'
 export class BaseService extends KnexService {
   hooksMetaData?: any[]
   transformMetaData?: any
@@ -26,10 +27,13 @@ export class BaseService extends KnexService {
   constructor(options: any) {
     super(options)
   }
-  routes?: routeConfig[]
+  app: myFeathers //
+  routes?: routeConfig[] //
   columns: string[] = []
   columnInfo: columnInfo[] = []
   async init(mainApp?: Application) {
+    //@ts-ignore
+    this.app = mainApp
     const Model = this.Model
     let table = Model(this.options.name) //
     let columns = await table.columnInfo()
@@ -81,14 +85,15 @@ export class BaseService extends KnexService {
     //@ts-ignore
     const { client } = this.db(params)
     const returning = RETURNING_CLIENTS.includes(client.driverName) ? [this.id] : []
-    const rows: any = await this.db(params)
-      .insert(data, returning, { includeTriggerModifications: true })
-      .catch(errorHandler) //
+    const query: any = await this.db(params)
+      .insert(data, returning, { includeTriggerModifications: true }).toQuery()
+    let rows = await this.Model.raw(query).catch(errorHandler)//
+    // .catch(errorHandler) //
     //@ts-ignore
-    const id = data[this.id] || rows[0][this.id] || rows[0] //
-    if (!id) {
-      return rows
-    }
+    // const id = data[this.id] || rows[0][this.id] || rows[0] //
+    // if (!id) {
+    //   return rows
+    // }
     //返回新增的数组
     let _rows: any[] = rows //
     return _rows //
@@ -100,7 +105,7 @@ export class BaseService extends KnexService {
       let field = item.field!
       let type = item.type as keyof typeof typeMap
       let nullable = item.nullable
-      let _obj1 = typeMap[type]
+      let _obj1 = typeMap[type] //构建校验的函数//
       let _obj = null
       if (nullable == true || (this.id == field && typeof _obj1 == 'function')) {
         try {
@@ -110,6 +115,11 @@ export class BaseService extends KnexService {
           console.log('字段类型没有映射', this.options.name, item.field, item.type)
         }
       } else {
+        if (typeof _obj1 != 'function') {
+          //@ts-ignore
+          console.log('字段类型没有函数映射', this.options.name, item.field, item.type)
+          return result
+        }//
         _obj = _obj1()
       }
       result[field] = _obj //

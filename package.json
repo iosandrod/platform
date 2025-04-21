@@ -44,7 +44,7 @@
     "bundle:client": "npm run compile && npm pack --pack-destination ./public",
     "migrate": "knex migrate:latest",
     "migrate:make": "knex migrate:make",
-    "migrate:app": "cross-env NODE_ENV=development ts-node ./dbScript.ts",
+    "migrate:app": "cross-env NODE_ENV=development ts-node ./appDbScript.ts",
     "migrate:main": "cross-env NODE_ENV=main ts-node ./dbScript.ts"
   },
   "dependencies": {
@@ -69,6 +69,7 @@
     "feathers-hooks-common": "^8.2.1",
     "knex": "3.1.0",
     "lodash": "^4.17.21",
+    "nanoid": "^5.1.5",
     "pg": "8.13.3",
     "pg-format": "^1.0.4",
     "reflect-metadata": "^0.2.2",

@@ -30,4 +30,5 @@ export const createClient = <Configuration = any,>(
   client.configure(authenticationClient(authenticationOptions))
   client.set('connection', connection)
   return client
-}//createClient
+}
+

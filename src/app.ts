@@ -17,7 +17,7 @@ import { mainAuth } from './auth'
 export const appArr = [
   {
     companyid: '1',
-    name: 'erp',
+    name: 'erp'
   }
 ]
 export async function createApp() {
@@ -40,10 +40,11 @@ export async function createApp() {
     })
   )
   app.configure(postgresql)
-  app.configure(services)
+  // app.configure(services)
+  await services(app) //
   app.configure(channels)
   //设置用户认证
-  app.configure(mainAuth)//
+  app.configure(mainAuth) //
   app.hooks({
     around: {
       all: [logError]
@@ -52,6 +53,8 @@ export async function createApp() {
     after: {},
     error: {}
   })
+  const allCompany = await app.getAllCompany()
+  // console.log(allCompany,'testCompany')//
   for (const sApp of appArr) {
     //@ts-ignore
     await app.registerSubApp(sApp.name, sApp.companyid)
@@ -83,11 +86,11 @@ export async function createApp() {
           const allServices = Object.values(services)
           for (const service of allServices) {
             if (typeof service.init !== 'function') continue
-            //@ts-ignore 
+            //@ts-ignore
             await service.init(sApp) //
           }
         }
-        await next()//
+        await next() //
       }
     ],
     teardown: []

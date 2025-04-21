@@ -1,9 +1,15 @@
-import { ApplicationHookMap, ApplicationHookOptions, defaultServiceMethods, HookOptions } from "@feathersjs/feathers"
-import { AsyncContextFunction, HookFunction } from "feathers-hooks-common"
-import { stringToFunction } from "./utils"
+import {
+  ApplicationHookMap,
+  ApplicationHookOptions,
+  defaultServiceMethods,
+  HookOptions
+} from '@feathersjs/feathers'
+import { AsyncContextFunction, HookFunction } from 'feathers-hooks-common'
+import { stringToFunction } from './utils'
 import { hooks } from '@feathersjs/hooks'
 import { authenticate } from '@feathersjs/authentication'
-import { Application } from "@feathersjs/koa"
+import { Application } from '@feathersjs/koa'
+import { isAsyncFunction, isPromise } from 'util/types'
 function getData(obj: any, key: string, defaultValue?: any) {
   let _value = obj[key]
   if (_value == null) {
@@ -19,7 +25,7 @@ export type routeConfig = {
   event?: string[] //
 }
 export type tranformConfig = {
-  method: string,
+  method: string
   fn?: any
 }
 export function useRoute(config: routeConfig = {}) {
@@ -37,11 +43,10 @@ export function useRoute(config: routeConfig = {}) {
 }
 
 //使用校验规则
-export function useValidate(config: any) {
-
-}
+export function useValidate(config: any) {}
 export type useAuthConfig = {}
-export function useAuthenticate(config?: useAuthConfig) {//
+export function useAuthenticate(config?: useAuthConfig) {
+  //
   //方法装饰器
   //@ts-ignore
   return function (target, propertyKey, descriptor) {
@@ -53,9 +58,9 @@ export function useAuthenticate(config?: useAuthConfig) {//
       hooksMetaData = _target.hooksMetaData
     }
     let _config: HookOptions<any, any> = {
-      [propertyKey]: [authenticate('jwt')]//
+      [propertyKey]: [authenticate('jwt')] //
     }
-    hooksMetaData.push(_config)//
+    hooksMetaData.push(_config) //
     return descriptor
   }
 }
@@ -71,59 +76,102 @@ export function useMethodTransform(config: methodTransform) {
     let _value: any[] = getData(target, 'hooksMetaData', [])
     _value.push({
       //@ts-ignore
-      [propertyKey]: [async function (context, next) {
-        for (const [key, value] of Object.entries(config)) {
-          let data = context.data
-          let oldValue = data[key]
-          if (typeof value !== 'function') {
-            await next()//
+      [propertyKey]: [
+        //@ts-ignore
+        async function (context, next) {
+          for (const [key, value] of Object.entries(config)) {
+            let data = context.data
+            let oldValue = data[key]
+            if (typeof value !== 'function') {
+              await next() //
+            }
+            //@ts-ignore
+            let _value1 = await value(oldValue, data, context)
+            if (_value1 == null) {
+              continue
+            }
+            data[key] = _value1 //
           }
-          //@ts-ignore
-          let _value1 = await value(oldValue, data, context)
-          if (_value1 == null) {
-            continue
-          }
-          data[key] = _value1//
+          await next()
         }
-        await next()
-      }]
+      ]
     })
     return descriptor
   }
 }
 
+export function useHook(config: HookOptions<any, any>) {
+  //类装饰器
+  return function RunOnInstance(OriginalClass: any) {
+    function NewConstructor(...args: any[]) {
+      const instance = new OriginalClass(...args)
+      let _value: any[] = getData(instance, 'hooksMetaData', [])
+      if (typeof config !== 'object') {
+        return instance //
+      }
+      _value.push(config) //
+      return instance
+    }
 
-export function useTransformHooks(config: tranformConfig) {
-  // console.log(config, 'testConfig')//
-  return function (target: any) {//
-    let newConstruction = function (...args: any[]) {
-      let obj = new target(...args)
-      let method = config.method
-      let routes = obj.routes
-      let hasRoute = routes?.map((rou: any) => rou.path)?.includes(method)
-      if (!hasRoute && !defaultServiceMethods.includes(method)) {
-        return obj
-      }
-      let fn = config.fn
-      if (!Array.isArray(fn)) {
-        fn = [fn]
-      }
-      let _fn = fn.map((f: any) => {
-        if (typeof f == 'string') {
-          let _fn1 = stringToFunction(f)
-          return _fn1
-        }
-        if (typeof f == 'function') {
-          return f
-        }
-      }).filter((f: any) => f != null)
-      hooks(obj, {
-        [method]: _fn//
-      })
-      //@ts-ignore
-      return obj
-    }//
-    newConstruction.prototype = target.prototype
-    return newConstruction as any
+    // 拷贝原型，以保留原有方法
+    NewConstructor.prototype = OriginalClass.prototype
+    // 保持类型不报错（可选）//
+    return NewConstructor as any
   }
+}
+
+export function cacheValue(config?: Function) {
+  let cacheReturnValue = function cacheReturnValue(
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
+    const originalMethod = descriptor.value
+    if (isAsyncFunction(originalMethod)) {
+      descriptor.value = async function (...args: any[]) {
+        //@ts-ignore
+        let cache = this.cache //
+        let id = args[0] || ''
+        let _key = `${propertyKey}--${id}` //
+        if (typeof config === 'function') {
+          let _key1 = await config.apply(this, args)
+          if (typeof _key1 === 'string') {
+            _key = _key1
+          }
+        }
+        let _value = cache[_key]
+        if (_value != null) {
+          //
+          return _value //
+        }
+        let result = originalMethod.apply(this, args)
+        if (isPromise(result)) {
+          result = await result
+        }
+        cache[_key] = result //
+        return result //
+      }
+    } else {
+      descriptor.value = function (...args: any[]) {
+        //@ts-ignore
+        let cache = this.cache //
+        let id = args[0] || '' //
+        let _key = `${propertyKey}--${id}`
+        if (typeof config === 'function') {
+          let _key1 = config.apply(this, args) //
+          if (typeof _key1 === 'string') {
+            _key = _key1
+          }
+        }
+        let _value = cache[_key]
+        if (_value != null) {
+          return _value //
+        }
+        let result = originalMethod.apply(this, args)
+        cache[_key] = result ////
+        return result //
+      } //
+    }
+  }
+  return cacheReturnValue
 }
