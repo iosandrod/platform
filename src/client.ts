@@ -8,7 +8,7 @@ export interface Configuration {
   connection: TransportConnection<ServiceTypes>
 }
 
-export interface ServiceTypes {}
+export interface ServiceTypes { }
 
 export type ClientApplication = Application<ServiceTypes, Configuration>
 
@@ -29,6 +29,5 @@ export const createClient = <Configuration = any,>(
   client.configure(connection)
   client.configure(authenticationClient(authenticationOptions))
   client.set('connection', connection)
-
   return client
-}
+}//createClient

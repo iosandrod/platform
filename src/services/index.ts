@@ -39,6 +39,9 @@ export const services = (app: Application) => {
         ]
       }
     })
+    ts.on('created', (context: HookContext) => {
+      console.log('新增了')//
+    })
   }
 }
 //构建service实例

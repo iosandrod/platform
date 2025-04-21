@@ -9,6 +9,12 @@ import { createPasswordTransform } from '../generateHooks'
 export class UsersService extends BaseService {
   constructor(options: any) {
     super(options) //
+    //@ts-ignore
+    // hooks(this, {
+    //   before: {
+
+    //   }
+    // })
   }
   @useRoute()
   @useAuthenticate()
@@ -16,7 +22,7 @@ export class UsersService extends BaseService {
     return {
       test: 111
     }
-  } //
+  }
   @useMethodTransform({
     //@ts-ignore
     password: createPasswordTransform()
@@ -28,7 +34,6 @@ export class UsersService extends BaseService {
   @useRoute()
   @useAuthenticate() //
   async getOneUser(context: any, params: any) {
-    //
     return {
       test: 2
     }
