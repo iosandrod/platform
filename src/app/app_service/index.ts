@@ -58,6 +58,7 @@ export const services = async (app: Application, mainApp?: myFeathers) => {
   for (const obj of allServices) {
     const p: string = obj.path //装饰
     const service = obj.service
+    //@ts-ignore
     let hooksMetaData = service.hooksMetaData
     if (hooksMetaData != null && Array.isArray(hooksMetaData)) {
       for (const hook of hooksMetaData) {

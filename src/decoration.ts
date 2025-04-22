@@ -100,19 +100,25 @@ export function useMethodTransform(config: methodTransform) {
   }
 }
 
-export function useHook(config: HookOptions<any, any>) {
+export function useHook(config: HookOptions<any, any>,fn?:any) {
   //类装饰器
   return function RunOnInstance(OriginalClass: any) {
+    // console.log(OriginalClass,'aaa',fn)
     function NewConstructor(...args: any[]) {
       const instance = new OriginalClass(...args)
       let _value: any[] = getData(instance, 'hooksMetaData', [])
+      if(fn){
+      }
+      // console.log(config)
       if (typeof config !== 'object') {
         return instance //
       }
       _value.push(config) //
+      if(fn){
+        fn(instance)//
+      }
       return instance
     }
-
     // 拷贝原型，以保留原有方法
     NewConstructor.prototype = OriginalClass.prototype
     // 保持类型不报错（可选）//
@@ -144,7 +150,7 @@ export function cacheValue(config?: Function) {
           //
           return _value //
         }
-        let result = originalMethod.apply(this, args)
+        let result = await originalMethod.apply(this, args) //
         if (isPromise(result)) {
           result = await result
         }
@@ -167,7 +173,7 @@ export function cacheValue(config?: Function) {
         if (_value != null) {
           return _value //
         }
-        let result = originalMethod.apply(this, args)
+        let result = originalMethod.apply(this, args) //
         cache[_key] = result ////
         return result //
       } //

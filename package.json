@@ -35,7 +35,7 @@
   ],
   "main": "lib/client",
   "scripts": {
-    "dev": "nodemon -x ts-node src/main_index.ts",
+    "dev": "nodemon --exec \"node --inspect -r ts-node/register\" src/main_index.ts",
     "compile": "shx rm -rf lib/ && tsc",
     "start": "node lib/",
     "prettier": "npx prettier \"**/*.ts\" --write",
@@ -67,6 +67,7 @@
     "ajv": "^8.17.1",
     "feathers-casl": "^2.2.0",
     "feathers-hooks-common": "^8.2.1",
+    "ioredis": "^5.6.1",
     "knex": "3.1.0",
     "lodash": "^4.17.21",
     "nanoid": "^5.1.5",

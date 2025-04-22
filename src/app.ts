@@ -14,6 +14,7 @@ import { configuration } from './config'
 import { createFeathers, myFeathers } from './feather'
 import { BaseService } from './services/base.service'
 import { mainAuth } from './auth'
+import { redis } from './redis'
 export const appArr = [
   {
     companyid: '1',
@@ -31,6 +32,7 @@ export async function createApp() {
   app.use(parseAuthentication())
   app.use(bodyParser()) //
   app.configure(rest())
+  await redis(app) //
   //处理用户认证的事情//
   app.configure(
     socketio({

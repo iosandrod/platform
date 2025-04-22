@@ -42,6 +42,39 @@ export class myFeathers extends Feathers<any, any> {
       await client('company').insert(config) //
     }
   }
+  @cacheValue() //
+  async getRoles(userid: string) {
+    let s = this.service('roles')
+    if (typeof userid !== 'string') {
+      return []
+    }
+    let roles = await s.find()
+    roles = roles.filter((r: any) => r.userid == userid) //
+    return roles
+  }
+  @cacheValue((id: any) => {
+    if (Array.isArray(id)) {
+      return id.join(',')
+    } else {
+      return id //
+    }
+  })
+  async getPermissions(roleid: string) {
+    let s = this.service('permissions')
+    let permissions = await s.find()
+    if (typeof roleid == 'string') {
+      //@ts-ignore
+      roleid = [roleid]
+    } else if (Array.isArray(roleid)) {
+      roleid = roleid
+    }
+    permissions = permissions.filter((p: any) => roleid.includes(p.roleid)) ////
+    return permissions
+  }
+  @cacheValue()
+  getUserPermissions(userid: string) {
+    let roles = this.getRoles(userid)
+  }
   async getAllApp() {} //
   //@ts-ignore
   async getCompanyConnection(company: any, appName = 'erp'): Promise<Knex> {

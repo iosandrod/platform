@@ -20,7 +20,7 @@ export const services = async (app: myFeathers) => {
   let _names = await app.getCompanyTable()
   _names = Object.keys(_names) ////
   names = [...names, ..._names] //
-  names = names.filter((name, i) => names.indexOf(name) === i) //
+  names = names.filter((name, i) => names.indexOf(name) == i) //
   // console.log(names.length, 'testNames') //
   let allServices = names.map((name: any) => {
     let obj = { path: name, service: createServices(name, null, app as any) }
@@ -65,22 +65,20 @@ export const services = async (app: myFeathers) => {
     ts.hooks({
       after: {
         //@ts-ignore
-        all: [
-          //
-          async (context: any) => {}
-        ]
-      }
+       
+      },
     })
-    ts.on('created', (context: HookContext) => {
-      console.log('新增了')//
-    })
+    // ts.on('created', (context: HookContext) => {
+    //   console.log('新增了')//
+    // })
   }
 }
 //构建service实例
 export const createServices = (serverName: keyof typeof createMap, options: any, app: Application) => {
   let createClass = createMap[serverName]
-  if (createClass == null) {
-    createClass = BaseService //+
+  let _createClass=createClass
+  if (createClass == null) {//
+    createClass = BaseService //
   }
   let _options: KnexAdapterOptions = options || {}
   const methods = defaultServiceMethods //
@@ -91,6 +89,10 @@ export const createServices = (serverName: keyof typeof createMap, options: any,
     Model
   } as KnexAdapterOptions) //
   let service = new createClass(_options) //
+  if(_createClass==null){
+    //@ts-ignore
+    service.serviceName=serverName
+  }
   //@ts-ignore
   return service
 }

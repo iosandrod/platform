@@ -1,6 +1,6 @@
 import { errorHandler, KnexAdapterParams, KnexService } from '@feathersjs/knex'
 import { Knex } from 'knex'
-import { Application } from '../declarations'
+import { Application, HookContext } from '../declarations'
 import { routeConfig, useHook } from '../decoration'
 import { typeMap } from './validate/typeMap'
 import { AdapterQuery } from '@feathersjs/adapter-commons'
@@ -8,7 +8,7 @@ import { ServiceParams } from '@feathersjs/transport-commons/lib/http'
 import _, { result } from 'lodash'
 //@ts-ignore
 import { format } from '@scaleleap/pg-format'
-import { Params } from '@feathersjs/feathers'
+import { defaultServiceMethods, Params } from '@feathersjs/feathers'
 import { TObject, TPick, Type } from '@feathersjs/typebox'
 import Ajv, { ValidateFunction } from 'ajv'
 import { addFormats } from '@feathersjs/schema'
@@ -18,14 +18,40 @@ const RETURNING_CLIENTS = ['postgresql', 'pg', 'oracledb', 'mssql', 'sqlite3']
 export type columnInfo = Partial<Knex.ColumnInfo & { field: string }>
 import { hooks } from '@feathersjs/hooks'
 import { myFeathers } from '../feather'
+
 export class BaseService extends KnexService {
-  hooksMetaData?: any[]
+  serviceName?: string //
+  // hooksMetaData?: any[]=[]
   transformMetaData?: any
   vSchema?: ValidateFunction
   totalSchema?: TObject
   pickSchame?: TPick<any, any>
   constructor(options: any) {
     super(options)
+    this.hooksMetaData = []
+    let r = this.routes || []
+
+    let dMethods = [...defaultServiceMethods, ...r.map(r => r.path)]
+    dMethods = dMethods.filter(
+      (v, i) => dMethods.indexOf(v) == i //
+    )
+    // if (r.length > 0) {
+    //   console.log(dMethods, 'testMethods') //
+    // }
+    let _hook = dMethods.reduce((result: any, item: any) => {
+      result[item] = [
+        async (context: HookContext, next: any) => {
+          let m = context.method
+          console.log(m, 'testMethod') //
+          const params=context.params
+          console.log(params,'testParams')//
+          await next()
+        }
+      ]
+      return result
+    }, {})
+    this.hooksMetaData.push(_hook)
+    return this
   }
   app: myFeathers //
   routes?: routeConfig[] //
@@ -86,19 +112,22 @@ export class BaseService extends KnexService {
     const { client } = this.db(params)
     const returning = RETURNING_CLIENTS.includes(client.driverName) ? [this.id] : []
     const query: any = await this.db(params)
-      .insert(data, returning, { includeTriggerModifications: true }).toQuery()
-    let rows = await this.Model.raw(query).catch(errorHandler)//
-    // .catch(errorHandler) //
-    //@ts-ignore
-    // const id = data[this.id] || rows[0][this.id] || rows[0] //
-    // if (!id) {
-    //   return rows
-    // }
-    //返回新增的数组
+      .insert(data, returning, { includeTriggerModifications: true })
+      .toQuery()
+    let rows = await this.Model.raw(query).catch(errorHandler) //
     let _rows: any[] = rows //
     return _rows //
   }
-  async multiCraete(data: any, params?: any) { }
+  //@ts-ignore
+  async find(...args) {
+    // if (this.serviceName == 't_SdOrder') {
+    //   debugger //
+    // }
+    // //@ts-ignore
+    // console.log(this.hooksMetaData)//
+    return await super.find(...args)
+  }
+  async multiCraete(data: any, params?: any) {}
   async buildDbSchema() {
     const columnInfo = this.columnInfo
     const schema = columnInfo.reduce((result: any, item) => {
@@ -119,7 +148,7 @@ export class BaseService extends KnexService {
           //@ts-ignore
           console.log('字段类型没有函数映射', this.options.name, item.field, item.type)
           return result
-        }//
+        } //
         _obj = _obj1()
       }
       result[field] = _obj //

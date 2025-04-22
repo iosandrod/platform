@@ -44,5 +44,10 @@
   "appDb":{
     "client": "pg",
     "connection": "postgres://postgres:123456@localhost:5432/erp"
+  },
+  "redis":{
+    "host": "localhost",
+    "port": 6379,
+    "password": "123456"
   }
 }
