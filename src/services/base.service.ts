@@ -35,14 +35,10 @@ export class BaseService extends KnexService {
     dMethods = dMethods.filter(
       (v, i) => dMethods.indexOf(v) == i //
     )
-    // if (r.length > 0) {
-    //   console.log(dMethods, 'testMethods') //
-    // }
     let _hook = dMethods.reduce((result: any, item: any) => {
       result[item] = [
         async (context: HookContext, next: any) => {
           let m = context.method
-          console.log(m, 'testMethod') //
           const params=context.params
           console.log(params,'testParams')//
           await next()
