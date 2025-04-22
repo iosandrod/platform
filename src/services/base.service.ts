@@ -1,7 +1,7 @@
 import { errorHandler, KnexAdapterParams, KnexService } from '@feathersjs/knex'
 import { Knex } from 'knex'
 import { Application, HookContext } from '../declarations'
-import { routeConfig, useHook } from '../decoration'
+import { _authenticate, routeConfig, useHook } from '../decoration'
 import { typeMap } from './validate/typeMap'
 import { AdapterQuery } from '@feathersjs/adapter-commons'
 import { ServiceParams } from '@feathersjs/transport-commons/lib/http'
@@ -18,39 +18,74 @@ const RETURNING_CLIENTS = ['postgresql', 'pg', 'oracledb', 'mssql', 'sqlite3']
 export type columnInfo = Partial<Knex.ColumnInfo & { field: string }>
 import { hooks } from '@feathersjs/hooks'
 import { myFeathers } from '../feather'
-
-export class BaseService extends KnexService {
+import { _auth } from '../auth'
+interface bs {
+  hooksMetaData: any[]
+}
+//@ts-ignore
+export class BaseService extends KnexService implements bs {
   serviceName?: string //
-  // hooksMetaData?: any[]=[]
+  // hooksMetaData?: any[]
   transformMetaData?: any
   vSchema?: ValidateFunction
   totalSchema?: TObject
   pickSchame?: TPick<any, any>
   constructor(options: any) {
     super(options)
-    this.hooksMetaData = []
+    // this.hooksMetaData = []
+    let metaData = this.hooksMetaData
+    if (metaData == null) {
+      this.hooksMetaData = []
+      metaData = this.hooksMetaData//
+    }
+    let _this: any = this
     let r = this.routes || []
 
     let dMethods = [...defaultServiceMethods, ...r.map(r => r.path)]
     dMethods = dMethods.filter(
       (v, i) => dMethods.indexOf(v) == i //
     )
-    // if (r.length > 0) {
-    //   console.log(dMethods, 'testMethods') //
-    // }
     let _hook = dMethods.reduce((result: any, item: any) => {
-      result[item] = [
-        async (context: HookContext, next: any) => {
-          let m = context.method
-          console.log(m, 'testMethod') //
-          const params=context.params
-          console.log(params,'testParams')//
-          await next()
-        }
-      ]
+      //需要校验用户
+      let unAuthMethods = _this['unAuthMethods'] || []
+      //设置需要权限//
+      if (['create', 'update', 'patch', 'remove', 'find'].includes(item)//
+        && !unAuthMethods.includes(item)
+      ) {
+        result[item] = [
+          _authenticate('jwt'),//
+          async (context: HookContext, next: any) => {
+            //
+            const params = context.params
+            if (params.authenticated != true) {
+              await next()
+              return
+            }
+            /* 
+              {
+    id: 41,
+    createdAt: 2025-04-21T07:34:48.309Z,
+    updatedAt: 2025-04-21T07:34:48.309Z,
+    username: '1',
+    email: '1',
+    password: '$2b$10$iiIAn3x/Kj7OppHGt7XfHuALZ4fyWvw4C/mEzYRzueHLlwVM4tiTW',
+    companyid: null,
+    appName: null
+  }
+            */
+            let user = params.user
+            let id = user.id
+            let app: myFeathers = context.app
+            let roles = await app.getRoles(id)//
+            console.log(roles)
+            await next()
+          }
+          //@ts-ignore
+        ]
+      }//
       return result
     }, {})
-    this.hooksMetaData.push(_hook)
+    this.hooksMetaData?.push(_hook)
     return this
   }
   app: myFeathers //
@@ -120,14 +155,9 @@ export class BaseService extends KnexService {
   }
   //@ts-ignore
   async find(...args) {
-    // if (this.serviceName == 't_SdOrder') {
-    //   debugger //
-    // }
-    // //@ts-ignore
-    // console.log(this.hooksMetaData)//
     return await super.find(...args)
   }
-  async multiCraete(data: any, params?: any) {}
+  async multiCraete(data: any, params?: any) { }
   async buildDbSchema() {
     const columnInfo = this.columnInfo
     const schema = columnInfo.reduce((result: any, item) => {

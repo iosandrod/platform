@@ -1,5 +1,5 @@
 import { LocalStrategy } from '@feathersjs/authentication-local'
-import { useAuthenticate, useHook, useMethodTransform, useRoute } from '../decoration'
+import { useAuthenticate, useHook, useMethodTransform, useRoute, useUnAuthenticate } from '../decoration'
 import { BaseService } from './base.service'
 import { HookContext, hooks } from '@feathersjs/hooks'
 import { BadRequest } from '@feathersjs/errors'
@@ -24,12 +24,16 @@ export class UsersService extends BaseService {
     // })
   }
   @useRoute()
-  @useAuthenticate()
+  // @useAuthenticate()
   async getSomeUser(context: any, params: any) {
     return {
       test: 111
     }
-  } //
+  }
+  //@ts-ignore
+  async find(...args) {
+    return super.find(...args)
+  }//
   @useRoute() //
   async getAllTable(context: any) {
     console.log(context, 'testContext') ////
@@ -39,6 +43,7 @@ export class UsersService extends BaseService {
     //@ts-ignore
     password: createPasswordTransform()
   })
+  @useUnAuthenticate()
   async create(...args: any[]) {
     //@ts-ignore
     return await super.create(...args)
@@ -46,6 +51,7 @@ export class UsersService extends BaseService {
   @useRoute()
   @useAuthenticate() //
   async getOneUser(context: any, params: any) {
+    console.log(this.hooksMetaData)//
     return {
       test: 2
     }

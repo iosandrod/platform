@@ -4,12 +4,15 @@ import {
   defaultServiceMethods,
   HookOptions
 } from '@feathersjs/feathers'
-import { AsyncContextFunction, HookFunction } from 'feathers-hooks-common'
+import { AsyncContextFunction, debug, HookFunction } from 'feathers-hooks-common'
 import { stringToFunction } from './utils'
-import { hooks } from '@feathersjs/hooks'
+import { HookContext, NextFunction } from '@feathersjs/feathers'
 import { authenticate } from '@feathersjs/authentication'
 import { Application } from '@feathersjs/koa'
 import { isAsyncFunction, isPromise } from 'util/types'
+import { AuthenticateHookSettings } from '@feathersjs/authentication/lib/hooks/authenticate'
+import { NotAuthenticated } from '@feathersjs/errors'
+import { myAuth } from './auth'
 function getData(obj: any, key: string, defaultValue?: any) {
   let _value = obj[key]
   if (_value == null) {
@@ -41,26 +44,93 @@ export function useRoute(config: routeConfig = {}) {
     return descriptor
   }
 }
+export const _authenticate = (originalSettings: string | AuthenticateHookSettings, ...originalStrategies: string[]) => {
+  const settings =
+    typeof originalSettings === 'string'
+      ? { strategies: [originalSettings, ...originalStrategies] }
+      : originalSettings
+  //@ts-ignore
+  if (!originalSettings || settings.strategies.length === 0) {
+    throw new Error('The authenticate hook needs at least one allowed strategy')
+  }
+
+  return async (context: HookContext, _next?: NextFunction) => {
+    const next = typeof _next === 'function' ? _next : async () => context
+    const { app, params, type, path, service } = context
+    const { strategies } = settings
+    const { provider, authentication } = params
+    //@ts-ignore
+    const authService: myAuth = app.defaultAuthentication(settings.service)
+    if (provider != null && authentication == null) {
+
+    }
+    debug(`Running authenticate hook on '${path}'`)
+
+    if (type && type !== 'before' && type !== 'around') {
+      throw new NotAuthenticated('The authenticate hook must be used as a before hook')
+    }
+
+    if (!authService || typeof authService.authenticate !== 'function') {
+      throw new NotAuthenticated('Could not find a valid authentication service')
+    }
+
+    if (service === authService) {
+      throw new NotAuthenticated(
+        'The authenticate hook does not need to be used on the authentication service'
+      )
+    }
+
+    if (params.authenticated === true) {
+      return next()
+    }
+    if (authentication) {
+      const { provider, authentication, ...authParams } = params
+      //@ts-ignore
+      debug('Authenticating with', authentication, strategies)
+      //@ts-ignore
+      const authResult = await authService.authenticate(authentication, authParams, ...strategies)
+
+      const { accessToken, ...authResultWithoutToken } = authResult
+      context.params = {
+        ...params,
+        ...authResultWithoutToken,
+        authenticated: true
+      }//
+    } else if (provider) {
+      throw new NotAuthenticated('Not authenticated')
+    }
+    return next()
+  }
+}
 
 //使用校验规则
-export function useValidate(config: any) {}
+export function useValidate(config: any) { }
 export type useAuthConfig = {}
 export function useAuthenticate(config?: useAuthConfig) {
-  //
-  //方法装饰器
   //@ts-ignore
   return function (target, propertyKey, descriptor) {
     let _target = target
+    // console.log(_target, 'target')//
     let hooksMetaData = _target.hooksMetaData
-    // let routes = _target.routes || []
     if (hooksMetaData == null || !Array.isArray(hooksMetaData)) {
       _target.hooksMetaData = []
       hooksMetaData = _target.hooksMetaData
     }
     let _config: HookOptions<any, any> = {
-      [propertyKey]: [authenticate('jwt')] //
+      [propertyKey]: [_authenticate('jwt')] ////
     }
     hooksMetaData.push(_config) //
+    return descriptor
+  }
+}
+
+export function useUnAuthenticate() {
+  //@ts-ignore
+  return function (target, propertyKey, descriptor) {
+    let _target = target
+    // console.log(_target, 'target')//
+    let unAuthMethods = getData(_target, 'unAuthMethods', [])
+    unAuthMethods.push(propertyKey)//
     return descriptor
   }
 }
@@ -100,21 +170,21 @@ export function useMethodTransform(config: methodTransform) {
   }
 }
 
-export function useHook(config: HookOptions<any, any>,fn?:any) {
+export function useHook(config: HookOptions<any, any>, fn?: any) {
   //类装饰器
   return function RunOnInstance(OriginalClass: any) {
     // console.log(OriginalClass,'aaa',fn)
     function NewConstructor(...args: any[]) {
       const instance = new OriginalClass(...args)
       let _value: any[] = getData(instance, 'hooksMetaData', [])
-      if(fn){
+      if (fn) {
       }
       // console.log(config)
       if (typeof config !== 'object') {
         return instance //
       }
       _value.push(config) //
-      if(fn){
+      if (fn) {
         fn(instance)//
       }
       return instance

@@ -44,13 +44,13 @@ export class myFeathers extends Feathers<any, any> {
   }
   @cacheValue() //
   async getRoles(userid: string) {
-    let s = this.service('roles')
-    if (typeof userid !== 'string') {
-      return []
-    }
-    let roles = await s.find()
-    roles = roles.filter((r: any) => r.userid == userid) //
-    return roles
+    let client = this.getPgClient()
+    let sql = client('roles').join('user_roles', 'roles.id', '=', 'user_roles.rolesId').where('user_roles.usersId', userid).select('roles.*').toQuery()
+    let data = await client.raw(sql)
+    return data.rows
+  }
+  getPgClient(): Knex {
+    return this.get('postgresqlClient')
   }
   @cacheValue((id: any) => {
     if (Array.isArray(id)) {
@@ -75,7 +75,7 @@ export class myFeathers extends Feathers<any, any> {
   getUserPermissions(userid: string) {
     let roles = this.getRoles(userid)
   }
-  async getAllApp() {} //
+  async getAllApp() { } //
   //@ts-ignore
   async getCompanyConnection(company: any, appName = 'erp'): Promise<Knex> {
     let client = this.getClient()
@@ -213,7 +213,7 @@ ORDER BY table_schema, table_name, ordinal_position`
     }
     return obj
   }
-  createFieldKey() {}
+  createFieldKey() { }
   async getDefaultPageLayout(tableName: string) {
     let allTable = await this.getCompanyTable()
     let tableConfig = allTable[tableName]

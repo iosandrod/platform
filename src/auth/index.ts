@@ -1,5 +1,5 @@
 import { AuthenticationBase, AuthenticationParams, AuthenticationRequest, AuthenticationResult, AuthenticationService } from '@feathersjs/authentication'
-import { Application } from '@feathersjs/feathers'
+import { Application, HookContext, NextFunction } from '@feathersjs/feathers'
 import { IncomingMessage, ServerResponse } from 'http'
 import { JWTStrategy } from '@feathersjs/authentication'
 import { LocalStrategy } from '@feathersjs/authentication-local'
@@ -8,6 +8,7 @@ import { debug } from 'feathers-hooks-common'
 import jsonwebtoken from 'jsonwebtoken'
 import { get, set } from 'lodash'
 import bcrypt from 'bcryptjs'
+import { AuthenticateHookSettings } from '@feathersjs/authentication/lib/hooks/authenticate'
 
 export class myLocalStrategy extends LocalStrategy {
   //@ts-ignore
@@ -15,14 +16,11 @@ export class myLocalStrategy extends LocalStrategy {
     const { passwordField, usernameField, entity, errorMessage } = this.configuration
     const username = get(data, usernameField)
     const password = get(data, passwordField)
-
     if (!password) {
       // exit early if there is no password
       throw new NotAuthenticated(errorMessage)
     }
-
     const { provider, ...paramsWithoutProvider } = params
-
     const result = await this.findEntity(username, paramsWithoutProvider)
     await this.comparePassword(result, password)
 
@@ -49,7 +47,13 @@ export class myLocalStrategy extends LocalStrategy {
   }
 
 }
-
+export class myJwtStrategy extends JWTStrategy {
+  //@ts-ignore
+  async parse(...args) {
+    //@ts-ignore
+    return super.parse(...args)
+  }
+}
 export class myAuth extends AuthenticationService {
   //@ts-ignore
 
@@ -58,13 +62,12 @@ export class myAuth extends AuthenticationService {
     params: AuthenticationParams,
     ...allowed: string[]
   ) {
+
     // let { strategy  } = authentication || {}
     const strategy: any = authentication?.strategy
     const [authStrategy] = this.getStrategies(strategy)
     const strategyAllowed = allowed.includes(strategy)
     //@ts-ignore
-    debug('Running authenticate for strategy', strategy, allowed)
-
     if (!authentication || !authStrategy || !strategyAllowed) {
       const additionalInfo =
         (!strategy && ' (no `strategy` set)') ||
@@ -119,4 +122,37 @@ export const mainAuth = (app: Application) => {
   s.register('jwt', new JWTStrategy())
   s.register('local', new myLocalStrategy())
   app.use('authentication', s)
+}
+
+
+export const _auth = (originalSettings: string | AuthenticateHookSettings, ...originalStrategies: string[]) => {
+  const settings =
+    typeof originalSettings === 'string'
+      ? { strategies: [originalSettings, ...originalStrategies] }
+      : originalSettings
+  return async (context: HookContext, _next?: NextFunction) => {
+    const next = typeof _next === 'function' ? _next : async () => context
+    const { app, params, type, path, service } = context
+    const { strategies } = settings
+    const { provider, authentication } = params
+    const authService = app.service('authentication')
+    //@ts-ignore
+    if (params.authenticated === true) {
+      return next()
+    }
+    if (authentication) {
+      const { provider, authentication, ...authParams } = params
+      //@ts-ignore
+      const authResult = await authService.authenticate(authentication, authParams, ...strategies)
+      const { accessToken, ...authResultWithoutToken } = authResult
+      context.params = {
+        ...params,
+        ...authResultWithoutToken,
+        authenticated: true
+      }
+    } else if (provider) {
+      // throw new NotAuthenticated('Not authenticated')
+    }
+    return next()
+  }
 }
