@@ -13,6 +13,7 @@ import { isAsyncFunction, isPromise } from 'util/types'
 import { AuthenticateHookSettings } from '@feathersjs/authentication/lib/hooks/authenticate'
 import { NotAuthenticated } from '@feathersjs/errors'
 import { myAuth } from './auth'
+import { BaseService } from './services/base.service'
 function getData(obj: any, key: string, defaultValue?: any) {
   let _value = obj[key]
   if (_value == null) {
@@ -247,6 +248,43 @@ export function cacheValue(config?: Function) {
         cache[_key] = result ////
         return result //
       } //
+    }
+  }
+  return cacheReturnValue
+}
+export function cacheRedisValue(config?: Function) {
+  let cacheReturnValue = function cacheReturnValue(
+    target: any,
+    propertyKey: string,
+    descriptor: PropertyDescriptor
+  ) {
+    const originalMethod = descriptor.value
+    if (isAsyncFunction(originalMethod)) {
+      descriptor.value = async function (...args: any[]) {
+        let _this: BaseService = this as any
+        let redisClient = _this.getRedisClient()
+        //@ts-ignore
+        let id = args[0] || ''
+        let _key = `${propertyKey}--${id}` //
+        if (typeof config === 'function') {
+          let _key1 = await config.apply(this, args)
+          if (typeof _key1 === 'string') {
+            _key = _key1
+          }
+        }
+        let _value = await redisClient.get(_key)
+        if (_value != null) {
+          //
+          return _value //
+        }
+        let result = await originalMethod.apply(this, args) //
+        if (isPromise(result)) {
+          result = await result
+        }
+        await redisClient.set(_key, result)//
+        return result //
+      }
+    } else {
     }
   }
   return cacheReturnValue

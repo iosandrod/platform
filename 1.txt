@@ -109,3 +109,20 @@ export default function hashPassword(field: string, options: HashPasswordOptions
 
 
         "dev": "nodemon --exec \"node --inspect-brk -r ts-node/register\" src/main_index.ts"
+
+
+        // const params = context.params || {}
+            // const provider = params.provider
+            // if (provider) {
+            //   let adadpter = params.adapter
+            //   if (adadpter == null) {
+            //     params.adapter = {}
+            //     adadpter = params.adapter
+            //   }
+            //   let Model = adadpter.Model
+            //   let oldModel = this.getOptions({}).Model
+            //   if (Model == null) {
+            //     let transaction = await oldModel.transaction()
+            //     adadpter.Model = transaction
+            //   }
+            // }//
