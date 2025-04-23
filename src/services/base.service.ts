@@ -127,9 +127,14 @@ export class BaseService extends KnexService implements bs {
     //@ts-ignore
     if (params && params.transaction && params.transaction.trx) {
       //@ts-ignore
-      const { trx } = params.transaction
+      let _t: Knex.Transaction = params.transaction
+      //@ts-ignore
+      const { trx } = params.transaction//
+      let table = name || this.serviceName
+      // return trx.table(table)//
+      return trx
       // debug('ran %s with transaction %s', fullName, id)
-      return schema ? (trx.withSchema(schema).table(name) as Knex.QueryBuilder) : trx(name)
+      // return schema ? (trx.withSchema(schema).table(name) as Knex.QueryBuilder) : trx(name)
     }
     //@ts-ignore
     return schema ? (Model.withSchema(schema).table(name) as Knex.QueryBuilder) : Model(name, tableOptions)
@@ -150,12 +155,13 @@ export class BaseService extends KnexService implements bs {
       return result
     }
     if (idCreate == false) {
-      let maxId = await this.getMaxId()//
-      if (typeof maxId == 'string') {
-        maxId = Number(maxId) + 1
-      } else {
-        maxId = maxId + 1//
-      }
+      // console.log('', 'sfjsdfksjklfsdfs', Object.keys(params), this.serviceName)////
+      let maxId = await this.getMaxId(params)//
+      // if (typeof maxId == 'string') {
+      //   maxId = Number(maxId) + 1
+      // } else {
+      //   maxId = maxId + 1//
+      // }
       let id = this.id
       data[id] = maxId////
     }
@@ -172,7 +178,7 @@ export class BaseService extends KnexService implements bs {
       let fError = vResult[0]
       throw new Error(`数据校验出错,出错信息${JSON.stringify(fError)}`) //
     }
-    const _res = await this._create(resolveData, params) //
+    const _res = await this._create(resolveData, params) ////
     let targetRow = _res.rows[0]
     let _relateData = data['_relateData']//关联数据
     if (_relateData != null && typeof _relateData == 'object') {
@@ -209,9 +215,11 @@ export class BaseService extends KnexService implements bs {
     if (relateMainKey == null) {
       relateMainKey = this.getPrimiaryKey()
     }
-    let arr1 = []
+    let arr1: any[] = []//
+    //一次性
     for (const dRow of data) {
-      dRow[relateKey] = mainRow[relateMainKey]//
+      dRow[relateKey] = mainRow[relateMainKey]////
+      debugger//
       let _res = await s.create(dRow, params)//
       arr1.push(_res)//
     }
@@ -232,12 +240,26 @@ export class BaseService extends KnexService implements bs {
     let appName = app.get('appName')
     return appName//
   }
-  async getMaxId() {
+  async getMaxId(params: any = {}) {
+    // console.log('skfjsdlfjsld', Object.keys(params))////
     let id = this.id
     let serviceName = this.serviceName
+    let _key = `${serviceName}_max_${id}`
+    if (this.serviceName == 't_SdOrderEntry') {
+      console.log(params[_key], 'sfjsdlfsdflsd')//
+    }
+    let id1 = params[_key]//
+    if (id1 != null) {
+      params[_key] = id1 + 1//
+      // console.log(params[_key], 'sfdsfsd')////
+      id1 = params[_key]
+      return id1
+    }//
     let sql = `SELECT MAX("${id}") AS max_id FROM "${serviceName}";`
     let data = await this.getModel().raw(sql)
     let _id = data.rows[0]['max_id']
+    _id = _id + 1
+    params[_key] = _id//
     return _id
   }
   //判断是否自增
@@ -261,6 +283,7 @@ WHERE table_name = '${schema}'
   //使用事务
   //@ts-ignore
   async _create(_data: any, _params: ServiceParams = {} as ServiceParams) {
+
     let data = _data as any
     const params = _params as KnexAdapterParams
     //@ts-ignore
@@ -268,6 +291,9 @@ WHERE table_name = '${schema}'
     const returning = RETURNING_CLIENTS.includes(client.driverName) ? [this.id] : []
     //@ts-ignore    //
     const query: any = await this.db(params)
+      //@ts-ignore
+      .table(this.serviceName)//
+      //@ts-ignore
       .insert(data, ['*'], { includeTriggerModifications: true })//
       .toQuery()
     let _rows = null
