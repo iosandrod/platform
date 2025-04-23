@@ -1,5 +1,11 @@
-import { AuthenticationBase, AuthenticationParams, AuthenticationRequest, AuthenticationResult, AuthenticationService } from '@feathersjs/authentication'
-import { Application } from '@feathersjs/feathers'
+import {
+  AuthenticationBase,
+  AuthenticationParams,
+  AuthenticationRequest,
+  AuthenticationResult,
+  AuthenticationService
+} from '@feathersjs/authentication'
+import { Application, HookContext, NextFunction } from '@feathersjs/feathers'
 import { IncomingMessage, ServerResponse } from 'http'
 import { JWTStrategy } from '@feathersjs/authentication'
 import { LocalStrategy } from '@feathersjs/authentication-local'
@@ -8,6 +14,7 @@ import { debug } from 'feathers-hooks-common'
 import jsonwebtoken from 'jsonwebtoken'
 import { get, set } from 'lodash'
 import bcrypt from 'bcryptjs'
+import { AuthenticateHookSettings } from '@feathersjs/authentication/lib/hooks/authenticate'
 
 export class myLocalStrategy extends LocalStrategy {
   //@ts-ignore
@@ -15,14 +22,12 @@ export class myLocalStrategy extends LocalStrategy {
     const { passwordField, usernameField, entity, errorMessage } = this.configuration
     const username = get(data, usernameField)
     const password = get(data, passwordField)
-
     if (!password) {
       // exit early if there is no password
       throw new NotAuthenticated(errorMessage)
     }
-
     const { provider, ...paramsWithoutProvider } = params
-
+    // console.log(username, 'provider', paramsWithoutProvider)//
     const result = await this.findEntity(username, paramsWithoutProvider)
     await this.comparePassword(result, password)
 
@@ -32,7 +37,6 @@ export class myLocalStrategy extends LocalStrategy {
     }
   }
   async comparePassword(entity: any, password: string) {
-
     const { entityPasswordField, errorMessage } = this.configuration
     const hash = get(entity, entityPasswordField)
 
@@ -47,24 +51,53 @@ export class myLocalStrategy extends LocalStrategy {
     }
     throw new NotAuthenticated(errorMessage)
   }
+  async findEntity(username: string, params: any) {
+    const { entityUsernameField, errorMessage } = this.configuration
+    if (!username) {
+      // don't query for users without any condition set.
+      throw new NotAuthenticated(errorMessage)
+    }
 
+    const query = await this.getEntityQuery(
+      {
+        [entityUsernameField]: username
+      },
+      params
+    )
+    // console.log(query, 'testQuery')//
+    const findParams = Object.assign({}, params, { query })
+    const entityService = this.entityService
+    // debug('Finding entity with query', params.query)
+    const result = await entityService.find(findParams)
+    const list = Array.isArray(result) ? result : result.data
+    if (!Array.isArray(list) || list.length === 0) {
+      // throw new Error('没找到用户') //
+      throw new NotAuthenticated('用户名或者密码不对') //
+    }
+    const [entity] = list
+
+    return entity
+  }
 }
-
+export class myJwtStrategy extends JWTStrategy {
+  //@ts-ignore
+  async parse(...args) {
+    //@ts-ignore
+    return super.parse(...args)
+  }
+}
 export class myAuth extends AuthenticationService {
   //@ts-ignore
-
+  serviceName = 'authentication'
   async authenticate(
     authentication: AuthenticationRequest,
     params: AuthenticationParams,
     ...allowed: string[]
   ) {
-    // let { strategy  } = authentication || {}
     const strategy: any = authentication?.strategy
     const [authStrategy] = this.getStrategies(strategy)
     const strategyAllowed = allowed.includes(strategy)
     //@ts-ignore
-    debug('Running authenticate for strategy', strategy, allowed)
-
     if (!authentication || !authStrategy || !strategyAllowed) {
       const additionalInfo =
         (!strategy && ' (no `strategy` set)') ||
@@ -83,6 +116,7 @@ export class myAuth extends AuthenticationService {
   }
   //@ts-ignore
   async create(data: any, params: any) {
+    params.authenticated = true
     //@ts-ignore
     const authStrategies = params.authStrategies || this.configuration.authStrategies
 
@@ -100,10 +134,7 @@ export class myAuth extends AuthenticationService {
       this.getTokenOptions(authResult, params)
     ])
     //@ts-ignore
-    debug('Creating JWT with', payload, jwtOptions)
-
     const accessToken = await this.createAccessToken(payload, jwtOptions, params.secret)
-
     return {
       accessToken,
       ...authResult,
@@ -119,4 +150,39 @@ export const mainAuth = (app: Application) => {
   s.register('jwt', new JWTStrategy())
   s.register('local', new myLocalStrategy())
   app.use('authentication', s)
+}
+
+export const _auth = (
+  originalSettings: string | AuthenticateHookSettings,
+  ...originalStrategies: string[]
+) => {
+  const settings =
+    typeof originalSettings === 'string'
+      ? { strategies: [originalSettings, ...originalStrategies] }
+      : originalSettings
+  return async (context: HookContext, _next?: NextFunction) => {
+    const next = typeof _next === 'function' ? _next : async () => context
+    const { app, params, type, path, service } = context
+    const { strategies } = settings
+    const { provider, authentication } = params
+    const authService = app.service('authentication')
+    //@ts-ignore
+    if (params.authenticated === true) {
+      return next()
+    }
+    if (authentication) {
+      const { provider, authentication, ...authParams } = params
+      //@ts-ignore
+      const authResult = await authService.authenticate(authentication, authParams, ...strategies)
+      const { accessToken, ...authResultWithoutToken } = authResult
+      context.params = {
+        ...params,
+        ...authResultWithoutToken,
+        authenticated: true
+      }
+    } else if (provider) {
+      // throw new NotAuthenticated('Not authenticated')
+    }
+    return next()
+  }
 }

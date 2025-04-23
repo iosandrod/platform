@@ -18,14 +18,34 @@ import NavService from './navs.service'
 export const services = async (app: myFeathers) => {
   let names = Object.keys(createMap) //
   let _names = await app.getCompanyTable()
+  let allT = _names
   _names = Object.keys(_names) ////
   names = [...names, ..._names] //
   names = names.filter((name, i) => names.indexOf(name) == i) //
-  // console.log(names.length, 'testNames') //
-  let allServices = names.map((name: any) => {
-    let obj = { path: name, service: createServices(name, null, app as any) }
-    return obj
-  })
+  let arr = []
+  for (const name of names) {
+    let id = 'id'
+    let ids = []
+    let _t = allT[name]
+    if (_t) {
+      let primaryKey = _t.columns.filter((col: any) => col['is_primary_key'] == true)
+      ids = primaryKey.map((col: any) => col['column_name'])
+      let _key = primaryKey[0]['column_name']
+      id = _key
+    }
+    let opt = {
+      id,
+      ids
+    }
+    //@ts-ignore
+    let s = await createServices(name, opt, app as any) //
+    let obj = {
+      path: name,
+      service: s
+    }
+    arr.push(obj)
+  }
+  let allServices = arr //
   for (const obj of allServices) {
     const p: string = obj.path //装饰
     const service = obj.service
@@ -65,19 +85,15 @@ export const services = async (app: myFeathers) => {
     ts.hooks({
       after: {
         //@ts-ignore
-       
-      },
+      }
     })
-    // ts.on('created', (context: HookContext) => {
-    //   console.log('新增了')//
-    // })
   }
 }
 //构建service实例
-export const createServices = (serverName: keyof typeof createMap, options: any, app: Application) => {
+export const createServices = async (serverName: keyof typeof createMap, options: any, app: Application) => {
   let createClass = createMap[serverName]
-  let _createClass=createClass
-  if (createClass == null) {//
+  let _createClass = createClass
+  if (createClass == null) {
     createClass = BaseService //
   }
   let _options: KnexAdapterOptions = options || {}
@@ -89,9 +105,9 @@ export const createServices = (serverName: keyof typeof createMap, options: any,
     Model
   } as KnexAdapterOptions) //
   let service = new createClass(_options) //
-  if(_createClass==null){
+  if (_createClass == null) {
     //@ts-ignore
-    service.serviceName=serverName
+    service.serviceName = serverName
   }
   //@ts-ignore
   return service

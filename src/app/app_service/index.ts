@@ -42,9 +42,8 @@ const createMap = {
 
 export const services = async (app: Application, mainApp?: myFeathers) => {
   let names = Object.keys(createMap) //
-  let allTable = await mainApp?.getCompanyTable(app.get('companyid')) //
-  allTable=Object.keys(allTable)//
-  // console.log(allTable)//
+  let allTable = await mainApp?.getCompanyTable(app.get('companyid'), 'erp') ////
+  allTable = Object.keys(allTable) //
   names = [...names, ...allTable]
   names = names.filter((name, i) => names.indexOf(name) === i) //
   // console.log(names)//

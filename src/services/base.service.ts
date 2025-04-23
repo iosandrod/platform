@@ -1,14 +1,14 @@
 import { errorHandler, KnexAdapterParams, KnexService } from '@feathersjs/knex'
 import { Knex } from 'knex'
 import { Application, HookContext } from '../declarations'
-import { routeConfig, useHook } from '../decoration'
+import { _authenticate, routeConfig, useHook } from '../decoration'
 import { typeMap } from './validate/typeMap'
 import { AdapterQuery } from '@feathersjs/adapter-commons'
 import { ServiceParams } from '@feathersjs/transport-commons/lib/http'
 import _, { result } from 'lodash'
 //@ts-ignore
 import { format } from '@scaleleap/pg-format'
-import { defaultServiceMethods, Params } from '@feathersjs/feathers'
+import { defaultServiceMethods, Paginated, Params } from '@feathersjs/feathers'
 import { TObject, TPick, Type } from '@feathersjs/typebox'
 import Ajv, { ValidateFunction } from 'ajv'
 import { addFormats } from '@feathersjs/schema'
@@ -18,35 +18,67 @@ const RETURNING_CLIENTS = ['postgresql', 'pg', 'oracledb', 'mssql', 'sqlite3']
 export type columnInfo = Partial<Knex.ColumnInfo & { field: string }>
 import { hooks } from '@feathersjs/hooks'
 import { myFeathers } from '../feather'
-
-export class BaseService extends KnexService {
+import { _auth } from '../auth'
+import { Result } from 'ioredis'
+interface bs {
+  hooksMetaData: any[]
+}
+//@ts-ignore
+export class BaseService extends KnexService implements bs {
   serviceName?: string //
-  // hooksMetaData?: any[]=[]
+  // hooksMetaData?: any[]
   transformMetaData?: any
   vSchema?: ValidateFunction
   totalSchema?: TObject
   pickSchame?: TPick<any, any>
   constructor(options: any) {
     super(options)
-    this.hooksMetaData = []
+    let metaData = this.hooksMetaData
+    if (metaData == null) {
+      this.hooksMetaData = []
+      metaData = this.hooksMetaData //
+    }
+    let _this: any = this
     let r = this.routes || []
-
     let dMethods = [...defaultServiceMethods, ...r.map(r => r.path)]
     dMethods = dMethods.filter(
       (v, i) => dMethods.indexOf(v) == i //
     )
     let _hook = dMethods.reduce((result: any, item: any) => {
-      result[item] = [
-        async (context: HookContext, next: any) => {
-          let m = context.method
-          const params=context.params
-          console.log(params,'testParams')//
-          await next()
-        }
-      ]
+      //需要校验用户
+      let unAuthMethods = _this['unAuthMethods'] || []
+      //设置需要权限//
+      if (
+        ['create', 'update', 'patch', 'remove'].includes(item) && //
+        !unAuthMethods.includes(item)
+      ) {
+        result[item] = [
+          _authenticate('jwt'), //
+          async (context: HookContext, next: any) => {
+            //
+            const params = context.params
+            //如果没有登陆
+            if (params.authenticated != true) {
+              await next()
+              return
+            }
+            let user = params.user //
+            if (user == null) {
+              await next() //
+              return //
+            }
+            let id = user.id
+            let app: myFeathers = context.app //
+            let roles = await app.getRoles(id) //
+            params.roles = roles
+            await next()
+          }
+          //@ts-ignore
+        ]
+      } //
       return result
     }, {})
-    this.hooksMetaData.push(_hook)
+    this.hooksMetaData?.push(_hook)
     return this
   }
   app: myFeathers //
@@ -116,11 +148,7 @@ export class BaseService extends KnexService {
   }
   //@ts-ignore
   async find(...args) {
-    // if (this.serviceName == 't_SdOrder') {
-    //   debugger //
-    // }
-    // //@ts-ignore
-    // console.log(this.hooksMetaData)//
+    // console.log([...args])//
     return await super.find(...args)
   }
   async multiCraete(data: any, params?: any) {}
@@ -173,5 +201,44 @@ export class BaseService extends KnexService {
     let vSchema = validate.compile(this.totalSchema) //
     this.vSchema = vSchema
     //@ts-ignore
+  }
+  //@ts-ignore
+  async _find(params: ServiceParams = {} as ServiceParams): Promise<Paginated<any> | any[]> {
+    //@ts-ignore
+    const { filters, paginate } = this.filterQuery(params)
+    //@ts-ignore
+    const { name, id } = this.getOptions(params)
+    //@ts-ignore
+    const builder = params.knex ? params.knex.clone() : this.createQuery(params)
+    const countBuilder = builder.clone().clearSelect().clearOrder().count(`${name}.${id} as total`)
+
+    // Handle $limit
+    if (filters.$limit) {
+      builder.limit(filters.$limit)
+    }
+
+    // Handle $skip
+    if (filters.$skip) {
+      builder.offset(filters.$skip)
+    }
+
+    // provide default sorting if its not set
+    if (!filters.$sort && builder.client.driverName === 'mssql') {
+      builder.orderBy(`${name}.${id}`, 'asc')
+    }
+
+    const data = filters.$limit === 0 ? [] : await builder.catch(errorHandler)
+
+    if (paginate && paginate.default) {
+      //@ts-ignore
+      const total = await countBuilder.then(count => parseInt(count[0] ? count[0].total : 0)) //
+      return {
+        total,
+        limit: filters.$limit,
+        skip: filters.$skip || 0,
+        data
+      }
+    }
+    return data
   }
 }

@@ -44,13 +44,18 @@ export class myFeathers extends Feathers<any, any> {
   }
   @cacheValue() //
   async getRoles(userid: string) {
-    let s = this.service('roles')
-    if (typeof userid !== 'string') {
-      return []
-    }
-    let roles = await s.find()
-    roles = roles.filter((r: any) => r.userid == userid) //
-    return roles
+    let client = this.getPgClient()
+    let sql = client('roles')
+      .join('user_roles', 'roles.id', '=', 'user_roles.rolesId')
+      .where('user_roles.usersId', userid)
+      .select('roles.*')
+      .toQuery()
+    let data = await client.raw(sql)
+    let rows = data.rows
+    return rows //
+  }
+  getPgClient(): Knex {
+    return this.get('postgresqlClient')
   }
   @cacheValue((id: any) => {
     if (Array.isArray(id)) {
@@ -76,8 +81,9 @@ export class myFeathers extends Feathers<any, any> {
     let roles = this.getRoles(userid)
   }
   async getAllApp() {} //
+  async getCurrentTable() {}
   //@ts-ignore
-  async getCompanyConnection(company: any, appName = 'erp'): Promise<Knex> {
+  async getCompanyConnection(company: any, appName?: string): Promise<Knex> {
     let client = this.getClient()
     if (typeof company === 'string') {
       let cacheKnex = this.cacheKnex
@@ -86,10 +92,14 @@ export class myFeathers extends Feathers<any, any> {
       if (_knex != null) {
         return _knex //
       }
+      if (appName == null) {
+        return this.getPgClient() //
+      }
+      console.log(appName, 'appName1231312321') //
       let companyInfo = await client('company')
         .where({
           companyid: company,
-          appName: appName //
+          appName: appName
         })
         .select() ////
       let row = companyInfo[0]
@@ -119,7 +129,7 @@ export class myFeathers extends Feathers<any, any> {
     }
   }
   @cacheValue() //
-  async getCompanyTable(companyid?: string, appName = 'erp') {
+  async getCompanyTable(companyid?: string, appName?: string) {
     let _connect = null
     if (companyid == null) {
       _connect = this.get('postgresqlClient')
@@ -127,21 +137,46 @@ export class myFeathers extends Feathers<any, any> {
       _connect = await this.getCompanyConnection(companyid, appName) //
     }
     let sql = `SELECT 
-    table_schema,
-    table_name,
-    column_name,
-    ordinal_position,
-    data_type,
-    character_maximum_length,
-    numeric_precision,
-    numeric_scale,
-    is_nullable,
-    column_default
-FROM information_schema.columns
-WHERE table_schema = 'public'
-ORDER BY table_schema, table_name, ordinal_position`
-
-    let allColumns = await _connect.raw(sql) ////
+   
+		c.*,
+    CASE 
+        WHEN tc.constraint_type = 'PRIMARY KEY' THEN true
+        ELSE false
+    END AS is_primary_key
+FROM 
+    information_schema.columns c
+LEFT JOIN information_schema.key_column_usage kcu
+    ON c.table_name = kcu.table_name
+    AND c.column_name = kcu.column_name
+    AND c.table_schema = kcu.table_schema
+LEFT JOIN information_schema.table_constraints tc
+    ON kcu.constraint_name = tc.constraint_name
+    AND kcu.table_schema = tc.table_schema
+    AND tc.constraint_type = 'PRIMARY KEY'
+WHERE 
+    c.table_schema = 'public'
+ORDER BY 
+    c.table_name, c.ordinal_position;`
+    let sql1 = `SELECT 
+    kcu.table_schema,
+    kcu.table_name,
+    STRING_AGG(kcu.column_name, ', ' ORDER BY kcu.ordinal_position) AS primary_keys
+FROM 
+    information_schema.table_constraints tc
+JOIN 
+    information_schema.key_column_usage kcu
+    ON tc.constraint_name = kcu.constraint_name
+    AND tc.table_schema = kcu.table_schema
+WHERE 
+    tc.constraint_type = 'PRIMARY KEY'
+    AND tc.table_schema = 'public'
+GROUP BY 
+    kcu.table_schema,
+    kcu.table_name
+ORDER BY 
+    kcu.table_name;
+`
+    let allColumns = await _connect.raw(sql) //////
     allColumns = allColumns.rows
     let tables = allColumns.reduce((p: any, column: any) => {
       let table_name = column.table_name //
@@ -178,8 +213,6 @@ ORDER BY table_schema, table_name, ordinal_position`
   async registerSubApp(appName: keyof typeof subAppCreateMap, companyId: string) {
     const allEn = null
     let c: Knex = this.get('postgresqlClient')
-    // let entities = await c('entity').select() //
-    // await this.getDefaultEntity(companyId) //
     const createFn = subAppCreateMap[appName] //
     if (typeof createFn !== 'function') return // 不存在的服务不需要注册
     //@ts-ignore
@@ -212,6 +245,12 @@ ORDER BY table_schema, table_name, ordinal_position`
       delete obj.options
     }
     return obj
+  }
+  getTablePrimaryKey(tableName: string) {
+    let tableInfo = this.getCompanyTable()
+    //@ts-ignore//
+    let table = tableInfo[tableName]
+    return table
   }
   createFieldKey() {}
   async getDefaultPageLayout(tableName: string) {
