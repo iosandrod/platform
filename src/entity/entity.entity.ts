@@ -15,11 +15,11 @@ export class Entity extends BaseEntity {
     nullable: true
   })
   parentId: number //
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'jsonb', nullable: true })
   layout: string //
   //is json
   @Column({
-    type: 'varchar',
+    type: 'jsonb',//
     nullable: true
   })
   fields: string
@@ -29,4 +29,4 @@ export class Entity extends BaseEntity {
   options: string
   @Column({ type: 'varchar', nullable: true })
   entityName: string
-} //
+} ////

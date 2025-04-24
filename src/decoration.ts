@@ -214,6 +214,7 @@ export function cacheValue(config?: Function) {
           let _key1 = await config.apply(this, args)
           if (typeof _key1 === 'string') {
             _key = _key1
+            _key = `${propertyKey}--${_key}`//
           }
         }
         let _value = cache[_key]
@@ -238,6 +239,7 @@ export function cacheValue(config?: Function) {
           let _key1 = config.apply(this, args) //
           if (typeof _key1 === 'string') {
             _key = _key1
+            _key = `${propertyKey}--${_key}`
           }
         }
         let _value = cache[_key]
@@ -270,6 +272,7 @@ export function cacheRedisValue(config?: Function) {
           let _key1 = await config.apply(this, args)
           if (typeof _key1 === 'string') {
             _key = _key1
+            _key = `${propertyKey}--${_key}`
           }
         }
         let _value = await redisClient.get(_key)

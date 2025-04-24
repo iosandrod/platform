@@ -64,7 +64,7 @@ export async function createApp() {
   // Register application setup and teardown hooks here
   app.hooks({
     setup: [
-      
+
       //@ts-ignore
       async (context: HookContext, next: any) => {
         //@ts-ignore
@@ -98,7 +98,14 @@ export async function createApp() {
     all: [
       async (context: HookContext, next: any) => {
         await next()
-        console.log('app的钩子') //
+        let params = context.params || {}
+        let provider = params.provider
+        if (provider == 'socketio') {////
+          context.result = {
+            data: context.result,
+            code: 200
+          }//
+        }
       }
     ]
   })

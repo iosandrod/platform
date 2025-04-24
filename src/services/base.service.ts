@@ -15,7 +15,7 @@ import _, { result } from 'lodash'
 
 //@ts-ignore
 import { format } from '@scaleleap/pg-format'
-import { defaultServiceMethods, Paginated, Params } from '@feathersjs/feathers'
+import { defaultServiceMethods, Id, NullableId, Paginated, Params } from '@feathersjs/feathers'
 import { TObject, TPick, Type } from '@feathersjs/typebox'
 import Ajv, { ValidateFunction } from 'ajv'
 import { addFormats } from '@feathersjs/schema'
@@ -86,20 +86,24 @@ export class BaseService extends KnexService implements bs {
           },
           //开启事务
           //@ts-ignore
-          async (context: HookContext, next: any) => {
-            try {
-              await transaction.start()(context)
-              await next()
-              await transaction.end()(context)
-            } catch (err) {
-              //
-              await transaction.rollback()(context)
-              throw err
-            }
-          }
+
           //@ts-ignore
         ]
         _arr.push(...arr1)
+      }
+      //开启事务
+      if (['create', 'update', 'patch', 'remove'].includes(item)) {
+        _arr.push(async (context: HookContext, next: any) => {
+          try {
+            await transaction.start()(context)
+            await next()
+            await transaction.end()(context)
+          } catch (err) {
+            //
+            await transaction.rollback()(context)
+            throw err
+          }
+        })//
       }
       //@ts-ignore
       _arr.unshift(async (context, next) => {
@@ -121,8 +125,41 @@ export class BaseService extends KnexService implements bs {
   routes?: routeConfig[] //
   columns: string[] = []
   columnInfo: columnInfo[] = []
-  getCompanyName() {}
-  async init(mainApp?: Application) {
+  getCompanyName() { }
+  //@ts-ignore
+  createQuery(params: ServiceParams = {} as ServiceParams) {
+    const { name, id } = this.getOptions(params)
+    //@ts-ignore
+    const { filters, query } = this.filterQuery(params)
+    //@ts-ignore
+    const builder = this.db(params).table(this.serviceName)//
+    //
+    // $select uses a specific find syntax, so it has to come first.
+    if (filters.$select) {
+      const select = filters.$select.map((column) => (column.includes('.') ? column : `${name}.${column}`))
+      // always select the id field, but make sure we only select it once
+      builder.select(...new Set([...select, `${name}.${id}`]))
+    } else {
+      builder.select(`${name}.*`)
+    }
+    //@ts-ignore
+    // build up the knex query out of the query params, include $and and $or filters
+    this.knexify(builder, {
+      ...query,
+      ..._.pick(filters, '$and', '$or')
+    })
+
+    // Handle $sort
+    if (filters.$sort) {
+      return Object.keys(filters.$sort).reduce(
+        //@ts-ignore
+        (currentQuery, key) => currentQuery.orderBy(key, filters.$sort[key] === 1 ? 'asc' : 'desc'),
+        builder
+      )
+    }
+    return builder
+  }
+  async init(mainApp?: Application) {//
     //@ts-ignore
     this.app = mainApp
     const Model = this.Model
@@ -135,7 +172,7 @@ export class BaseService extends KnexService implements bs {
     }
     const allColumnName = columns.map((col: any) => col.field) //
     this.columns = allColumnName //
-    this.columnInfo = columns
+    this.columnInfo = columns//
     //构建校验
     await this.buildDbSchema()
   }
@@ -145,17 +182,15 @@ export class BaseService extends KnexService implements bs {
     //@ts-ignore
     if (params && params.transaction && params.transaction.trx) {
       //@ts-ignore
-      let _t: Knex.Transaction = params.transaction
+      // let _t: Knex.Transaction = params.transaction
       //@ts-ignore
       const { trx } = params.transaction //
-      let table = name || this.serviceName
       // return trx.table(table)//
       return trx
-      // debug('ran %s with transaction %s', fullName, id)
-      // return schema ? (trx.withSchema(schema).table(name) as Knex.QueryBuilder) : trx(name)
     }
     //@ts-ignore
-    return schema ? (Model.withSchema(schema).table(name) as Knex.QueryBuilder) : Model(name, tableOptions)
+    return Model//
+    // return schema ? (Model.withSchema(schema).table(name) as Knex.QueryBuilder) : Model(name, tableOptions)
   }
   //类型校验
   async validate(data: any, params: Params) {
@@ -339,7 +374,7 @@ WHERE table_name = '${schema}'
   async find(...args) {
     return await super.find(...args)
   }
-  async multiCraete(data: any, params?: any) {}
+  async multiCraete(data: any, params?: any) { }
   async buildDbSchema() {
     const columnInfo = this.columnInfo
     const schema = columnInfo.reduce((result: any, item) => {
@@ -415,6 +450,37 @@ WHERE table_name = '${schema}'
       query: await this.sanitizeQuery(params)
     })
   }
+  async update(id: Id, data: Partial<any>, params?: KnexAdapterParams<AdapterQuery> | undefined): Promise<any> {
+    //@ts-ignore
+    let _res = await this._update(id, data, params)
+    return _res
+  }
+  //@ts-ignore
+  async _update(id: Id, _data: Data, params: ServiceParams = {} as ServiceParams): Promise<Result> {
+    if (id === null || Array.isArray(_data)) {
+      throw new errors.BadRequest("You can not replace multiple instances. Did you mean 'patch'?")
+    }
+
+    const data = _.omit(_data, this.id)
+    //@ts-ignore
+    const oldData = await this._get(id, params)
+    const newObject = Object.keys(oldData).reduce((result: any, key) => {
+      if (key !== this.id) {
+        //@ts-ignore
+        // We don't want the id field to be changed
+        result[key] = data[key] === undefined ? null : data[key]
+      }
+
+      return result
+    }, {})
+
+    await this.db(params)
+      .update(newObject, '*', { includeTriggerModifications: true })
+      .where(this.id, id)
+      .catch(errorHandler)
+    //@ts-ignore
+    return this._get(id, params)
+  }
   //@ts-ignore
   async _find(params: ServiceParams = {} as ServiceParams): Promise<Paginated<any> | any[]> {
     //@ts-ignore
@@ -452,4 +518,58 @@ WHERE table_name = '${schema}'
     }
     return data
   }
+  //@ts-ignore
+  async patch(id: NullableId, data: any, params?: ServiceParams): Promise<any> {
+    //@ts-ignore
+    const { $limit, ...query } = await this.sanitizeQuery(params)
+
+    return this._patch(id, data, {
+      ...params,
+      query
+    })
+  }
+  //@ts-ignore
+  async _patch(
+    id: NullableId,
+    raw: any,
+    params: ServiceParams | any = {} as ServiceParams
+  ): Promise<any> {
+    //@ts-ignore
+    if (id === null && !this.allowsMulti('patch', params)) {
+      throw new errors.MethodNotAllowed('Can not patch multiple entries')
+    }
+
+    const { name, id: idField } = this.getOptions(params) as any
+    const data = _.omit(raw, this.id)
+    const results = await this._findOrGet(id, {
+      ...params,
+      query: {
+        //@ts-ignore
+        ...params?.query,
+        $select: [`${name}.${idField}`]
+      }
+    })
+    const idList = results.map((current: any) => current[idField])
+    const updateParams = {
+      ...params,
+      query: {
+        [`${name}.${idField}`]: { $in: idList },
+        ...(params?.query?.$select ? { $select: params?.query?.$select } : {})
+      }
+    }
+    const builder = this.createQuery(updateParams)
+    //@ts-ignore
+    await builder.update(data, [], { includeTriggerModifications: true })
+    const items = await this._findOrGet(null, updateParams)
+    if (id !== null) {
+      if (items.length === 1) {
+        return items[0]
+      } else {
+        throw new errors.NotFound(`No record found for id '${id}'`)
+      }
+    }
+
+    return items
+  }
+
 }

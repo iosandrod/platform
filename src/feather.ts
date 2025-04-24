@@ -80,8 +80,8 @@ export class myFeathers extends Feathers<any, any> {
   getUserPermissions(userid: string) {
     let roles = this.getRoles(userid)
   }
-  async getAllApp() {} //
-  async getCurrentTable() {}
+  async getAllApp() { } //
+  async getCurrentTable() { }
   //@ts-ignore
   async getCompanyConnection(company: any, appName?: string): Promise<Knex> {
     let client = this.getClient()
@@ -94,8 +94,7 @@ export class myFeathers extends Feathers<any, any> {
       }
       if (appName == null) {
         return this.getPgClient() //
-      }
-      console.log(appName, 'appName1231312321') //
+      }//
       let companyInfo = await client('company')
         .where({
           companyid: company,
@@ -128,7 +127,15 @@ export class myFeathers extends Feathers<any, any> {
       return _client
     }
   }
-  @cacheValue() //
+  @cacheValue((companyid?: string, appName?: string) => {
+    if (companyid == null) {
+      companyid = ''
+    }
+    if (appName == null) {
+      appName = ''
+    }
+    return `${companyid}--${appName}`
+  }) //
   async getCompanyTable(companyid?: string, appName?: string) {
     //@ts-ignore
     let _this: myFeathers = this.getMainApp()
@@ -260,7 +267,7 @@ ORDER BY
     let table = tableInfo[tableName]
     return table
   }
-  createFieldKey() {}
+  createFieldKey() { }
   async getDefaultPageLayout(tableName: string) {
     let allTable = await this.getCompanyTable()
     let tableConfig = allTable[tableName]

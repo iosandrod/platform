@@ -120,10 +120,10 @@ export const createServices = async (serverName: keyof typeof createMap, options
 }
 
 const createMap = {
-  fields: FieldsService,
+  // fields: FieldsService,
   navs: NavService, //
   company: CompanyService,
-  app: AppService,
+  // app: AppService,
   users: UsersService,
   entity: EntityService
 }
