@@ -1,4 +1,10 @@
-import { errorHandler, KnexAdapterOptions, KnexAdapterParams, KnexService, transaction } from '@feathersjs/knex'
+import {
+  errorHandler,
+  KnexAdapterOptions,
+  KnexAdapterParams,
+  KnexService,
+  transaction
+} from '@feathersjs/knex'
 import { Knex } from 'knex'
 import { Application, HookContext } from '../declarations'
 import { _authenticate, cacheValue, routeConfig, useHook } from '../decoration'
@@ -19,7 +25,7 @@ const RETURNING_CLIENTS = ['postgresql', 'pg', 'oracledb', 'mssql', 'sqlite3']
 export type columnInfo = Partial<Knex.ColumnInfo & { field: string }>
 import { hooks } from '@feathersjs/hooks'
 import { myFeathers } from '../feather'
-import { _auth } from '../auth'//
+import { _auth } from '../auth' //
 import Redis, { Result } from 'ioredis'
 import { errors } from '@feathersjs/errors'
 interface bs {
@@ -27,7 +33,7 @@ interface bs {
 }
 //@ts-ignore
 export class BaseService extends KnexService implements bs {
-  ids?: string[]//
+  ids?: string[] //
   cache: { [key: string]: any } = {}
   serviceName?: string //
   // hooksMetaData?: any[]
@@ -36,7 +42,7 @@ export class BaseService extends KnexService implements bs {
   totalSchema?: TObject
   pickSchame?: TPick<any, any>
   constructor(options: any) {
-    super(options)//
+    super(options) //
     let metaData = this.hooksMetaData
     if (metaData == null) {
       this.hooksMetaData = []
@@ -85,8 +91,9 @@ export class BaseService extends KnexService implements bs {
               await next()
               console.log('结束了事务')
               await transaction.end()(context)
-            } catch (err) {//
-              console.log('回滚了事务了')////
+            } catch (err) {
+              //
+              console.log('回滚了事务了') ////
               await transaction.rollback()(context)
               throw err
             }
@@ -94,7 +101,8 @@ export class BaseService extends KnexService implements bs {
           //@ts-ignore
         ]
       } //
-      if (item == 'create') {//
+      if (item == 'create') {
+        //
       }
       return result
     }, {})
@@ -112,7 +120,6 @@ export class BaseService extends KnexService implements bs {
     let table = Model(this.options.name) //
     let columns = await table.columnInfo()
     const allColumnName = Object.keys(columns)
-    // console.log(allColumnName)//
     this.columns = allColumnName
     this.columnInfo = Object.entries(columns).map(([key, value]) => {
       let _value = { ...value, field: key }
@@ -129,7 +136,7 @@ export class BaseService extends KnexService implements bs {
       //@ts-ignore
       let _t: Knex.Transaction = params.transaction
       //@ts-ignore
-      const { trx } = params.transaction//
+      const { trx } = params.transaction //
       let table = name || this.serviceName
       // return trx.table(table)//
       return trx
@@ -143,11 +150,18 @@ export class BaseService extends KnexService implements bs {
   async validate(data: any, params: Params) {
     //必录入校验
     let vSchema = this.vSchema!
+    if (vSchema == null) {
+      await this.buildDbSchema() //
+      vSchema = this.vSchema! //
+    }
     await vSchema(data)
     const errors = vSchema.errors || []
     return errors //
   }
   async create(data: any, params?: any): Promise<any> {
+    if (typeof params?.getMainParam == 'function') {
+      params = params.getMainParam()
+    } //
     let idCreate = await this.getDefaultIncreate()
     //获取数据库的字段
     if (Array.isArray(data)) {
@@ -155,19 +169,21 @@ export class BaseService extends KnexService implements bs {
       return result
     }
     if (idCreate == false) {
-      // console.log('', 'sfjsdfksjklfsdfs', Object.keys(params), this.serviceName)////
-      let maxId = await this.getMaxId(params)//
-      // if (typeof maxId == 'string') {
-      //   maxId = Number(maxId) + 1
-      // } else {
-      //   maxId = maxId + 1//
-      // }
+      let maxId = await this.getMaxId(params) //
       let id = this.id
-      data[id] = maxId////
+      data[id] = maxId ////
     }
     const columns = this.columns
+    let columnInfo = this.columnInfo
     const resolveData = Object.entries(data).reduce((result: any, [key, value]) => {
-      if (columns.includes(key)) {
+      let tCol = columnInfo.find(item => item.field == key)
+      if (tCol) {
+        let type = tCol.type
+        if (type == 'jsonb' || type == 'json') {
+          if (typeof value == 'object') {
+            value = JSON.stringify(value)
+          }
+        }
         result[key] = value
       } //
       return result
@@ -180,23 +196,26 @@ export class BaseService extends KnexService implements bs {
     }
     const _res = await this._create(resolveData, params) ////
     let targetRow = _res.rows[0]
-    let _relateData = data['_relateData']//关联数据
+    let _relateData = data['_relateData'] //关联数据
     if (_relateData != null && typeof _relateData == 'object') {
       for (const [key, object] of Object.entries(_relateData)) {
-        let dTableName = key//子表表名
+        let dTableName = key //子表表名
         let _obj = object as any
         let data = _obj.data || []
-        let required = _obj.required//是否必须有数据
+        let required = _obj.required //是否必须有数据
         if (data.length == 0 && required == true) {
-          throw new errors.BadRequest(`子表${dTableName}必须有数据`)//
+          throw new errors.BadRequest(`子表${dTableName}必须有数据`) //
         }
-        await this._createDetailData({ data: data, mainRow: targetRow, tableName: dTableName }, params)//
+        await this._createDetailData({ data: data, mainRow: targetRow, tableName: dTableName }, params) //
       }
     }
     return _res //
     // return vResult
   }
-  async _createDetailData(config: { data: any[], mainRow: any, tableName?: string, relateKey?: string, relateMainKey?: string }, params: any) {
+  async _createDetailData(
+    config: { data: any[]; mainRow: any; tableName?: string; relateKey?: string; relateMainKey?: string },
+    params: any
+  ) {
     let tableName = config.tableName
     if (tableName == null) {
       throw new errors.BadRequest('子表表名不能为空')
@@ -215,51 +234,47 @@ export class BaseService extends KnexService implements bs {
     if (relateMainKey == null) {
       relateMainKey = this.getPrimiaryKey()
     }
-    let arr1: any[] = []//
+    let arr1: any[] = [] //
     //一次性
     for (const dRow of data) {
-      dRow[relateKey] = mainRow[relateMainKey]////
-      debugger//
-      let _res = await s.create(dRow, params)//
-      arr1.push(_res)//
+      dRow[relateKey] = mainRow[relateMainKey] //////
+      params.getMainParam = () => params
+      let _res = await s.create(dRow, params) //
+      arr1.push(_res) //
     }
-    return arr1//
-  }//
+    return arr1 //
+  } //
   getRedisClient(): Redis {
     let app = this.app
-    let redisClient = app.get('redisClient')//
+    let redisClient = app.get('redisClient') //
     return redisClient
   }
   getCompanyId() {
     let app = this.app
     let companyid = app.get('companyid')
-    return companyid//
+    return companyid //
   }
   getAppName() {
     let app = this.app
     let appName = app.get('appName')
-    return appName//
+    return appName //
   }
   async getMaxId(params: any = {}) {
-    // console.log('skfjsdlfjsld', Object.keys(params))////
     let id = this.id
     let serviceName = this.serviceName
     let _key = `${serviceName}_max_${id}`
-    if (this.serviceName == 't_SdOrderEntry') {
-      console.log(params[_key], 'sfjsdlfsdflsd')//
-    }
-    let id1 = params[_key]//
+    let id1 = params[_key] //
     if (id1 != null) {
-      params[_key] = id1 + 1//
+      params[_key] = id1 + 1 //
       // console.log(params[_key], 'sfdsfsd')////
       id1 = params[_key]
       return id1
-    }//
+    } //
     let sql = `SELECT MAX("${id}") AS max_id FROM "${serviceName}";`
     let data = await this.getModel().raw(sql)
     let _id = data.rows[0]['max_id']
     _id = _id + 1
-    params[_key] = _id//
+    params[_key] = _id //
     return _id
   }
   //判断是否自增
@@ -283,30 +298,31 @@ WHERE table_name = '${schema}'
   //使用事务
   //@ts-ignore
   async _create(_data: any, _params: ServiceParams = {} as ServiceParams) {
-
     let data = _data as any
     const params = _params as KnexAdapterParams
     //@ts-ignore
-    const { client } = this.db(params)//
+    const { client } = this.db(params) //
     const returning = RETURNING_CLIENTS.includes(client.driverName) ? [this.id] : []
     //@ts-ignore    //
     const query: any = await this.db(params)
       //@ts-ignore
-      .table(this.serviceName)//
+      .table(this.serviceName) //
       //@ts-ignore
-      .insert(data, ['*'], { includeTriggerModifications: true })//
+      .insert(data, ['*'], { includeTriggerModifications: true }) //
       .toQuery()
     let _rows = null
-    try {//
+    try {
+      //
       //@ts-ignore
       let _model = await this.db(params)
       // debugger//
       let rows = await _model.raw(query)
       _rows = rows
-    } catch (error: any) {
-      throw new errors.BadRequest(`插入数据失败${query},${error?.message || ''}`, {})//
+    } catch (error) {
+      let _error: any = error
+      throw new errors.BadRequest(`插入数据失败${query},${_error?.message || ''}`, {}) //
     }
-    _rows.sql = query//
+    _rows.sql = query //
     return _rows //
   }
   //@ts-ignore
@@ -314,7 +330,7 @@ WHERE table_name = '${schema}'
     // console.log([...args])//
     return await super.find(...args)
   }
-  async multiCraete(data: any, params?: any) { }
+  async multiCraete(data: any, params?: any) {}
   async buildDbSchema() {
     const columnInfo = this.columnInfo
     const schema = columnInfo.reduce((result: any, item) => {
@@ -395,7 +411,7 @@ WHERE table_name = '${schema}'
     // Handle $limit//
     if (filters.$limit) {
       builder.limit(filters.$limit)
-    }//
+    } //
 
     // Handle $skip
     if (filters.$skip) {

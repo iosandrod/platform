@@ -31,10 +31,11 @@ export const typeMap: Record<string, any> = {
   'timestamp with time zone': () => Type.String({ format: 'date-time' }),
 
   // 📦 JSON 类型
-  json: () => Type.Record(Type.String(), Type.Any()), // 任意 JSON 对象
-  jsonb: () => Type.Record(Type.String(), Type.Any()), // JSONB 结构化数据
-
-  // 🏷️ UUID 类型
+  // json: () => Type.Record(Type.String(), Type.Any(), Type.Array(Type.Any())), // 任意 JSON 对象
+  // jsonb: () => Type.Record(Type.String(), Type.Any(), Type.Array(Type.Any())), // JSONB 结构化数据
+  jsonb: () => Type.Union([Type.String(), Type.Array(Type.Any()), Type.Record(Type.String(), Type.Any())]), //
+  json: () => Type.Union([Type.String(), Type.Array(Type.Any()), Type.Record(Type.String(), Type.Any())]), //
+  // 🏷️ UUID 类型//
   uuid: () => Type.String({ format: 'uuid' }),
 
   // 📂 二进制数据

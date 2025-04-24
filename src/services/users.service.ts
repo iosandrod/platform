@@ -6,20 +6,25 @@ import { BadRequest } from '@feathersjs/errors'
 import { cloneDeep, get, set } from 'lodash'
 import { debug } from 'feathers-hooks-common'
 import { createPasswordTransform } from '../generateHooks'
+import { myFeathers } from '../feather'
 @useHook({
   create: [
     async function (context: any, next: any) {
       await next()
     }
+  ],
+  find: [
+    async function (context: any, next: any) {
+      await next() //
+    }
   ]
 }) //
 export class UsersService extends BaseService {
-  serviceName?: string | undefined='users'//
+  serviceName?: string | undefined = 'users' //
   constructor(options: any) {
     super(options) //
   }
-  @useRoute()
-  // @useAuthenticate()
+  @useRoute() //
   async getSomeUser(context: any, params: any) {
     return {
       test: 111
@@ -28,10 +33,10 @@ export class UsersService extends BaseService {
   //@ts-ignore
   async find(...args) {
     return super.find(...args)
-  }//
+  } //
   @useRoute() //
   async getAllTable(context: any) {
-    return
+    return//
   }
   @useMethodTransform({
     //@ts-ignore

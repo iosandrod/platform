@@ -12,16 +12,28 @@ import { ServiceEnitty } from './src/entity/services.entity'
 import { ColumnEntity } from './src/entity/columns.entity'
 import { Entity } from './src/entity/entity.entity'
 import { Company } from './src/entity/company.entity'
+import { FieldEntity } from './src/entity/fields.entity'
 function main() {
   let dbConfig: DataSourceOptions = {
     type: 'postgres',
     host: 'localhost',
     port: 5432,
-    username: 'postgres',//
+    username: 'postgres', //
     password: '123456',
     database: 'platform',
     synchronize: true, ////
-    entities: [Entity, User, Role, Permission, RolePermission, UserRole, Navs, ColumnEntity,Company]
+    entities: [
+      FieldEntity,
+      Entity, //
+      User,
+      Role,
+      Permission,
+      RolePermission,
+      UserRole,
+      Navs,
+      ColumnEntity,
+      Company
+    ]
   }
   const dataSource = new DataSource(dbConfig)
   dataSource.initialize().then(() => {

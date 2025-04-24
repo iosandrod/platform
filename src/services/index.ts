@@ -15,6 +15,7 @@ import EntityService from './entity.service'
 import { myFeathers } from '../feather'
 import { BaseService } from './base.service'
 import NavService from './navs.service'
+import FieldsService from './fields.service'
 export const services = async (app: myFeathers) => {
   let names = Object.keys(createMap) //
   let _names = await app.getCompanyTable()
@@ -108,12 +109,15 @@ export const createServices = async (serverName: keyof typeof createMap, options
   if (_createClass == null) {
     //@ts-ignore
     service.serviceName = serverName
+  } else {
+    service.serviceName = serverName
   }
   //@ts-ignore
   return service
 }
 
 const createMap = {
+  fields: FieldsService,
   navs: NavService, //
   company: CompanyService,
   app: AppService,
