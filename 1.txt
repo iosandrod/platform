@@ -126,3 +126,25 @@ export default function hashPassword(field: string, options: HashPasswordOptions
             //     adadpter.Model = transaction
             //   }
             // }//
+
+            //     let sql = `SELECT
+
+    // 		c.*,
+    //     CASE
+    //         WHEN tc.constraint_type = 'PRIMARY KEY' THEN true
+    //         ELSE false
+    //     END AS is_primary_key
+    // FROM
+    //     information_schema.columns c
+    // LEFT JOIN information_schema.key_column_usage kcu
+    //     ON c.table_name = kcu.table_name
+    //     AND c.column_name = kcu.column_name
+    //     AND c.table_schema = kcu.table_schema
+    // LEFT JOIN information_schema.table_constraints tc
+    //     ON kcu.constraint_name = tc.constraint_name
+    //     AND kcu.table_schema = tc.table_schema
+    //     AND tc.constraint_type = 'PRIMARY KEY'
+    // WHERE
+    //     c.table_schema = 'public'
+    // ORDER BY
+    //     c.table_name, c.ordinal_position;`

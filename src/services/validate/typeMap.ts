@@ -19,6 +19,10 @@ export const typeMap: Record<string, any> = {
   char: (length = 1) => Type.String({ minLength: length, maxLength: length }), // 固定长度
   varchar: (length = 255) => Type.String({ maxLength: length }), // 可变长度
   character: () => Type.String(),
+  ['character varying(255)']: () => Type.String({ maxLength: 255 }),
+  ['bVisible character(1)']: () => Type.String({ maxLength: 1 }), //
+  ['character(1)']: () => Type.String({ maxLength: 1 }), ////
+  ['bit(1)']: () => Type.Integer({ minimum: 0, maximum: 1 }), // 1字节
   text: () => Type.String(), // 无限长度文本
 
   // ✅ 布尔类型

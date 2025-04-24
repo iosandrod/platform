@@ -31,8 +31,12 @@ export const services = async (app: myFeathers) => {
     if (_t) {
       let primaryKey = _t.columns.filter((col: any) => col['is_primary_key'] == true)
       ids = primaryKey.map((col: any) => col['column_name'])
-      let _key = primaryKey[0]['column_name']
-      id = _key
+      if (ids.length > 0) {
+        let _key = primaryKey[0]['column_name']
+        id = _key
+      } else {
+        console.log('表格没有主键字段', name, ids) ////
+      }
     }
     let opt = {
       id,
@@ -72,8 +76,7 @@ export const services = async (app: myFeathers) => {
         ],
         after: [
           async (context: FeathersKoaContext, next: NextFunction) => {
-            await next() //
-            // console.log(context)//
+            await next() ////
             const response = context.response
             response.body = {
               data: response.body,

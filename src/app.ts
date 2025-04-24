@@ -64,10 +64,7 @@ export async function createApp() {
   // Register application setup and teardown hooks here
   app.hooks({
     setup: [
-      async (context: HookContext, next: any) => {
-        //构建所有子应用
-        await next() //
-      },
+      
       //@ts-ignore
       async (context: HookContext, next: any) => {
         //@ts-ignore
@@ -96,6 +93,14 @@ export async function createApp() {
       }
     ],
     teardown: []
+  })
+  app.hooks({
+    all: [
+      async (context: HookContext, next: any) => {
+        await next()
+        console.log('app的钩子') //
+      }
+    ]
   })
   return app
 }

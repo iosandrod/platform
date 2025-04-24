@@ -4,7 +4,10 @@ import { Entity as _Entity } from 'typeorm'
 @_Entity('entity')
 export class Entity extends BaseEntity {
   @Column({ type: 'varchar', nullable: true })
+  //可能是视图名称
   tableName: string //表名
+  @Column({ type: 'varchar', nullable: true })
+  realTableName: string
   @Column({ type: 'integer', nullable: true })
   navId: number
   @Column({
@@ -18,7 +21,7 @@ export class Entity extends BaseEntity {
   @Column({
     type: 'varchar',
     nullable: true
-  }) //
+  })
   fields: string
   @Column({ type: 'varchar', nullable: true })
   uuid: string

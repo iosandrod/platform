@@ -130,54 +130,58 @@ export class myFeathers extends Feathers<any, any> {
   }
   @cacheValue() //
   async getCompanyTable(companyid?: string, appName?: string) {
-    let _connect = null
+    //@ts-ignore
+    let _this: myFeathers = this.getMainApp()
+    //@ts-ignore
+    let _connect: Knex = null
     if (companyid == null) {
       _connect = this.get('postgresqlClient')
     } else {
-      _connect = await this.getCompanyConnection(companyid, appName) //
+      _connect = await _this.getCompanyConnection(companyid, appName) //
     }
     let sql = `SELECT 
-   
-		c.*,
+    cols.attname AS column_name,
+    tbl.relname AS table_name,
+    ns.nspname AS table_schema,
+    cols.attnum AS ordinal_position,
+    pg_catalog.format_type(cols.atttypid, cols.atttypmod) AS data_type,
+    cols.attnotnull AS is_not_null,
+    pg_catalog.col_description(cols.attrelid, cols.attnum) AS column_comment,
+    -- 主键判断
     CASE 
-        WHEN tc.constraint_type = 'PRIMARY KEY' THEN true
+        WHEN pk.conkey IS NOT NULL AND cols.attnum = ANY(pk.conkey) THEN true
         ELSE false
     END AS is_primary_key
 FROM 
-    information_schema.columns c
-LEFT JOIN information_schema.key_column_usage kcu
-    ON c.table_name = kcu.table_name
-    AND c.column_name = kcu.column_name
-    AND c.table_schema = kcu.table_schema
-LEFT JOIN information_schema.table_constraints tc
-    ON kcu.constraint_name = tc.constraint_name
-    AND kcu.table_schema = tc.table_schema
-    AND tc.constraint_type = 'PRIMARY KEY'
-WHERE 
-    c.table_schema = 'public'
-ORDER BY 
-    c.table_name, c.ordinal_position;`
-    let sql1 = `SELECT 
-    kcu.table_schema,
-    kcu.table_name,
-    STRING_AGG(kcu.column_name, ', ' ORDER BY kcu.ordinal_position) AS primary_keys
-FROM 
-    information_schema.table_constraints tc
+    pg_catalog.pg_attribute cols
 JOIN 
-    information_schema.key_column_usage kcu
-    ON tc.constraint_name = kcu.constraint_name
-    AND tc.table_schema = kcu.table_schema
+    pg_catalog.pg_class tbl ON cols.attrelid = tbl.oid
+JOIN 
+    pg_catalog.pg_namespace ns ON tbl.relnamespace = ns.oid
+LEFT JOIN 
+    pg_catalog.pg_constraint pk ON pk.conrelid = tbl.oid AND pk.contype = 'p'
 WHERE 
-    tc.constraint_type = 'PRIMARY KEY'
-    AND tc.table_schema = 'public'
-GROUP BY 
-    kcu.table_schema,
-    kcu.table_name
+    cols.attnum > 0 
+    AND NOT cols.attisdropped
+    AND tbl.relkind = 'r'  -- 只查真正的表，排除视图（'v'）和其他类型
+    AND ns.nspname = 'public'
 ORDER BY 
-    kcu.table_name;
+    tbl.relname, cols.attnum;
 `
     let allColumns = await _connect.raw(sql) //////
     allColumns = allColumns.rows
+    allColumns.forEach((col: any) => {
+      let field = col.column_name
+      col.field = field
+      let nullable = col.is_not_null
+      nullable = !nullable //
+      col.nullable = nullable
+      let defaultValue = col.column_default
+      col.defaultValue = defaultValue
+      let maxLength = col.character_maximum_length
+      col.maxLength = maxLength //
+      col.type = col.data_type //
+    })
     let tables = allColumns.reduce((p: any, column: any) => {
       let table_name = column.table_name //
       let tableObj = p[table_name]
@@ -192,7 +196,7 @@ ORDER BY
       return p //
     }, {})
     return tables //
-  }
+  } //
   clearCache(fnName: string, key: string) {
     //
     if (fnName == null) {
@@ -226,6 +230,10 @@ ORDER BY
     return subApp
   }
   getMainApp() {
+    let mainApp = this.mainApp
+    if (mainApp == null) {
+      return this
+    }
     return this.mainApp //
   }
   uuid() {

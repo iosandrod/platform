@@ -56,13 +56,15 @@ export class BaseService extends KnexService implements bs {
     )
     let _hook = dMethods.reduce((result: any, item: any) => {
       //需要校验用户
+      let _arr: any[] = []
+      result[item] = _arr
       let unAuthMethods = _this['unAuthMethods'] || []
       //设置需要权限//
       if (
         ['create', 'update', 'patch', 'remove'].includes(item) && //
         !unAuthMethods.includes(item)
       ) {
-        result[item] = [
+        let arr1 = [
           _authenticate('jwt'), //
           async (context: HookContext, next: any) => {
             const params = context.params
@@ -86,24 +88,30 @@ export class BaseService extends KnexService implements bs {
           //@ts-ignore
           async (context: HookContext, next: any) => {
             try {
-              console.log('开启了事务了')
               await transaction.start()(context)
               await next()
-              console.log('结束了事务')
               await transaction.end()(context)
             } catch (err) {
               //
-              console.log('回滚了事务了') ////
               await transaction.rollback()(context)
               throw err
             }
           }
           //@ts-ignore
         ]
-      } //
-      if (item == 'create') {
-        //
+        _arr.push(...arr1)
       }
+      //@ts-ignore
+      _arr.unshift(async (context, next) => {
+        await next()
+        let params = context.params || {}
+        // if (params.provider == 'rest') {
+        //   context.result = {
+        //     data: context.result,
+        //     code: 200
+        //   } //
+        // }
+      })
       return result
     }, {})
     this.hooksMetaData?.push(_hook)
@@ -113,18 +121,21 @@ export class BaseService extends KnexService implements bs {
   routes?: routeConfig[] //
   columns: string[] = []
   columnInfo: columnInfo[] = []
+  getCompanyName() {}
   async init(mainApp?: Application) {
     //@ts-ignore
     this.app = mainApp
     const Model = this.Model
-    let table = Model(this.options.name) //
-    let columns = await table.columnInfo()
-    const allColumnName = Object.keys(columns)
-    this.columns = allColumnName
-    this.columnInfo = Object.entries(columns).map(([key, value]) => {
-      let _value = { ...value, field: key }
-      return _value
-    }) //设置
+    let appName = this.getAppName()
+    let companyid = this.getCompanyId()
+    let allT = await this.app.getCompanyTable(companyid, appName) //
+    let columns = allT[this.serviceName!]?.columns || []
+    if (columns.length == 0) {
+      console.log(this.serviceName, '表不存在', this.app.get('appName')) // //
+    }
+    const allColumnName = columns.map((col: any) => col.field) //
+    this.columns = allColumnName //
+    this.columnInfo = columns
     //构建校验
     await this.buildDbSchema()
   }
@@ -159,6 +170,7 @@ export class BaseService extends KnexService implements bs {
     return errors //
   }
   async create(data: any, params?: any): Promise<any> {
+    //
     if (typeof params?.getMainParam == 'function') {
       params = params.getMainParam()
     } //
@@ -223,7 +235,7 @@ export class BaseService extends KnexService implements bs {
     let data: any[] = config.data
     let mainRow = config.mainRow
     let relateKey = config.relateKey
-    let relateMainKey = config.relateMainKey
+    let relateMainKey = config.relateMainKey //
     let s: BaseService = this.app.service(tableName) as any
     if (s == null) {
       throw new errors.BadRequest('子表服务不存在')
@@ -301,8 +313,6 @@ WHERE table_name = '${schema}'
     let data = _data as any
     const params = _params as KnexAdapterParams
     //@ts-ignore
-    const { client } = this.db(params) //
-    const returning = RETURNING_CLIENTS.includes(client.driverName) ? [this.id] : []
     //@ts-ignore    //
     const query: any = await this.db(params)
       //@ts-ignore
@@ -327,7 +337,6 @@ WHERE table_name = '${schema}'
   }
   //@ts-ignore
   async find(...args) {
-    // console.log([...args])//
     return await super.find(...args)
   }
   async multiCraete(data: any, params?: any) {}
@@ -399,6 +408,14 @@ WHERE table_name = '${schema}'
     }
   }
   //@ts-ignore
+  async find(params?: ServiceParams): Promise<Paginated<Result> | Result[]> {
+    return this._find({
+      ...params,
+      //@ts-ignore
+      query: await this.sanitizeQuery(params)
+    })
+  }
+  //@ts-ignore
   async _find(params: ServiceParams = {} as ServiceParams): Promise<Paginated<any> | any[]> {
     //@ts-ignore
     const { filters, paginate } = this.filterQuery(params)
@@ -407,8 +424,6 @@ WHERE table_name = '${schema}'
     //@ts-ignore
     const builder = params.knex ? params.knex.clone() : this.createQuery(params)
     const countBuilder = builder.clone().clearSelect().clearOrder().count(`${name}.${id} as total`)
-
-    // Handle $limit//
     if (filters.$limit) {
       builder.limit(filters.$limit)
     } //

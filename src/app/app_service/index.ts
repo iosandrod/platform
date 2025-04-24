@@ -92,6 +92,7 @@ export const services = async (app: Application, mainApp?: myFeathers) => {
 
 export const createServices = (serverName: keyof typeof createMap, options: any, app: Application) => {
   let createClass = createMap[serverName]
+  let _createClass = createClass //
   if (createClass == null) {
     createClass = BaseService //
   }
@@ -104,6 +105,12 @@ export const createServices = (serverName: keyof typeof createMap, options: any,
     Model
   } as KnexAdapterOptions) //
   let service = new createClass(_options) //
+  if (_createClass == null) {
+    //@ts-ignore
+    service.serviceName = serverName
+  } else {
+    service.serviceName = serverName
+  }
   //@ts-ignore
   return service
 }

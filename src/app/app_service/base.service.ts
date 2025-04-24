@@ -6,14 +6,6 @@ export class BaseService extends MainBaseService {
   //使用通用增删改查
   constructor(options: any) {
     super(options)//
-  }
-  async init(mainApp?: any) { //
-    //子应用的子应用
-    let name = mainApp.get('appName')
-    if (name == null || name !== this.appName) {
-      return
-    }
-    await super.init(mainApp)//
-  }
+  }//
 }
 export default BaseService
