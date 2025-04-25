@@ -179,6 +179,7 @@ ORDER BY
     let allColumns = await _connect.raw(sql) //////
     allColumns = allColumns.rows
     allColumns.forEach((col: any) => {
+      col.tableName = col.table_name//
       let field = col.column_name
       col.field = field
       let nullable = col.is_not_null

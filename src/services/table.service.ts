@@ -8,7 +8,6 @@ import { errors } from '@feathersjs/errors'
         async (context: HookContext, next: any) => {
             const query = context.params?.query || {}
             await next()
-            console.log('wozhixingda到这里了')//
             const result = context.result
             let app = context.app
             let colService = app.service('columns')
@@ -16,14 +15,27 @@ import { errors } from '@feathersjs/errors'
                 let allTableName = result.map(row => {
                     return row.tableName
                 })
-                let reColumns = await colService.find({
+                let reColumns: any[] = await colService.find({
                     query: {
                         tableName: {
                             $in: allTableName
                         }
                     }
-                })//
-                console.log(reColumns, 'testReColumns')//
+                })
+                let tableObj = reColumns.reduce((res: any, item: any) => {
+                    let tableName = item.tableName
+                    let t = res[tableName]
+                    if (t == null) {
+                        res[tableName] = []
+                        t = res[tableName]
+                    }
+                    t.push(item)
+                    return res
+                }, {})
+                result.forEach(res => {
+                    let tableName = res.tableName
+                    res['columns'] = tableObj[tableName]//
+                })
             } else {
                 //@ts-ignore
                 let service: TableService = app.service('tables')
@@ -48,9 +60,18 @@ import { errors } from '@feathersjs/errors'
                 let allTable = await app.getCompanyTable(_this.getCompanyId(), _this.getAppName())
                 let tTable = allTable[tableName]
                 if (tTable != null) {
+                    let columns = JSON.parse(JSON.stringify(tTable.columns || []))//
+                    columns.forEach((col: any) => {
+                        let nullable = col.nullable
+                        if (nullable == false) {
+                            col.nullable = '0'
+                        } else {
+                            col.nullable = '1'//
+                        }
+                    })
+                    await colS.create(columns, {})//
                 }
-            }
-            //新增一行数据
+            }//
         }
     ]
 })
@@ -63,9 +84,13 @@ export class TableService extends BaseService {
         if (targetTable == null) {
             throw new errors.BadGateway('没有找到相关表格')//
         }
-        let res1 = await this.create({ tableName, })
-        let rows = res1.rows
-        return rows
+        await this.create({ tableName, })
+        let res1 = await this.find({
+            query: {
+                tableName: tableName//
+            }
+        })
+        return res1////
     }
 }
 
