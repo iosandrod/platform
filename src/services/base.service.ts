@@ -131,9 +131,9 @@ export class BaseService extends KnexService implements bs {
   }
   app: myFeathers //
   routes?: routeConfig[] //
-  columns: string[] = [] //
+  columns: string[] = [] ////
   columnInfo: columnInfo[] = []
-  getCompanyName() {}
+  getCompanyName() { }
   //@ts-ignore
   createQuery(params: ServiceParams = {} as ServiceParams) {
     const { name, id } = this.getOptions(params)
@@ -234,41 +234,22 @@ export class BaseService extends KnexService implements bs {
     if (typeof params?.getMainParam == 'function') {
       params = params.getMainParam()
     } //
-    let idCreate = await this.getDefaultIncreate()
-    //获取数据库的字段
-    if (Array.isArray(data)) {
-      //批量新增
-      let result = await this.multiCreate(data, params)
-      return result
-    }
-    if (idCreate == false) {
-      let maxId = await this.getMaxId(params) //
-      let id = this.id
-      data[id] = maxId ////
-    }
-    const resolveData = await this.formatData(data) //
-    //@ts-ignore
-    let vResult = await this.validate(resolveData, params) //
-    if (vResult?.length! > 0) {
-      let fError = vResult[0]
-      throw new Error(`数据校验出错,出错信息${JSON.stringify(fError)}`) //
-    }
-    const _res = await this._create(resolveData, params) ////
-    let targetRow = _res.rows[0]
-    let _relateData = data['_relateData'] //关联数据
-    if (_relateData != null && typeof _relateData == 'object') {
-      for (const [key, object] of Object.entries(_relateData)) {
-        let dTableName = key //子表表名
-        let _obj = object as any
-        let data = _obj.data || []
-        let required = _obj.required //是否必须有数据
-        if (data.length == 0 && required == true) {
-          throw new errors.BadRequest(`子表${dTableName}必须有数据`) //
-        }
-        await this._createDetailData({ data: data, mainRow: targetRow, tableName: dTableName }, params) //
-      }
-    }
-    return _res //
+    const _res = await this._create(data, params) ////
+    // let targetRow = _res.rows[0]//
+    // let _relateData = data['_relateData'] //关联数据
+    // if (_relateData != null && typeof _relateData == 'object') {
+    //   for (const [key, object] of Object.entries(_relateData)) {
+    //     let dTableName = key //子表表名
+    //     let _obj = object as any
+    //     let data = _obj.data || []
+    //     let required = _obj.required //是否必须有数据
+    //     if (data.length == 0 && required == true) {
+    //       throw new errors.BadRequest(`子表${dTableName}必须有数据`) //
+    //     }
+    //     await this._createDetailData({ data: data, mainRow: targetRow, tableName: dTableName }, params) //
+    //   }
+    // }
+    return _res?.rows || _res //
     // return vResult
   }
   async _createDetailData(
@@ -355,8 +336,36 @@ WHERE table_name = '${schema}'
   //使用事务
   //@ts-ignore
   async _create(_data: any, _params: ServiceParams = {} as ServiceParams) {
-    let data = _data as any
-    const params = _params as KnexAdapterParams
+    if (Array.isArray(_data)) {
+      let _res1 = []
+      for (const data4 of _data) {
+        let _res2: any = await this._create(data4, _params)
+        _res1.push(_res2)
+      }
+      return _res1//
+    }
+    let data = _data as any//
+    let params: any = _params
+    let _data1 = data
+    let idCreate = await this.getDefaultIncreate()
+    //获取数据库的字段
+    if (Array.isArray(data)) {
+      //批量新增
+      let result = await this.multiCreate(data, params)
+      return result
+    }
+    if (idCreate == false) {
+      let maxId = await this.getMaxId(params) //
+      let id = this.id
+      data[id] = maxId ////
+    }
+    const resolveData = await this.formatData(data) //
+    data = resolveData//
+    let vResult = await this.validate(resolveData, params) //
+    if (vResult?.length! > 0) {
+      let fError = vResult[0]
+      throw new Error(`数据校验出错,出错信息${JSON.stringify(fError)}`) //
+    }
     //@ts-ignore
     //@ts-ignore    //
     const query: any = await this.db(params)
@@ -378,13 +387,28 @@ WHERE table_name = '${schema}'
       throw new errors.BadRequest(`插入数据失败${query},${_error?.message || ''}`, {}) //
     }
     _rows.sql = query //
+    let _res = _rows
+    let targetRow = _res.rows[0]//
+    let _relateData = _data1['_relateData'] //关联数据
+    if (_relateData != null && typeof _relateData == 'object') {
+      for (const [key, object] of Object.entries(_relateData)) {
+        let dTableName = key //子表表名
+        let _obj = object as any
+        let data2 = _obj.data || []
+        let required = _obj.required //是否必须有数据
+        if (data2.length == 0 && required == true) {
+          throw new errors.BadRequest(`子表${dTableName}必须有数据`) //
+        }
+        await this._createDetailData({ data: data2, mainRow: targetRow, tableName: dTableName }, params) //
+      }
+    }
     return _rows //
   }
   //@ts-ignore
   async find(...args) {
     return await super.find(...args)
   }
-  async multiCreate(data: any, params?: any) {}
+  async multiCreate(data: any, params?: any) { }
   async buildDbSchema() {
     const columnInfo = this.columnInfo
     const schema = columnInfo.reduce((result: any, item) => {
@@ -417,7 +441,7 @@ WHERE table_name = '${schema}'
     let formatArr = [
       'date-time',
       'time',
-      'date',
+      'date',//
       'email',
       'hostname',
       'ipv4',

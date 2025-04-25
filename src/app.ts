@@ -94,7 +94,8 @@ export async function createApp() {
   })
   app.hooks({
     all: [
-      async (context: HookContext, next: any) => {
+      async (context: HookContext, next: any) => {//
+        // console.log(context.service.serviceName, 'testName')//
         await next()
         let params = context.params || {}
         let provider = params.provider

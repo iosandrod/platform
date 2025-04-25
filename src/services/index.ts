@@ -16,6 +16,8 @@ import { myFeathers } from '../feather'
 import { BaseService } from './base.service'
 import NavService from './navs.service'
 import FieldsService from './fields.service'
+import ColumnService from './column.service'
+import TableService from './table.service'
 export const services = async (app: myFeathers) => {
   let names = Object.keys(createMap) //
   let _names = await app.getCompanyTable()
@@ -120,6 +122,8 @@ export const createServices = async (serverName: keyof typeof createMap, options
 }
 
 const createMap = {
+  columns: ColumnService,//
+  tables: TableService,
   // fields: FieldsService,
   navs: NavService, //
   company: CompanyService,

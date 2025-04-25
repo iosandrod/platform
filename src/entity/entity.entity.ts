@@ -20,7 +20,7 @@ export class Entity extends BaseEntity {
   //is json
   @Column({
     type: 'jsonb',//
-    nullable: true
+    nullable: true//
   })
   fields: string
   @Column({ type: 'varchar', nullable: true })

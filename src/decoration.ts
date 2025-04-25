@@ -292,3 +292,9 @@ export function cacheRedisValue(config?: Function) {
   }
   return cacheReturnValue
 }
+
+export function cacheFindValue(config?: Function) {
+  let _cacheFn = function () {
+
+  }
+}
