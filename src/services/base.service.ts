@@ -529,7 +529,7 @@ WHERE table_name = '${schema}'
     if (filters.$skip) {
       builder.offset(filters.$skip)
     }
-
+  
     // provide default sorting if its not set
     if (!filters.$sort && builder.client.driverName === 'mssql') {
       builder.orderBy(`${name}.${id}`, 'asc')
