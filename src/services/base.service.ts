@@ -5,7 +5,7 @@ import {
   KnexService,
   transaction
 } from '@feathersjs/knex'
-import { Knex } from 'knex'
+import knex, { Knex, QueryBuilder } from 'knex'
 import { Application, HookContext } from '../declarations'
 import { _authenticate, cacheValue, routeConfig, useHook } from '../decoration'
 import { typeMap } from './validate/typeMap'
@@ -28,15 +28,32 @@ import { myFeathers } from '../feather'
 import { _auth } from '../auth' //
 import Redis, { Result } from 'ioredis'
 import { errors } from '@feathersjs/errors'
+const parse = (value: any) => (typeof value !== 'undefined' ? parseInt(value, 10) : value)
 interface bs {
   hooksMetaData: any[]
 }
+const OPERATORS = {
+  $lt: '<',
+  $lte: '<=',
+  $gt: '>',
+  $gte: '>=',
+  $like: 'like',
+  $notlike: 'not like',
+  $ilike: 'ilike'
+}
+const METHODS = {
+  $ne: 'whereNot',
+  $in: 'whereIn',
+  $nin: 'whereNotIn',
+  $or: 'orWhere',
+  $and: 'andWhere'
+}
 //@ts-ignore
 export class BaseService extends KnexService implements bs {
+  _ajvInstance?: Ajv
   ids?: string[] //
   cache: { [key: string]: any } = {}
   serviceName?: string //
-  // hooksMetaData?: any[]
   transformMetaData?: any
   vSchema?: ValidateFunction
   totalSchema?: TObject
@@ -83,11 +100,8 @@ export class BaseService extends KnexService implements bs {
             let roles = await app.getRoles(id) //
             params.roles = roles
             await next()
-          },
+          }
           //开启事务
-          //@ts-ignore
-
-          //@ts-ignore
         ]
         _arr.push(...arr1)
       }
@@ -103,18 +117,12 @@ export class BaseService extends KnexService implements bs {
             await transaction.rollback()(context)
             throw err
           }
-        })//
+        }) //
       }
       //@ts-ignore
       _arr.unshift(async (context, next) => {
         await next()
         let params = context.params || {}
-        // if (params.provider == 'rest') {
-        //   context.result = {
-        //     data: context.result,
-        //     code: 200
-        //   } //
-        // }
       })
       return result
     }, {})
@@ -123,20 +131,19 @@ export class BaseService extends KnexService implements bs {
   }
   app: myFeathers //
   routes?: routeConfig[] //
-  columns: string[] = []
+  columns: string[] = [] //
   columnInfo: columnInfo[] = []
-  getCompanyName() { }
+  getCompanyName() {}
   //@ts-ignore
   createQuery(params: ServiceParams = {} as ServiceParams) {
     const { name, id } = this.getOptions(params)
     //@ts-ignore
-    const { filters, query } = this.filterQuery(params)
+    const { filters, query } = this.filterQuery(params) //
     //@ts-ignore
-    const builder = this.db(params).table(this.serviceName)//
-    //
+    const builder = this.db(params).table(this.serviceName) //
     // $select uses a specific find syntax, so it has to come first.
     if (filters.$select) {
-      const select = filters.$select.map((column) => (column.includes('.') ? column : `${name}.${column}`))
+      const select = filters.$select.map(column => (column.includes('.') ? column : `${name}.${column}`))
       // always select the id field, but make sure we only select it once
       builder.select(...new Set([...select, `${name}.${id}`]))
     } else {
@@ -159,7 +166,8 @@ export class BaseService extends KnexService implements bs {
     }
     return builder
   }
-  async init(mainApp?: Application) {//
+  async init(mainApp?: Application) {
+    //
     //@ts-ignore
     this.app = mainApp
     const Model = this.Model
@@ -172,7 +180,7 @@ export class BaseService extends KnexService implements bs {
     }
     const allColumnName = columns.map((col: any) => col.field) //
     this.columns = allColumnName //
-    this.columnInfo = columns//
+    this.columnInfo = columns ////
     //构建校验
     await this.buildDbSchema()
   }
@@ -189,7 +197,7 @@ export class BaseService extends KnexService implements bs {
       return trx
     }
     //@ts-ignore
-    return Model//
+    return Model //
     // return schema ? (Model.withSchema(schema).table(name) as Knex.QueryBuilder) : Model(name, tableOptions)
   }
   //类型校验
@@ -204,23 +212,7 @@ export class BaseService extends KnexService implements bs {
     const errors = vSchema.errors || []
     return errors //
   }
-  async create(data: any, params?: any): Promise<any> {
-    //
-    if (typeof params?.getMainParam == 'function') {
-      params = params.getMainParam()
-    } //
-    let idCreate = await this.getDefaultIncreate()
-    //获取数据库的字段
-    if (Array.isArray(data)) {
-      let result = await this.multiCraete(data, params)
-      return result
-    }
-    if (idCreate == false) {
-      let maxId = await this.getMaxId(params) //
-      let id = this.id
-      data[id] = maxId ////
-    }
-    const columns = this.columns
+  async formatData(data: any) {
     let columnInfo = this.columnInfo
     const resolveData = Object.entries(data).reduce((result: any, [key, value]) => {
       let tCol = columnInfo.find(item => item.field == key)
@@ -235,6 +227,26 @@ export class BaseService extends KnexService implements bs {
       } //
       return result
     }, {}) //
+    return resolveData
+  }
+  async create(data: any, params?: any): Promise<any> {
+    //
+    if (typeof params?.getMainParam == 'function') {
+      params = params.getMainParam()
+    } //
+    let idCreate = await this.getDefaultIncreate()
+    //获取数据库的字段
+    if (Array.isArray(data)) {
+      //批量新增
+      let result = await this.multiCreate(data, params)
+      return result
+    }
+    if (idCreate == false) {
+      let maxId = await this.getMaxId(params) //
+      let id = this.id
+      data[id] = maxId ////
+    }
+    const resolveData = await this.formatData(data) //
     //@ts-ignore
     let vResult = await this.validate(resolveData, params) //
     if (vResult?.length! > 0) {
@@ -313,7 +325,6 @@ export class BaseService extends KnexService implements bs {
     let id1 = params[_key] //
     if (id1 != null) {
       params[_key] = id1 + 1 //
-      // console.log(params[_key], 'sfdsfsd')////
       id1 = params[_key]
       return id1
     } //
@@ -335,7 +346,6 @@ WHERE table_name = '${schema}'
   AND column_name = '${id}';`
     let client = this.getModel()
     let d = await client.raw(sql)
-    // console.log(d)
     let reg = /^nextval\('([a-zA-Z0-9_\.]+)'::regclass\)$/
     if (reg.test(d)) {
       return true
@@ -374,7 +384,7 @@ WHERE table_name = '${schema}'
   async find(...args) {
     return await super.find(...args)
   }
-  async multiCraete(data: any, params?: any) { }
+  async multiCreate(data: any, params?: any) {}
   async buildDbSchema() {
     const columnInfo = this.columnInfo
     const schema = columnInfo.reduce((result: any, item) => {
@@ -450,17 +460,35 @@ WHERE table_name = '${schema}'
       query: await this.sanitizeQuery(params)
     })
   }
-  async update(id: Id, data: Partial<any>, params?: KnexAdapterParams<AdapterQuery> | undefined): Promise<any> {
+  async update(
+    id: Id,
+    data: Partial<any>,
+    params?: KnexAdapterParams<AdapterQuery> | undefined
+  ): Promise<any> {
+    let query = await this.sanitizeQuery(params)
+    let _data = await this.formatData(data)
     //@ts-ignore
-    let _res = await this._update(id, data, params)
-    return _res
+    return this._update(id, _data, {
+      ...params,
+      //@ts-ignore
+      query: query
+    })
   }
+  //批量更新呢
   //@ts-ignore
-  async _update(id: Id, _data: Data, params: ServiceParams = {} as ServiceParams): Promise<Result> {
+  async _update(
+    id: { id: any } | string | number,
+    _data: any,
+    params: ServiceParams = {} as ServiceParams
+  ): Promise<any> {
     if (id === null || Array.isArray(_data)) {
       throw new errors.BadRequest("You can not replace multiple instances. Did you mean 'patch'?")
     }
-
+    let whereKey = this.id
+    if (typeof id == 'object') {
+      let _config = id
+      id = _config.id
+    }
     const data = _.omit(_data, this.id)
     //@ts-ignore
     const oldData = await this._get(id, params)
@@ -470,14 +498,18 @@ WHERE table_name = '${schema}'
         // We don't want the id field to be changed
         result[key] = data[key] === undefined ? null : data[key]
       }
-
       return result
-    }, {})
-
-    await this.db(params)
+    }, {}) //
+    let q = await this.db(params)
+      .table(this.serviceName!) //
       .update(newObject, '*', { includeTriggerModifications: true })
       .where(this.id, id)
-      .catch(errorHandler)
+      .toQuery() //
+    try {
+      await this.db(params).raw(q)
+    } catch (error) {
+      throw new errors.BadRequest(`更新数据失败,sql=${q}`)
+    }
     //@ts-ignore
     return this._get(id, params)
   }
@@ -493,7 +525,6 @@ WHERE table_name = '${schema}'
     if (filters.$limit) {
       builder.limit(filters.$limit)
     } //
-
     // Handle $skip
     if (filters.$skip) {
       builder.offset(filters.$skip)
@@ -502,15 +533,17 @@ WHERE table_name = '${schema}'
     // provide default sorting if its not set
     if (!filters.$sort && builder.client.driverName === 'mssql') {
       builder.orderBy(`${name}.${id}`, 'asc')
-    }
-
-    const data = filters.$limit === 0 ? [] : await builder.catch(errorHandler)
+    } //
+    let query = builder.toQuery()
+    console.log(query) //
+    let data = filters.$limit === 0 ? [] : await builder.catch(errorHandler)
 
     if (paginate && paginate.default) {
       //@ts-ignore
       const total = await countBuilder.then(count => parseInt(count[0] ? count[0].total : 0)) //
       return {
         total,
+        //@ts-ignore
         limit: filters.$limit,
         skip: filters.$skip || 0,
         data
@@ -522,33 +555,29 @@ WHERE table_name = '${schema}'
   async patch(id: NullableId, data: any, params?: ServiceParams): Promise<any> {
     //@ts-ignore
     const { $limit, ...query } = await this.sanitizeQuery(params)
-
-    return this._patch(id, data, {
+    let _data1 = await this.formatData(data) //
+    return this._patch(id, _data1, {
       ...params,
       query
     })
   }
   //@ts-ignore
-  async _patch(
-    id: NullableId,
-    raw: any,
-    params: ServiceParams | any = {} as ServiceParams
-  ): Promise<any> {
+  async _patch(id: NullableId, raw: any, params: ServiceParams | any = {} as ServiceParams): Promise<any> {
     //@ts-ignore
     if (id === null && !this.allowsMulti('patch', params)) {
       throw new errors.MethodNotAllowed('Can not patch multiple entries')
     }
-
     const { name, id: idField } = this.getOptions(params) as any
     const data = _.omit(raw, this.id)
-    const results = await this._findOrGet(id, {
+    const results: any = await this._findOrGet(id, {
       ...params,
       query: {
         //@ts-ignore
         ...params?.query,
-        $select: [`${name}.${idField}`]
+        $select: [`${name}.${idField}`] //
       }
     })
+    // console.log(results, 'testResult') //
     const idList = results.map((current: any) => current[idField])
     const updateParams = {
       ...params,
@@ -559,8 +588,12 @@ WHERE table_name = '${schema}'
     }
     const builder = this.createQuery(updateParams)
     //@ts-ignore
-    await builder.update(data, [], { includeTriggerModifications: true })
-    const items = await this._findOrGet(null, updateParams)
+    let res = builder
+      .table(this.serviceName!)
+      .update(data, [], { includeTriggerModifications: true })
+      .toQuery()
+    await this.db(params).raw(res) //
+    const items: any = await this._findOrGet(null, updateParams)
     if (id !== null) {
       if (items.length === 1) {
         return items[0]
@@ -571,5 +604,84 @@ WHERE table_name = '${schema}'
 
     return items
   }
+  //@ts-ignore
+  async _get(id: any, params: ServiceParams = {} as ServiceParams): Promise<Result> {
+    //@ts-ignore
+    const data: any = await this._findOrGet(id, params)
+    if (data.length !== 1) {
+      throw new errors.NotFound(`No record found for id '${id}'`)
+    } //
+    return data[0]
+  }
+  //@ts-ignore
+  async _findOrGet(id: any, params?: any) {
+    if (id !== null) {
+      const { name, id: idField } = this.getOptions(params) //
+      const builder = params.knex ? params.knex.clone() : this.createQuery(params)
+      const idQuery = builder.andWhere(`${name}.${idField}`, '=', id).catch(errorHandler)
+      return idQuery as any[] //
+    }
+    let res = await this._find({
+      ...params,
+      paginate: false
+    })
+    return res //
+  }
+  knexify(knexQuery: Knex.QueryBuilder, query: any = {}, parentKey?: string): Knex.QueryBuilder {
+    const knexify = this.knexify.bind(this)
+    return Object.keys(query || {}).reduce((currentQuery, key) => {
+      const value = query[key]
+      if (_.isObject(value) && !Array.isArray(value) && !(value instanceof Date)) {
+        return knexify(currentQuery, value, key)
+      }
+      const column = parentKey || key
+      const method = METHODS[key as keyof typeof METHODS]
+      if (method) {
+        if (key === '$or' || key === '$and') {
+          // This will create a nested query
+          currentQuery.where(function (this: any) {
+            for (const condition of value) {
+              this[method](function (this: Knex.QueryBuilder) {
+                knexify(this, condition)
+              })
+            }
+          })
 
+          return currentQuery
+        }
+
+        return (currentQuery as any)[method](column, value)
+      }
+
+      const operator = OPERATORS[key as keyof typeof OPERATORS] || '='
+      return operator === '='
+        ? currentQuery.where(column, value)
+        : currentQuery.where(column, operator, value)
+    }, knexQuery)
+  }
+  //@ts-ignore
+  filterQuery(params: any) {
+    const options = this.getOptions(params)
+    const { $select, $sort, $limit: _limit, $skip = 0, ...query } = (params.query || {}) as AdapterQuery
+    const $limit = this.getLimit(_limit, options.paginate)
+
+    return {
+      paginate: options.paginate,
+      filters: { $select, $sort, $limit, $skip },
+      query
+    }
+  }
+  //@ts-ignore
+  getLimit(_limit: any, paginate?: any) {
+    const limit = parse(_limit)
+    if (paginate && (paginate.default || paginate.max)) {
+      const base = paginate.default || 0
+      const lower = typeof limit === 'number' && !isNaN(limit) && limit >= 0 ? limit : base
+      const upper = typeof paginate.max === 'number' ? paginate.max : Number.MAX_VALUE
+
+      return Math.min(lower, upper)
+    }
+
+    return limit
+  }
 }

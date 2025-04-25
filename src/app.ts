@@ -41,8 +41,7 @@ export async function createApp() {
       }
     })
   )
-  app.configure(postgresql)
-  // app.configure(services)
+  await app.configure(postgresql) ////
   await services(app) //
   app.configure(channels)
   //设置用户认证
@@ -64,7 +63,6 @@ export async function createApp() {
   // Register application setup and teardown hooks here
   app.hooks({
     setup: [
-
       //@ts-ignore
       async (context: HookContext, next: any) => {
         //@ts-ignore
@@ -78,17 +76,17 @@ export async function createApp() {
           //@ts-ignore
           await service.init(app) //
         }
-        const subApp = app.subApp
-        const allSubApp = Object.entries(subApp)
-        for (const [key, sApp] of allSubApp) {
-          const services = sApp.services as serviceMap
-          const allServices = Object.values(services)
-          for (const service of allServices) {
-            if (typeof service.init !== 'function') continue
-            //@ts-ignore
-            await service.init(sApp) //
-          }
-        }
+        // const subApp = app.subApp
+        // const allSubApp = Object.entries(subApp)
+        // for (const [key, sApp] of allSubApp) {
+        //   const services = sApp.services as serviceMap
+        //   const allServices = Object.values(services)
+        //   for (const service of allServices) {
+        //     if (typeof service.init !== 'function') continue
+        //     //@ts-ignore
+        //     await service.init(sApp) //
+        //   }
+        // }
         await next() //
       }
     ],
@@ -100,11 +98,12 @@ export async function createApp() {
         await next()
         let params = context.params || {}
         let provider = params.provider
-        if (provider == 'socketio') {////
+        if (provider == 'socketio') {
+          ////
           context.result = {
             data: context.result,
             code: 200
-          }//
+          } //
         }
       }
     ]
