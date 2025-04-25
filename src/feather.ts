@@ -5,6 +5,7 @@ import { createApp } from './app/app_index'
 import knex, { Knex } from 'knex'
 import { cacheValue } from './decoration'
 import { nanoid } from './utils'
+import { errors } from '@feathersjs/errors'
 // const nanoid = () => 'xxxxx' //
 export const subAppCreateMap = {
   erp: createApp //
@@ -80,8 +81,8 @@ export class myFeathers extends Feathers<any, any> {
   getUserPermissions(userid: string) {
     let roles = this.getRoles(userid)
   }
-  async getAllApp() {} //
-  async getCurrentTable() {}
+  async getAllApp() { } //
+  async getCurrentTable() { }
   //@ts-ignore
   async getCompanyConnection(company: any, appName?: string): Promise<Knex> {
     let client = this.getClient()
@@ -178,6 +179,7 @@ ORDER BY
     let allColumns = await _connect.raw(sql) //////
     allColumns = allColumns.rows
     allColumns.forEach((col: any) => {
+      col.tableName = col.table_name//
       let field = col.column_name
       col.field = field
       let nullable = col.is_not_null
@@ -267,10 +269,14 @@ ORDER BY
     let table = tableInfo[tableName]
     return table
   }
-  createFieldKey() {}
+  createFieldKey() { }
   async getDefaultPageLayout(tableName: string) {
-    let allTable = await this.getCompanyTable()
+    let allTable = await this.getCompanyTable()//
+    //本地的表格
     let tableConfig = allTable[tableName]
+    if (tableConfig == null) {
+      throw new errors.NotFound(`table ${tableName} not found`)////
+    }
     let config = {
       layout: {
         pc: [

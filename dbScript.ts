@@ -13,6 +13,7 @@ import { ColumnEntity } from './src/entity/columns.entity'
 import { Entity } from './src/entity/entity.entity'
 import { Company } from './src/entity/company.entity'
 import { FieldEntity } from './src/entity/fields.entity'
+import { TableEntity } from './src/entity/table.entity'
 import knex from 'knex'
 async function main() {
   let _knex = knex({
@@ -29,10 +30,12 @@ async function main() {
     database: 'platform',
     synchronize: true, ////
     entities: [
+
       FieldEntity,
       Entity, //
       User,
       Role,
+      TableEntity,//
       Permission,
       RolePermission,
       UserRole,

@@ -7,6 +7,8 @@ export class ColumnEntity extends BaseEntity {
     @Column({ type: "varchar", nullable: true })
     type: string
     @Column({ type: "varchar", nullable: true })
+    tableName: string
+    @Column({ type: "varchar", nullable: true })//
     comment: string
     @Column({ type: "varchar", nullable: true })
     nullable: string

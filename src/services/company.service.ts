@@ -11,7 +11,9 @@ import { myFeathers } from '../feather'
       const res = context
       const result = res.result // isArray
       //@ts-ignore
-      const app: myFeathers = context.app
+      const app: myFeathers = context.app//
+      // let users = await context.app.service('users').find()
+      // console.log(users, 'testUsers')//
       for (const res of result) {
         //获取所有表格//
         let name = res.companyid ////
@@ -20,7 +22,7 @@ import { myFeathers } from '../feather'
       }
     }
   ]
-})
-export class CompanyService extends BaseService {}
+})//
+export class CompanyService extends BaseService { }
 
 export default CompanyService

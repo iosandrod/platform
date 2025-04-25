@@ -10,6 +10,22 @@ import { Params } from '@feathersjs/feathers'
 import { myFeathers } from '../feather'
 @useHook({
   find: [
+    async (context: HookContext, next) => {
+      await next()
+      let result = context.result
+      let query = context.params?.query || {}
+      let params = context.params
+      if (Object.keys(query).includes('tableName') && Array.isArray(result) && result.length == 0) {
+        //获取默认的表格信息
+        let tableName = query.tableName
+        let _this = context.app.service('entity')//
+        let obj = {
+          tableName: tableName
+        }
+        let defaultTableInfo = await _this.getDefaultPageLayout(obj, params)
+        context.result = [defaultTableInfo]//
+      }
+    }
   ]
 })
 export class EntityService extends BaseService {
@@ -26,7 +42,7 @@ export class EntityService extends BaseService {
     //@ts-ignore
     return await super.create(...args)
   }
-  @useRoute()
+  // @useRoute()
   async getDefaultPageLayout(data: any, context: any) {
     let app = this.app //
     let tableName = data.tableName
