@@ -15,6 +15,7 @@ import { createFeathers, myFeathers } from './feather'
 import { BaseService } from './services/base.service'
 import { mainAuth } from './auth'
 import { redis } from './redis'
+import { configureSocketio } from './socketio'
 export const appArr = [
   {
     companyid: '1',
@@ -35,7 +36,7 @@ export async function createApp() {
   await redis(app) //
   //处理用户认证的事情//
   app.configure(
-    socketio({
+    configureSocketio({
       cors: {
         origin: app.get('origins')
       }
@@ -94,7 +95,8 @@ export async function createApp() {
   })
   app.hooks({
     all: [
-      async (context: HookContext, next: any) => {//
+      async (context: HookContext, next: any) => {
+        //
         // console.log(context.service.serviceName, 'testName')//
         await next()
         let params = context.params || {}

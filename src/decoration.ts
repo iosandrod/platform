@@ -45,7 +45,10 @@ export function useRoute(config: routeConfig = {}) {
     return descriptor
   }
 }
-export const _authenticate = (originalSettings: string | AuthenticateHookSettings, ...originalStrategies: string[]) => {
+export const _authenticate = (
+  originalSettings: string | AuthenticateHookSettings,
+  ...originalStrategies: string[]
+) => {
   const settings =
     typeof originalSettings === 'string'
       ? { strategies: [originalSettings, ...originalStrategies] }
@@ -63,7 +66,6 @@ export const _authenticate = (originalSettings: string | AuthenticateHookSetting
     //@ts-ignore
     const authService: myAuth = app.defaultAuthentication(settings.service)
     if (provider != null && authentication == null) {
-
     }
     debug(`Running authenticate hook on '${path}'`)
 
@@ -96,7 +98,7 @@ export const _authenticate = (originalSettings: string | AuthenticateHookSetting
         ...params,
         ...authResultWithoutToken,
         authenticated: true
-      }//
+      } //
     } else if (provider) {
       throw new NotAuthenticated('Not authenticated')
     }
@@ -105,13 +107,12 @@ export const _authenticate = (originalSettings: string | AuthenticateHookSetting
 }
 
 //使用校验规则
-export function useValidate(config: any) { }
+export function useValidate(config: any) {}
 export type useAuthConfig = {}
 export function useAuthenticate(config?: useAuthConfig) {
   //@ts-ignore
   return function (target, propertyKey, descriptor) {
     let _target = target
-    // console.log(_target, 'target')//
     let hooksMetaData = _target.hooksMetaData
     if (hooksMetaData == null || !Array.isArray(hooksMetaData)) {
       _target.hooksMetaData = []
@@ -129,9 +130,8 @@ export function useUnAuthenticate() {
   //@ts-ignore
   return function (target, propertyKey, descriptor) {
     let _target = target
-    // console.log(_target, 'target')//
     let unAuthMethods = getData(_target, 'unAuthMethods', [])
-    unAuthMethods.push(propertyKey)//
+    unAuthMethods.push(propertyKey) //
     return descriptor
   }
 }
@@ -174,7 +174,6 @@ export function useMethodTransform(config: methodTransform) {
 export function useHook(config: HookOptions<any, any>, fn?: any) {
   //类装饰器
   return function RunOnInstance(OriginalClass: any) {
-    // console.log(OriginalClass,'aaa',fn)
     function NewConstructor(...args: any[]) {
       const instance = new OriginalClass(...args)
       let _value: any[] = getData(instance, 'hooksMetaData', [])
@@ -186,7 +185,7 @@ export function useHook(config: HookOptions<any, any>, fn?: any) {
       }
       _value.push(config) //
       if (fn) {
-        fn(instance)//
+        fn(instance) //
       }
       return instance
     }
@@ -214,7 +213,7 @@ export function cacheValue(config?: Function) {
           let _key1 = await config.apply(this, args)
           if (typeof _key1 === 'string') {
             _key = _key1
-            _key = `${propertyKey}--${_key}`//
+            _key = `${propertyKey}--${_key}` //
           }
         }
         let _value = cache[_key]
@@ -284,7 +283,7 @@ export function cacheRedisValue(config?: Function) {
         if (isPromise(result)) {
           result = await result
         }
-        await redisClient.set(_key, result)//
+        await redisClient.set(_key, result) //
         return result //
       }
     } else {
@@ -294,7 +293,5 @@ export function cacheRedisValue(config?: Function) {
 }
 
 export function cacheFindValue(config?: Function) {
-  let _cacheFn = function () {
-
-  }
+  let _cacheFn = function () {}
 }

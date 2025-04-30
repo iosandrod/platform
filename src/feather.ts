@@ -81,8 +81,8 @@ export class myFeathers extends Feathers<any, any> {
   getUserPermissions(userid: string) {
     let roles = this.getRoles(userid)
   }
-  async getAllApp() { } //
-  async getCurrentTable() { }
+  async getAllApp() {} //
+  async getCurrentTable() {}
   //@ts-ignore
   async getCompanyConnection(company: any, appName?: string): Promise<Knex> {
     let client = this.getClient()
@@ -179,7 +179,7 @@ ORDER BY
     let allColumns = await _connect.raw(sql) //////
     allColumns = allColumns.rows
     allColumns.forEach((col: any) => {
-      col.tableName = col.table_name//
+      col.tableName = col.table_name //
       let field = col.column_name
       col.field = field
       let nullable = col.is_not_null
@@ -269,25 +269,62 @@ ORDER BY
     let table = tableInfo[tableName]
     return table
   }
-  createFieldKey() { }
+  createFieldKey() {}
   async getDefaultPageLayout(tableName: string) {
-    let allTable = await this.getCompanyTable()//
+    let allTable = await this.getCompanyTable() //
     //本地的表格
     let tableConfig = allTable[tableName]
     if (tableConfig == null) {
-      throw new errors.NotFound(`table ${tableName} not found`)////
+      throw new errors.NotFound(`table ${tableName} not found`) ////
+    }
+    let lastList: any[] = []
+    let _node = {
+      ...this.createIdKey('inline'),
+      columns: [
+        {
+          ...this.createIdKey('grid'),
+          options: {
+            gutter: 0,
+            justify: 'start',
+            align: 'top'
+          },
+          style: {
+            width: '100%'
+          },
+          columns: [
+            {
+              ...this.createIdKey('col'), //
+              // list: [_.cloneDeep(node)],
+              list: [
+                {
+                  ...this.createIdKey('inline'),
+                  columns: lastList
+                }
+              ],
+              options: {
+                span: 24,
+                offset: 0,
+                push: 0,
+                pull: 0,
+                style: {}
+              }
+            }
+          ]
+        }
+      ]
     }
     let config = {
       layout: {
-        pc: [
-          {
-            columns: [],
-            ...this.createIdKey('inline'),
-            style: {
-              height: '100%' //
-            }
-          }
-        ],
+        pc: [_node],
+        // [
+        //   {
+        //     columns: [],
+        //     ...this.createIdKey('inline'),
+        //     style: {
+        //       height: '100%'
+        //     }
+        //   }
+        // ],
         mobile: [
           {
             columns: [],
@@ -303,21 +340,16 @@ ORDER BY
       data: {},
       logic: {}
     }
-    let pcLayout = config.layout.pc
-    let res = this.getLastNodeInLayout(pcLayout) //
+    let pcLayout = config.layout.pc as any
+    let res = lastList //
     let res1 = this.getLastNodeInLayout(config.layout.mobile)
-    res.forEach((item, i) => {
-      let _field = config.fields[i]
-      if (_field) {
-        item.columns.push(_field.id)
-      }
-    })
+    res[0] = config.fields[0].id //
     res1.forEach((item, i) => {
       let _field = config.fields[i]
       if (_field) {
         item.columns.push(_field.id) //
       }
-    })
+    }) //
     return config //
   }
   getLastNodeInLayout(layout: any[], res: any[] = []) {

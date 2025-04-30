@@ -133,7 +133,7 @@ export class BaseService extends KnexService implements bs {
   routes?: routeConfig[] //
   columns: string[] = [] ////
   columnInfo: columnInfo[] = []
-  getCompanyName() { }
+  getCompanyName() {}
   //@ts-ignore
   createQuery(params: ServiceParams = {} as ServiceParams) {
     const { name, id } = this.getOptions(params)
@@ -342,9 +342,9 @@ WHERE table_name = '${schema}'
         let _res2: any = await this._create(data4, _params)
         _res1.push(_res2)
       }
-      return _res1//
+      return _res1 //
     }
-    let data = _data as any//
+    let data = _data as any //
     let params: any = _params
     let _data1 = data
     let idCreate = await this.getDefaultIncreate()
@@ -360,7 +360,7 @@ WHERE table_name = '${schema}'
       data[id] = maxId ////
     }
     const resolveData = await this.formatData(data) //
-    data = resolveData//
+    data = resolveData //
     let vResult = await this.validate(resolveData, params) //
     if (vResult?.length! > 0) {
       let fError = vResult[0]
@@ -388,7 +388,7 @@ WHERE table_name = '${schema}'
     }
     _rows.sql = query //
     let _res = _rows
-    let targetRow = _res.rows[0]//
+    let targetRow = _res.rows[0] //
     let _relateData = _data1['_relateData'] //关联数据
     if (_relateData != null && typeof _relateData == 'object') {
       for (const [key, object] of Object.entries(_relateData)) {
@@ -408,7 +408,7 @@ WHERE table_name = '${schema}'
   async find(...args) {
     return await super.find(...args)
   }
-  async multiCreate(data: any, params?: any) { }
+  async multiCreate(data: any, params?: any) {}
   async buildDbSchema() {
     const columnInfo = this.columnInfo
     const schema = columnInfo.reduce((result: any, item) => {
@@ -441,7 +441,7 @@ WHERE table_name = '${schema}'
     let formatArr = [
       'date-time',
       'time',
-      'date',//
+      'date', //
       'email',
       'hostname',
       'ipv4',
@@ -553,7 +553,7 @@ WHERE table_name = '${schema}'
     if (filters.$skip) {
       builder.offset(filters.$skip)
     }
-  
+
     // provide default sorting if its not set
     if (!filters.$sort && builder.client.driverName === 'mssql') {
       builder.orderBy(`${name}.${id}`, 'asc')
@@ -569,7 +569,7 @@ WHERE table_name = '${schema}'
         total,
         //@ts-ignore
         limit: filters.$limit,
-        skip: filters.$skip || 0,
+        skip: filters.$skip || 0, //
         data
       }
     }
@@ -707,5 +707,8 @@ WHERE table_name = '${schema}'
     }
 
     return limit
+  }
+  getId() {
+    return this.id //
   }
 }

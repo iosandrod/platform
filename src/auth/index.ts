@@ -5,14 +5,14 @@ import {
   AuthenticationResult,
   AuthenticationService
 } from '@feathersjs/authentication'
-import { Application, HookContext, NextFunction } from '@feathersjs/feathers'
+import { Application, HookContext, NextFunction, Params } from '@feathersjs/feathers'
 import { IncomingMessage, ServerResponse } from 'http'
 import { JWTStrategy } from '@feathersjs/authentication'
 import { LocalStrategy } from '@feathersjs/authentication-local'
 import { NotAuthenticated } from '@feathersjs/errors'
 import { debug } from 'feathers-hooks-common'
 import jsonwebtoken from 'jsonwebtoken'
-import { get, set } from 'lodash'
+import { get, merge, set } from 'lodash'
 import bcrypt from 'bcryptjs'
 import { AuthenticateHookSettings } from '@feathersjs/authentication/lib/hooks/authenticate'
 
@@ -27,14 +27,47 @@ export class myLocalStrategy extends LocalStrategy {
       throw new NotAuthenticated(errorMessage)
     }
     const { provider, ...paramsWithoutProvider } = params
-    // console.log(username, 'provider', paramsWithoutProvider)//
     const result = await this.findEntity(username, paramsWithoutProvider)
     await this.comparePassword(result, password)
-
+    let _res = await this.getEntity(result, params)
+    let _res1 = _res?.data || _res
     return {
       authentication: { strategy: this.name },
-      [entity]: await this.getEntity(result, params)
+      [entity]: _res1 ////
     }
+  }
+  get configuration() {
+    //@ts-ignore
+    const authConfig = this.authentication.configuration
+    const config = super.configuration || {}
+
+    return {
+      hashSize: 10,
+      service: authConfig.service,
+      entity: authConfig.entity,
+      entityId: authConfig.entityId,
+      errorMessage: 'Invalid login',
+      entityPasswordField: config.passwordField,
+      entityUsernameField: config.usernameField,
+      ...config
+    }
+  }
+  async getEntity(result: any, params: Params) {
+    const entityService = this.entityService
+    let config = this.configuration
+    //@ts-ignore
+    let entityId = entityService.getId()
+    const { entity } = this.configuration
+    if (!entityId || result[entityId] === undefined) {
+      throw new NotAuthenticated('Could not get local entity')
+    }
+    if (!params.provider) {
+      return result
+    }
+    return entityService.get(result[entityId], {
+      ...params,
+      [entity]: result
+    }) //
   }
   async comparePassword(entity: any, password: string) {
     const { entityPasswordField, errorMessage } = this.configuration
@@ -75,7 +108,6 @@ export class myLocalStrategy extends LocalStrategy {
       throw new NotAuthenticated('用户名或者密码不对') //
     }
     const [entity] = list
-
     return entity
   }
 }
@@ -112,7 +144,41 @@ export class myAuth extends AuthenticationService {
       ...params,
       authenticated: true
     })
-    return _res
+    return _res?.data || _res //
+  }
+  async getTokenOptions(authResult: AuthenticationResult, params: AuthenticationParams) {
+    const { service, entity, entityId } = this.configuration
+    const jwtOptions = merge({}, params.jwtOptions, params.jwt)
+    let value = service && entity && authResult[entity]
+    value = value?.data || value //
+    // Set the subject to the entity id if it is available
+    if (value && !jwtOptions.subject) {
+      //@ts-ignore
+      const idProperty = entityId || this.app.service(service).id
+      //@ts-ignore
+      const subject = value[idProperty]
+
+      if (subject === undefined) {
+        throw new NotAuthenticated(`Can not set subject from ${entity}.${idProperty}`)
+      }
+
+      jwtOptions.subject = `${subject}`
+    }
+
+    return jwtOptions
+  }
+  //@ts-ignore
+  async parse(req: IncomingMessage, res: ServerResponse, ...names: string[]) {
+    console.log(req, 'testReq') //
+    const strategies = this.getStrategies(...names).filter(current => typeof current.parse === 'function')
+    for (const authStrategy of strategies) {
+      //@ts-ignore
+      const value = await authStrategy.parse(req, res)
+      if (value !== null) {
+        return value
+      }
+    }
+    return null
   }
   //@ts-ignore
   async create(data: any, params: any) {
