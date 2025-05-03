@@ -19,8 +19,8 @@ export class Entity extends BaseEntity {
   layout: string //
   //is json
   @Column({
-    type: 'jsonb',//
-    nullable: true//
+    type: 'jsonb', //
+    nullable: true //
   })
   fields: string
   @Column({ type: 'varchar', nullable: true })
@@ -29,4 +29,6 @@ export class Entity extends BaseEntity {
   options: string
   @Column({ type: 'varchar', nullable: true })
   entityName: string
+  @Column({ type: 'varchar', nullable: true })
+  tableType: string
 } ////

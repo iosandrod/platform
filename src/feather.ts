@@ -269,13 +269,18 @@ ORDER BY
     let table = tableInfo[tableName]
     return table
   }
+  async getTableConfig(tableName: any) {
+    let allTable = await this.getCompanyTable()
+    return allTable[tableName] //
+  }
   createFieldKey() {}
   async getDefaultPageLayout(tableName: string) {
     let allTable = await this.getCompanyTable() //
     //本地的表格
     let tableConfig = allTable[tableName]
     if (tableConfig == null) {
-      throw new errors.NotFound(`table ${tableName} not found`) ////
+      // throw new errors.NotFound(`table ${tableName} not found`) ////
+      return null //
     }
     let lastList: any[] = []
     let _node = {
@@ -316,15 +321,7 @@ ORDER BY
     let config = {
       layout: {
         pc: [_node],
-        // [
-        //   {
-        //     columns: [],
-        //     ...this.createIdKey('inline'),
-        //     style: {
-        //       height: '100%'
-        //     }
-        //   }
-        // ],
+
         mobile: [
           {
             columns: [],

@@ -60,12 +60,12 @@ export class BaseService extends KnexService implements bs {
   pickSchame?: TPick<any, any>
   constructor(options: any) {
     super(options) //
-    let metaData = this.hooksMetaData
-    if (metaData == null) {
-      this.hooksMetaData = []
-      metaData = this.hooksMetaData //
-    }
     let _this: any = this
+    let metaData = _this.hooksMetaData
+    if (metaData == null) {
+      _this.hooksMetaData = []
+      metaData = _this.hooksMetaData //
+    }
     let r = this.routes || []
     let dMethods = [...defaultServiceMethods, ...r.map(r => r.path)]
     dMethods = dMethods.filter(
@@ -126,7 +126,7 @@ export class BaseService extends KnexService implements bs {
       })
       return result
     }, {})
-    this.hooksMetaData?.push(_hook)
+    _this.hooksMetaData?.push(_hook)
     return this
   }
   app: myFeathers //
@@ -577,6 +577,11 @@ WHERE table_name = '${schema}'
   }
   //@ts-ignore
   async patch(id: NullableId, data: any, params?: ServiceParams): Promise<any> {
+    console.log('run patch 123132')//
+    if(id==null){
+      throw new errors.BadRequest("is no id")//
+    }
+    console.log(id,'testId1123131221')//
     //@ts-ignore
     const { $limit, ...query } = await this.sanitizeQuery(params)
     let _data1 = await this.formatData(data) //
