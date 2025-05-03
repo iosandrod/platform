@@ -122,7 +122,7 @@ export const createServices = async (serverName: keyof typeof createMap, options
 }
 
 const createMap = {
-  columns: ColumnService,//
+  columns: ColumnService, //
   tables: TableService,
   // fields: FieldsService,
   navs: NavService, //
@@ -153,3 +153,4 @@ export async function importModulesFromFolder(directory: string) {
   }
   return modules
 }
+//

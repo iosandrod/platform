@@ -58,12 +58,11 @@ export const params = (_app: Application, socketMap: WeakMap<RealTimeConnection,
   socket.feathers = {
     provider: 'socketio',
     headers: socket.handshake.headers,
-    authentication: auth
-    // authentication: {
-    //   strategy: 'jwt',
-    //   accessToken:
-    //     'eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJpYXQiOjE3NDU5OTE4MzMsImV4cCI6MTc0NjA3ODIzMywiYXVkIjoiaHR0cHM6Ly95b3VyZG9tYWluLmNvbSIsInN1YiI6IjEiLCJqdGkiOiIzZDM5NjY0Yi02Y2YzLTRhODQtOWQ0Mi1kMmU1Y2Y0NjU0ZmEifQ.-2z-4MX5kMY295uonIPejL-4B63c4BNTJLcAX1rqusQ'
-    // }
+    authentication: {
+      strategy: 'jwt',
+      accessToken:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJpYXQiOjE3NDYxMDQ5MTYsImV4cCI6MTc0NjE5MTMxNiwiYXVkIjoiaHR0cHM6Ly95b3VyZG9tYWluLmNvbSIsInN1YiI6IjEiLCJqdGkiOiI5NzVjOTgyOS0yOGQ4LTQ3MjYtYmI1MS0zZWNkOGRhMzZkZjcifQ.1drrn2sSIzBR4gLJq5ox83kkXdogoxaXuk5UaMOhhTM'
+    }
   }
   //   console.log(socket.feathers, 'testFeathers') //
   socketMap.set(socket.feathers, socket)

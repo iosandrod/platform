@@ -15,16 +15,46 @@ import { myFeathers } from '../feather'
       let result = context.result
       let query = context.params?.query || {}
       let params = context.params
-      if (Object.keys(query).includes('tableName') && Array.isArray(result) && result.length == 0) {
+      let _this = context.app.service('entity') //
+      if (
+        Object.keys(query).includes('tableName') &&
+        Object.keys(query).length == 1 &&
+        Array.isArray(result) &&
+        result.length == 0
+      ) {
         //获取默认的表格信息
         let tableName = query.tableName
-        let _this = context.app.service('entity')//
         let obj = {
           tableName: tableName
         }
         let defaultTableInfo = await _this.getDefaultPageLayout(obj, params)
-        context.result = [defaultTableInfo]//
-      }
+        if (defaultTableInfo != null) {
+          context.result = [defaultTableInfo] //
+        }
+      } else {
+        let result = context.result
+        for (const res of result) {
+          let fields = res?.fields
+          if (Array.isArray(fields)) {
+            for (const f of fields) {
+              //
+              let type = f?.type
+              if (type == 'entity') {
+                let tableName = f?.tableName
+                if (tableName) {
+                  let _config = await _this.getTableConfig(tableName)
+                  let options = f?.options //
+                  if (options == null) {
+                    options = {}
+                    f.options = options
+                  }
+                  f.options = { ...options, ..._config }
+                }
+              }
+            }
+          }
+        }
+      } //
     }
   ]
 })
@@ -58,6 +88,10 @@ export class EntityService extends BaseService {
     return {
       test: 2
     }
+  }
+  async getTableConfig(tableName: any) {
+    let app = this.app
+    return app.getTableConfig(tableName)
   }
 }
 

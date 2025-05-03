@@ -8,6 +8,10 @@
     "feathers"
   ],
   "author": {},
+  "compilerOptions": {
+    "sourceMap": true,
+    "outDir": "./dist"
+  },
   "contributors": [],
   "bugs": {},
   "engines": {
