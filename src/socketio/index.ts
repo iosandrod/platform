@@ -31,14 +31,39 @@ export const params = (_app: Application, socketMap: WeakMap<RealTimeConnection,
   socket: FeathersSocket,
   next: NextFunction
 ) => {
+  let auth = {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJpYXQiOjE3NDU5OTU5MzYsImV4cCI6MTc0NjA4MjMzNiwiYXVkIjoiaHR0cHM6Ly95b3VyZG9tYWluLmNvbSIsInN1YiI6IjEiLCJqdGkiOiI2ZWNiMDJiZC1hMGRlLTQyOGUtOTY4OC1hZmUzOTFhYmUxZTEifQ.Cs7Xv7nlY_DdGEN-adgUhPouwzImGH10jRg5K4clars",
+    "strategy": "jwt",
+    // "authentication": {
+    //   "strategy": "local",
+    //   "payload": {
+    //     "iat": 1745995936,
+    //     "exp": 1746082336,
+    //     "aud": "https://yourdomain.com",
+    //     "sub": "1",
+    //     "jti": "6ecb02bd-a0de-428e-9688-afe391abe1e1"
+    //   }
+    // },
+    // "user": {
+    //   "id": 1,
+    //   "createdAt": "2025-04-30T06:52:03.149Z",
+    //   "updatedAt": "2025-04-30T06:52:03.149Z",
+    //   "username": "1",
+    //   "email": "1",
+    //   "password": "$2b$10$gVfIaJyDH.Fqbn5.fnOKSuNpfKSfjV.61ER/Top/kVqyByh/kmqFy",
+    //   "companyid": null,
+    //   "appName": null
+    // }
+  }
   socket.feathers = {
     provider: 'socketio',
     headers: socket.handshake.headers,
-    authentication: {
-      strategy: 'jwt',
-      accessToken:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJpYXQiOjE3NDU5OTE4MzMsImV4cCI6MTc0NjA3ODIzMywiYXVkIjoiaHR0cHM6Ly95b3VyZG9tYWluLmNvbSIsInN1YiI6IjEiLCJqdGkiOiIzZDM5NjY0Yi02Y2YzLTRhODQtOWQ0Mi1kMmU1Y2Y0NjU0ZmEifQ.-2z-4MX5kMY295uonIPejL-4B63c4BNTJLcAX1rqusQ'
-    }
+    authentication: auth
+    // authentication: {
+    //   strategy: 'jwt',
+    //   accessToken:
+    //     'eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJpYXQiOjE3NDU5OTE4MzMsImV4cCI6MTc0NjA3ODIzMywiYXVkIjoiaHR0cHM6Ly95b3VyZG9tYWluLmNvbSIsInN1YiI6IjEiLCJqdGkiOiIzZDM5NjY0Yi02Y2YzLTRhODQtOWQ0Mi1kMmU1Y2Y0NjU0ZmEifQ.-2z-4MX5kMY295uonIPejL-4B63c4BNTJLcAX1rqusQ'
+    // }
   }
   //   console.log(socket.feathers, 'testFeathers') //
   socketMap.set(socket.feathers, socket)

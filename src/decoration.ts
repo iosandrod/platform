@@ -92,7 +92,7 @@ export const _authenticate = (
       debug('Authenticating with', authentication, strategies)
       //@ts-ignore
       const authResult = await authService.authenticate(authentication, authParams, ...strategies)
-
+      console.log(authResult, 'testAuthResult')//
       const { accessToken, ...authResultWithoutToken } = authResult
       context.params = {
         ...params,
@@ -107,7 +107,7 @@ export const _authenticate = (
 }
 
 //使用校验规则
-export function useValidate(config: any) {}
+export function useValidate(config: any) { }
 export type useAuthConfig = {}
 export function useAuthenticate(config?: useAuthConfig) {
   //@ts-ignore
@@ -293,5 +293,5 @@ export function cacheRedisValue(config?: Function) {
 }
 
 export function cacheFindValue(config?: Function) {
-  let _cacheFn = function () {}
+  let _cacheFn = function () { }
 }
