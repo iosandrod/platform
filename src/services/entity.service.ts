@@ -35,6 +35,9 @@ import { myFeathers } from '../feather'
         let result = context.result
         for (const res of result) {
           let fields = res?.fields
+          let tableName = res?.tableName
+          let allCol = await _this.getAllColumns(tableName)
+          res.columns = allCol //
           if (Array.isArray(fields)) {
             for (const f of fields) {
               //
@@ -88,6 +91,20 @@ export class EntityService extends BaseService {
     return {
       test: 2
     }
+  }
+  async getAllColumns(tableName: string) {
+    let _tableName = tableName.split('---')
+    tableName = _tableName[0]
+
+    let app = this.app
+    let colS = app.service('columns')
+    let cols = await colS.find({ query: { tableName } })
+    if (cols.length == 0) {
+      let _config = await app.getTableConfig(tableName)
+      let _columns = _config?.columns || []
+      cols = _columns //
+    }
+    return cols
   }
   async getTableConfig(tableName: any) {
     let app = this.app
