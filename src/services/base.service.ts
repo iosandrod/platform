@@ -82,7 +82,7 @@ export class BaseService extends KnexService implements bs {
         !unAuthMethods.includes(item)
       ) {
         let arr1 = [
-          _authenticate('jwt'), //
+          // _authenticate('jwt'), //
           async (context: HookContext, next: any) => {
             const params = context.params
             //如果没有登陆
@@ -405,8 +405,12 @@ WHERE table_name = '${schema}'
     return _rows //
   }
   //@ts-ignore
-  async find(...args) {
-    return await super.find(...args)
+  async find(params?: any): Promise<Paginated<Result> | Result[]> {
+    return this._find({
+      ...params,
+      //@ts-ignore
+      query: await this.sanitizeQuery(params)
+    })
   }
   async multiCreate(data: any, params?: any) {}
   async buildDbSchema() {
@@ -577,11 +581,11 @@ WHERE table_name = '${schema}'
   }
   //@ts-ignore
   async patch(id: NullableId, data: any, params?: ServiceParams): Promise<any> {
-    console.log('run patch 123132')//
-    if(id==null){
-      throw new errors.BadRequest("is no id")//
+    console.log('run patch 123132') //
+    if (id == null) {
+      throw new errors.BadRequest('is no id') //
     }
-    console.log(id,'testId1123131221')//
+    console.log(id, 'testId1123131221') //
     //@ts-ignore
     const { $limit, ...query } = await this.sanitizeQuery(params)
     let _data1 = await this.formatData(data) //
