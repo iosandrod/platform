@@ -61,7 +61,7 @@ export const params = (_app: Application, socketMap: WeakMap<RealTimeConnection,
     authentication: {
       strategy: 'jwt',
       accessToken:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJpYXQiOjE3NDYxMDQ5MTYsImV4cCI6MTc0NjE5MTMxNiwiYXVkIjoiaHR0cHM6Ly95b3VyZG9tYWluLmNvbSIsInN1YiI6IjEiLCJqdGkiOiI5NzVjOTgyOS0yOGQ4LTQ3MjYtYmI1MS0zZWNkOGRhMzZkZjcifQ.1drrn2sSIzBR4gLJq5ox83kkXdogoxaXuk5UaMOhhTM'
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJpYXQiOjE3NDYyNjM0MjAsImV4cCI6MTc0NjM0OTgyMCwiYXVkIjoiaHR0cHM6Ly95b3VyZG9tYWluLmNvbSIsInN1YiI6IjEiLCJqdGkiOiIxZjEzOTRhZi1hODA4LTQzMTAtYTM1OS1jNmJlNmJkYTU3Y2QifQ.QydhEx5Q3TX0rauXbb_QEB8puf0Tkse4W0Jopr81McE"
     }
   }
   //   console.log(socket.feathers, 'testFeathers') //
