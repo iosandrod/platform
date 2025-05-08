@@ -127,6 +127,9 @@ export function configureSocketio(port?: any, options?: any, config?: any) {
             io.use(disconnect(app, getParams, socketMap))
             io.use(params(app, socketMap))
             io.use(authentication(app, getParams))
+            io.use(async (socket, next) => {
+              await next()
+            })
             io.sockets.setMaxListeners(64)
           }
 

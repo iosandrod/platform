@@ -15,7 +15,7 @@ import { myFeathers } from '../feather'
       let result = context.result
       let query = context.params?.query || {}
       let params = context.params
-      let _this = context.app.service('entity') //
+      let _this: EntityService = context.app.service('entity') //
       if (
         Object.keys(query).includes('tableName') &&
         Object.keys(query).length == 1 &&
@@ -37,10 +37,17 @@ import { myFeathers } from '../feather'
           let fields = res?.fields
           let tableName = res?.tableName
           let allCol = await _this.getAllColumns(tableName)
+          let hasPrimaryKey = allCol.some((col: any) => col.primary != null)
+          if (hasPrimaryKey == false) {
+            //
+            let _config = await _this.getTableConfig(tableName)
+            let _columns = _config?.columns || []
+            let keyCol = _columns.find((col: any) => col.primary != null)
+            console.log(keyCol, 'keyCol') //
+          }
           res.columns = allCol //
           if (Array.isArray(fields)) {
             for (const f of fields) {
-              //
               let type = f?.type
               if (type == 'entity') {
                 let tableName = f?.tableName

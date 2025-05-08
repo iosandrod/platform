@@ -84,7 +84,7 @@ export class BaseService extends KnexService implements bs {
         let arr1 = [
           // _authenticate('jwt'), //
           async (context: HookContext, next: any) => {
-            const params = context.params
+            let params = context.params
             //如果没有登陆
             if (params.authenticated != true) {
               await next()
@@ -136,14 +136,14 @@ export class BaseService extends KnexService implements bs {
   getCompanyName() {}
   //@ts-ignore
   createQuery(params: ServiceParams = {} as ServiceParams) {
-    const { name, id } = this.getOptions(params)
+    let { name, id } = this.getOptions(params)
     //@ts-ignore
-    const { filters, query } = this.filterQuery(params) //
+    let { filters, query } = this.filterQuery(params) //
     //@ts-ignore
-    const builder = this.db(params).table(this.serviceName) //
+    let builder = this.db(params).table(this.serviceName) //
     // $select uses a specific find syntax, so it has to come first.
     if (filters.$select) {
-      const select = filters.$select.map(column => (column.includes('.') ? column : `${name}.${column}`))
+      let select = filters.$select.map(column => (column.includes('.') ? column : `${name}.${column}`))
       // always select the id field, but make sure we only select it once
       builder.select(...new Set([...select, `${name}.${id}`]))
     } else {
@@ -170,7 +170,7 @@ export class BaseService extends KnexService implements bs {
     //
     //@ts-ignore
     this.app = mainApp
-    const Model = this.Model
+    let Model = this.Model
     let appName = this.getAppName()
     let companyid = this.getCompanyId()
     let allT = await this.app.getCompanyTable(companyid, appName) //
@@ -178,7 +178,7 @@ export class BaseService extends KnexService implements bs {
     if (columns.length == 0) {
       console.log(this.serviceName, '表不存在', this.app.get('appName')) // //
     }
-    const allColumnName = columns.map((col: any) => col.field) //
+    let allColumnName = columns.map((col: any) => col.field) //
     this.columns = allColumnName //
     this.columnInfo = columns ////
     //构建校验
@@ -186,13 +186,13 @@ export class BaseService extends KnexService implements bs {
   }
   //@ts-ignore
   db(params?: ServiceParams): Knex {
-    const { Model, name, schema, tableOptions } = this.getOptions(params)
+    let { Model, name, schema, tableOptions } = this.getOptions(params)
     //@ts-ignore
     if (params && params.transaction && params.transaction.trx) {
       //@ts-ignore
       // let _t: Knex.Transaction = params.transaction
       //@ts-ignore
-      const { trx } = params.transaction //
+      let { trx } = params.transaction //
       // return trx.table(table)//
       return trx
     }
@@ -209,24 +209,35 @@ export class BaseService extends KnexService implements bs {
       vSchema = this.vSchema! //
     }
     await vSchema(data)
-    const errors = vSchema.errors || []
+    let errors = vSchema.errors || []
     return errors //
   }
-  async formatData(data: any) {
+  async formatData(data: any): Promise<any> {
+    //
     let columnInfo = this.columnInfo
-    const resolveData = Object.entries(data).reduce((result: any, [key, value]) => {
-      let tCol = columnInfo.find(item => item.field == key)
-      if (tCol) {
-        let type = tCol.type
-        if (type == 'jsonb' || type == 'json') {
-          if (typeof value == 'object') {
-            value = JSON.stringify(value)
+    let resolveData = null
+    if (Array.isArray(data)) {
+      let r = []
+      for (const d of data) {
+        let d1 = await this.formatData(d)
+        r.push(d1)
+      }
+      resolveData = r //
+    } else {
+      resolveData = Object.entries(data).reduce((result: any, [key, value]) => {
+        let tCol = columnInfo.find(item => item.field == key)
+        if (tCol) {
+          let type = tCol.type
+          if (type == 'jsonb' || type == 'json') {
+            if (typeof value == 'object') {
+              value = JSON.stringify(value)
+            }
           }
-        }
-        result[key] = value
-      } //
-      return result
-    }, {}) //
+          result[key] = value
+        } //
+        return result
+      }, {}) //
+    }
     return resolveData
   }
   async create(data: any, params?: any): Promise<any> {
@@ -234,26 +245,20 @@ export class BaseService extends KnexService implements bs {
     if (typeof params?.getMainParam == 'function') {
       params = params.getMainParam()
     } //
-    const _res = await this._create(data, params) ////
-    // let targetRow = _res.rows[0]//
-    // let _relateData = data['_relateData'] //关联数据
-    // if (_relateData != null && typeof _relateData == 'object') {
-    //   for (const [key, object] of Object.entries(_relateData)) {
-    //     let dTableName = key //子表表名
-    //     let _obj = object as any
-    //     let data = _obj.data || []
-    //     let required = _obj.required //是否必须有数据
-    //     if (data.length == 0 && required == true) {
-    //       throw new errors.BadRequest(`子表${dTableName}必须有数据`) //
-    //     }
-    //     await this._createDetailData({ data: data, mainRow: targetRow, tableName: dTableName }, params) //
-    //   }
-    // }
+    let _res = await this._create(data, params) ////
+
     return _res?.rows || _res //
     // return vResult
   }
   async _createDetailData(
-    config: { data: any[]; mainRow: any; tableName?: string; relateKey?: string; relateMainKey?: string },
+    config: {
+      detailConfig?: any
+      data: any[]
+      mainRow: any
+      tableName?: string
+      relateKey?: string
+      relateMainKey?: string
+    },
     params: any
   ) {
     let tableName = config.tableName
@@ -348,6 +353,7 @@ WHERE table_name = '${schema}'
     let params: any = _params
     let _data1 = data
     let idCreate = await this.getDefaultIncreate()
+    console.log(idCreate, 'testSFSFSDFSDFSDf') //
     //获取数据库的字段
     if (Array.isArray(data)) {
       //批量新增
@@ -356,10 +362,11 @@ WHERE table_name = '${schema}'
     }
     if (idCreate == false) {
       let maxId = await this.getMaxId(params) //
+      console.log(maxId, 'maxId', this.id) //
       let id = this.id
       data[id] = maxId ////
     }
-    const resolveData = await this.formatData(data) //
+    let resolveData = await this.formatData(data) //
     data = resolveData //
     let vResult = await this.validate(resolveData, params) //
     if (vResult?.length! > 0) {
@@ -368,7 +375,7 @@ WHERE table_name = '${schema}'
     }
     //@ts-ignore
     //@ts-ignore    //
-    const query: any = await this.db(params)
+    let query: any = await this.db(params)
       //@ts-ignore
       .table(this.serviceName) //
       //@ts-ignore
@@ -399,11 +406,21 @@ WHERE table_name = '${schema}'
         if (data2.length == 0 && required == true) {
           throw new errors.BadRequest(`子表${dTableName}必须有数据`) //
         }
-        await this._createDetailData({ data: data2, mainRow: targetRow, tableName: dTableName }, params) //
+        await this._createDetailData(
+          {
+            data: data2,
+            mainRow: targetRow,
+            tableName: dTableName,
+            detailConfig: _obj,
+            relateKey: _obj.relateKey,
+            relateMainKey: _obj.relateMainKey
+          }, //
+          params
+        ) //
       }
     }
     return _rows //
-  }
+  } //
   //@ts-ignore
   async find(params?: any): Promise<Paginated<Result> | Result[]> {
     return this._find({
@@ -414,8 +431,8 @@ WHERE table_name = '${schema}'
   }
   async multiCreate(data: any, params?: any) {}
   async buildDbSchema() {
-    const columnInfo = this.columnInfo
-    const schema = columnInfo.reduce((result: any, item) => {
+    let columnInfo = this.columnInfo
+    let schema = columnInfo.reduce((result: any, item) => {
       let field = item.field!
       let type = item.type as keyof typeof typeMap
       let nullable = item.nullable
@@ -468,12 +485,12 @@ WHERE table_name = '${schema}'
     return this.id
   }
   getModel(params: any = {}) {
-    const { Model } = this.getOptions(params)
+    let { Model } = this.getOptions(params)
     return Model
   }
   //@ts-ignore
   getOptions(params: any): KnexAdapterOptions {
-    const paginate = params.paginate !== undefined ? params.paginate : this.options.paginate
+    let paginate = params.paginate !== undefined ? params.paginate : this.options.paginate
     return {
       ...this.options,
       paginate,
@@ -517,10 +534,10 @@ WHERE table_name = '${schema}'
       let _config = id
       id = _config.id
     }
-    const data = _.omit(_data, this.id)
+    let data = _.omit(_data, this.id)
     //@ts-ignore
-    const oldData = await this._get(id, params)
-    const newObject = Object.keys(oldData).reduce((result: any, key) => {
+    let oldData = await this._get(id, params)
+    let newObject = Object.keys(oldData).reduce((result: any, key) => {
       if (key !== this.id) {
         //@ts-ignore
         // We don't want the id field to be changed
@@ -544,12 +561,12 @@ WHERE table_name = '${schema}'
   //@ts-ignore
   async _find(params: ServiceParams = {} as ServiceParams): Promise<Paginated<any> | any[]> {
     //@ts-ignore
-    const { filters, paginate } = this.filterQuery(params)
+    let { filters, paginate } = this.filterQuery(params)
     //@ts-ignore
-    const { name, id } = this.getOptions(params)
+    let { name, id } = this.getOptions(params)
     //@ts-ignore
-    const builder = params.knex ? params.knex.clone() : this.createQuery(params)
-    const countBuilder = builder.clone().clearSelect().clearOrder().count(`${name}.${id} as total`)
+    let builder = params.knex ? params.knex.clone() : this.createQuery(params)
+    let countBuilder = builder.clone().clearSelect().clearOrder().count(`${name}.${id} as total`)
     if (filters.$limit) {
       builder.limit(filters.$limit)
     } //
@@ -568,7 +585,7 @@ WHERE table_name = '${schema}'
 
     if (paginate && paginate.default) {
       //@ts-ignore
-      const total = await countBuilder.then(count => parseInt(count[0] ? count[0].total : 0)) //
+      let total = await countBuilder.then(count => parseInt(count[0] ? count[0].total : 0)) //
       return {
         total,
         //@ts-ignore
@@ -580,67 +597,125 @@ WHERE table_name = '${schema}'
     return data
   }
   //@ts-ignore
-  async patch(id: NullableId, data: any, params?: ServiceParams): Promise<any> {
-    console.log('run patch 123132') //
-    if (id == null) {
-      throw new errors.BadRequest('is no id') //
-    }
-    console.log(id, 'testId1123131221') //
+  async patch(id: NullableId, data: any, params?: any): Promise<any> {
     //@ts-ignore
-    const { $limit, ...query } = await this.sanitizeQuery(params)
-    let _data1 = await this.formatData(data) //
-    return this._patch(id, _data1, {
+    let { $limit, ...query } = await this.sanitizeQuery(params)
+    if (Array.isArray(id) || typeof id == 'object') {
+      let _data = data
+      data = id
+      id = null //
+      params = _data //
+    }
+    return this._patch(id, data, {
       ...params,
       query
     })
   }
   //@ts-ignore
-  async _patch(id: NullableId, raw: any, params: ServiceParams | any = {} as ServiceParams): Promise<any> {
+  allowsMulti(method: string, params: ServiceParams = {} as ServiceParams) {
+    if (1 == 1) {
+      return true
+    }
+    let { multi } = this.getOptions(params)
+    if (multi === true || !multi) {
+      return multi
+    }
+    return multi.includes(method)
+  }
+  //@ts-ignore//
+  async _patch(id: NullableId, raw1: any, params: ServiceParams | any = {} as ServiceParams): Promise<any> {
     //@ts-ignore
     if (id === null && !this.allowsMulti('patch', params)) {
       throw new errors.MethodNotAllowed('Can not patch multiple entries')
     }
-    const { name, id: idField } = this.getOptions(params) as any
-    const data = _.omit(raw, this.id)
-    const results: any = await this._findOrGet(id, {
-      ...params,
-      query: {
-        //@ts-ignore
-        ...params?.query,
-        $select: [`${name}.${idField}`] //
+    let raw = await this.formatData(raw1) //
+    let { name, id: idField } = this.getOptions(params) as any
+    let data = null
+    if (Array.isArray(raw)) {
+      data = raw
+    } else {
+      data = [raw]
+    }
+    // data = data.map((d: any) => _.omit(d, idField))
+    let queryObj = {
+      ...params.query
+    } //
+    if (id == null) {
+      let _r = raw
+      if (!Array.isArray(_r)) {
+        _r = [_r]
       }
-    })
-    // console.log(results, 'testResult') //
-    const idList = results.map((current: any) => current[idField])
-    const updateParams = {
-      ...params,
-      query: {
-        [`${name}.${idField}`]: { $in: idList },
-        ...(params?.query?.$select ? { $select: params?.query?.$select } : {})
+      let idL = _r.map((r: any) => r[idField])
+      queryObj[`${name}.${idField}`] = { $in: idL }
+    }
+    let sqlArr = []
+    if (data.length == 1) {//
+      let results: any = await this._findOrGet(id, {
+        ...params, //
+        query: queryObj
+      })
+      let idList = results.map((current: any) => current[idField])
+      for (const d of data) {
+        let updateParams = {
+          ...params,
+          query: {
+            [`${name}.${idField}`]: { $in: idList },
+            ...(params?.query?.$select ? { $select: params?.query?.$select } : {})
+          }
+        }
+        delete d[idField]
+        let builder = this.createQuery(updateParams)
+        let res = builder
+          .table(this.serviceName!)
+          .update(d, [], { includeTriggerModifications: true })
+          .toQuery()
+        sqlArr.push(res)
+      }
+    } else {
+      for (const d of data) {
+        let idList = [d].map((current: any) => current[idField]).filter((current: any) => current != null)
+        let qObj = {
+          ...(params?.query?.$select ? { $select: params?.query?.$select } : {})
+        }
+        if (idList.length > 0) {
+          //@ts-ignore
+          qObj[`${name}.${idField}`] = { $in: idList }
+        }
+        let updateParams = {
+          ...params,
+          query: {
+            [`${name}.${idField}`]: { $in: idList },
+            ...(params?.query?.$select ? { $select: params?.query?.$select } : {})
+          }
+        } //
+        delete d[idField]
+        let builder = this.createQuery(updateParams)
+        let res = builder
+          .table(this.serviceName!)
+          .update(d, [], { includeTriggerModifications: true })
+          .toQuery()
+        sqlArr.push(res)
       }
     }
-    const builder = this.createQuery(updateParams)
+    let rSql = sqlArr.join(';')
     //@ts-ignore
-    let res = builder
-      .table(this.serviceName!)
-      .update(data, [], { includeTriggerModifications: true })
-      .toQuery()
-    await this.db(params).raw(res) //
-    const items: any = await this._findOrGet(null, updateParams)
-    if (id !== null) {
-      if (items.length === 1) {
-        return items[0]
-      } else {
-        throw new errors.NotFound(`No record found for id '${id}'`)
-      }
-    }
+    await this.db(params).raw(rSql) //
+    //let items: any = await this._findOrGet(null, updateParams)
+    // if (id !== null) {
+    //   if (items.length === 1) {
+    //     return items[0]
+    //   } else {
+    //     throw new errors.NotFound(`No record found for id '${id}'`)
+    //   }
+    // }
 
-    return items
+    // return items
+    return sqlArr
   }
   //@ts-ignore
   async _get(id: any, params: ServiceParams = {} as ServiceParams): Promise<Result> {
     //@ts-ignore
-    const data: any = await this._findOrGet(id, params)
+    let data: any = await this._findOrGet(id, params)
     if (data.length !== 1) {
       throw new errors.NotFound(`No record found for id '${id}'`)
     } //
@@ -649,9 +724,9 @@ WHERE table_name = '${schema}'
   //@ts-ignore
   async _findOrGet(id: any, params?: any) {
     if (id !== null) {
-      const { name, id: idField } = this.getOptions(params) //
-      const builder = params.knex ? params.knex.clone() : this.createQuery(params)
-      const idQuery = builder.andWhere(`${name}.${idField}`, '=', id).catch(errorHandler)
+      let { name, id: idField } = this.getOptions(params) //
+      let builder = params.knex ? params.knex.clone() : this.createQuery(params)
+      let idQuery = builder.andWhere(`${name}.${idField}`, '=', id).catch(errorHandler)
       return idQuery as any[] //
     }
     let res = await this._find({
@@ -661,14 +736,14 @@ WHERE table_name = '${schema}'
     return res //
   }
   knexify(knexQuery: Knex.QueryBuilder, query: any = {}, parentKey?: string): Knex.QueryBuilder {
-    const knexify = this.knexify.bind(this)
+    let knexify = this.knexify.bind(this)
     return Object.keys(query || {}).reduce((currentQuery, key) => {
-      const value = query[key]
+      let value = query[key]
       if (_.isObject(value) && !Array.isArray(value) && !(value instanceof Date)) {
         return knexify(currentQuery, value, key)
       }
-      const column = parentKey || key
-      const method = METHODS[key as keyof typeof METHODS]
+      let column = parentKey || key
+      let method = METHODS[key as keyof typeof METHODS]
       if (method) {
         if (key === '$or' || key === '$and') {
           // This will create a nested query
@@ -686,7 +761,7 @@ WHERE table_name = '${schema}'
         return (currentQuery as any)[method](column, value)
       }
 
-      const operator = OPERATORS[key as keyof typeof OPERATORS] || '='
+      let operator = OPERATORS[key as keyof typeof OPERATORS] || '='
       return operator === '='
         ? currentQuery.where(column, value)
         : currentQuery.where(column, operator, value)
@@ -694,9 +769,9 @@ WHERE table_name = '${schema}'
   }
   //@ts-ignore
   filterQuery(params: any) {
-    const options = this.getOptions(params)
-    const { $select, $sort, $limit: _limit, $skip = 0, ...query } = (params.query || {}) as AdapterQuery
-    const $limit = this.getLimit(_limit, options.paginate)
+    let options = this.getOptions(params)
+    let { $select, $sort, $limit: _limit, $skip = 0, ...query } = (params.query || {}) as AdapterQuery
+    let $limit = this.getLimit(_limit, options.paginate)
 
     return {
       paginate: options.paginate,
@@ -706,11 +781,11 @@ WHERE table_name = '${schema}'
   }
   //@ts-ignore
   getLimit(_limit: any, paginate?: any) {
-    const limit = parse(_limit)
+    let limit = parse(_limit)
     if (paginate && (paginate.default || paginate.max)) {
-      const base = paginate.default || 0
-      const lower = typeof limit === 'number' && !isNaN(limit) && limit >= 0 ? limit : base
-      const upper = typeof paginate.max === 'number' ? paginate.max : Number.MAX_VALUE
+      let base = paginate.default || 0
+      let lower = typeof limit === 'number' && !isNaN(limit) && limit >= 0 ? limit : base
+      let upper = typeof paginate.max === 'number' ? paginate.max : Number.MAX_VALUE
 
       return Math.min(lower, upper)
     }
