@@ -39,7 +39,7 @@
   ],
   "main": "lib/client",
   "scripts": {
-    "dev": "nodemon --exec \"node --inspect -r ts-node/register\" src/main_index.ts",
+    "dev": "nodemon --exec \"node  -r ts-node/register\" src/main_index.ts",
     "compile": "shx rm -rf lib/ && tsc",
     "start": "node lib/",
     "prettier": "npx prettier \"**/*.ts\" --write",

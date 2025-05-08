@@ -64,7 +64,6 @@ export const params = (_app: Application, socketMap: WeakMap<RealTimeConnection,
         "eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJpYXQiOjE3NDYyNjM0MjAsImV4cCI6MTc0NjM0OTgyMCwiYXVkIjoiaHR0cHM6Ly95b3VyZG9tYWluLmNvbSIsInN1YiI6IjEiLCJqdGkiOiIxZjEzOTRhZi1hODA4LTQzMTAtYTM1OS1jNmJlNmJkYTU3Y2QifQ.QydhEx5Q3TX0rauXbb_QEB8puf0Tkse4W0Jopr81McE"
     }
   }
-  //   console.log(socket.feathers, 'testFeathers') //
   socketMap.set(socket.feathers, socket)
   next()
 }
