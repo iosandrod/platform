@@ -148,3 +148,23 @@ export default function hashPassword(field: string, options: HashPasswordOptions
     //     c.table_schema = 'public'
     // ORDER BY
     //     c.table_name, c.ordinal_position;`
+
+
+     "dev": "nodemon --exec \"node --inspect -r ts-node/register\" src/main_index.ts",
+
+
+
+      // let targetRow = _res.rows[0]//
+    // let _relateData = data['_relateData'] //关联数据
+    // if (_relateData != null && typeof _relateData == 'object') {
+    //   for (const [key, object] of Object.entries(_relateData)) {
+    //     let dTableName = key //子表表名
+    //     let _obj = object as any
+    //     let data = _obj.data || []
+    //     let required = _obj.required //是否必须有数据
+    //     if (data.length == 0 && required == true) {
+    //       throw new errors.BadRequest(`子表${dTableName}必须有数据`) //
+    //     }
+    //     await this._createDetailData({ data: data, mainRow: targetRow, tableName: dTableName }, params) //
+    //   }
+    // }
