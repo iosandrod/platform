@@ -43,7 +43,6 @@ import { myFeathers } from '../feather'
             let _config = await _this.getTableConfig(tableName)
             let _columns = _config?.columns || []
             let keyCol = _columns.find((col: any) => col.primary != null)
-            console.log(keyCol, 'keyCol') //
           }
           res.columns = allCol //
           if (Array.isArray(fields)) {
@@ -58,7 +57,25 @@ import { myFeathers } from '../feather'
                     options = {}
                     f.options = options
                   }
-                  f.options = { ...options, ..._config }
+                  let oldColumns = options?.columns
+                  if (Array.isArray(oldColumns)) {
+                    oldColumns.forEach((col: any) => {
+                      //有什么需要合并的呢
+                      let f = col.filed
+                      let nColumns = _config?.columns || []
+                      let tCol = nColumns.find((col: any) => col.field == f)
+                      if (tCol) {
+                        Object.entries(tCol).forEach(([key, value]) => {
+                          if (['title', 'order', 'hidden', 'formatFn'].includes(key)) {
+                            //
+                            return
+                          } //
+                          col[key] = value
+                        })
+                      }
+                    })
+                  }
+                  f.options = { ..._config, ...options }
                 }
               }
             }

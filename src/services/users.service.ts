@@ -1,5 +1,12 @@
 import { LocalStrategy } from '@feathersjs/authentication-local'
-import { useAuthenticate, useHook, useMethodTransform, useRoute, useUnAuthenticate } from '../decoration'
+import {
+  useAuthenticate,
+  useCaptCha,
+  useHook,
+  useMethodTransform,
+  useRoute,
+  useUnAuthenticate
+} from '../decoration'
 import { BaseService } from './base.service'
 import { HookContext, hooks } from '@feathersjs/hooks'
 import { BadRequest } from '@feathersjs/errors'
@@ -36,12 +43,13 @@ export class UsersService extends BaseService {
   } //
   @useRoute() //
   async getAllTable(context: any) {
-    return//
+    return //
   }
   @useMethodTransform({
     //@ts-ignore
     password: createPasswordTransform()
   })
+  @useCaptCha({})
   @useUnAuthenticate()
   async create(...args: any[]) {
     //@ts-ignore

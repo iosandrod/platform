@@ -15,6 +15,7 @@ import jsonwebtoken from 'jsonwebtoken'
 import { get, merge, set } from 'lodash'
 import bcrypt from 'bcryptjs'
 import { AuthenticateHookSettings } from '@feathersjs/authentication/lib/hooks/authenticate'
+import { useCaptCha } from '../decoration'
 
 export class myLocalStrategy extends LocalStrategy {
   //@ts-ignore
@@ -179,6 +180,7 @@ export class myAuth extends AuthenticationService {
     }
     return null
   }
+  @useCaptCha({}) //
   //@ts-ignore
   async create(data: any, params: any) {
     params.authenticated = true

@@ -12,6 +12,7 @@ export const subAppCreateMap = {
 }
 //构建自己的feather
 export class myFeathers extends Feathers<any, any> {
+  captchaData: any = {}
   mainApp?: myFeathers
   cache: { [key: string]: any } = {}
   cacheKnex: { [key: string]: Knex } = {}
@@ -365,6 +366,19 @@ ORDER BY
       }
     })
     return res
+  }
+  getApiCaptcha(host: any, key: any, clear = false) {
+    let cdata = this.captchaData
+    let _value = cdata?.[host]?.[key]
+    let _t = _value?.text
+    return _t //
+  }
+  clearApiCaptcha(host: any, key: any) {
+    let cdata = this.captchaData
+    let _value = cdata?.[host]?.[key]
+    if (_value) {
+      cdata[host][key] = null
+    } //
   }
 }
 export const createFeathers = () => {

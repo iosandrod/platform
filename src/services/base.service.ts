@@ -176,7 +176,6 @@ export class BaseService extends KnexService implements bs {
     let allT = await this.app.getCompanyTable(companyid, appName) //
     let columns = allT[this.serviceName!]?.columns || []
     if (columns.length == 0) {
-      console.log(this.serviceName, '表不存在', this.app.get('appName')) // //
     }
     let allColumnName = columns.map((col: any) => col.field) //
     this.columns = allColumnName //
@@ -217,6 +216,8 @@ export class BaseService extends KnexService implements bs {
     let columnInfo = this.columnInfo
     let resolveData = null
     if (Array.isArray(data)) {
+      data = data.filter(v => v != null)
+      console.log(data, 'testData') //
       let r = []
       for (const d of data) {
         let d1 = await this.formatData(d)
@@ -353,7 +354,6 @@ WHERE table_name = '${schema}'
     let params: any = _params
     let _data1 = data
     let idCreate = await this.getDefaultIncreate()
-    console.log(idCreate, 'testSFSFSDFSDFSDf') //
     //获取数据库的字段
     if (Array.isArray(data)) {
       //批量新增
@@ -362,7 +362,6 @@ WHERE table_name = '${schema}'
     }
     if (idCreate == false) {
       let maxId = await this.getMaxId(params) //
-      console.log(maxId, 'maxId', this.id) //
       let id = this.id
       data[id] = maxId ////
     }
@@ -519,7 +518,6 @@ WHERE table_name = '${schema}'
       query: query
     })
   }
-  //批量更新呢
   //@ts-ignore
   async _update(
     id: { id: any } | string | number,
@@ -529,7 +527,6 @@ WHERE table_name = '${schema}'
     if (id === null || Array.isArray(_data)) {
       throw new errors.BadRequest("You can not replace multiple instances. Did you mean 'patch'?")
     }
-    let whereKey = this.id
     if (typeof id == 'object') {
       let _config = id
       id = _config.id
@@ -600,7 +597,7 @@ WHERE table_name = '${schema}'
   async patch(id: NullableId, data: any, params?: any): Promise<any> {
     //@ts-ignore
     let { $limit, ...query } = await this.sanitizeQuery(params)
-    if (Array.isArray(id) || typeof id == 'object') {
+    if (Array.isArray(id) || (typeof id == 'object' && id != null)) {
       let _data = data
       data = id
       id = null //
@@ -649,7 +646,9 @@ WHERE table_name = '${schema}'
       queryObj[`${name}.${idField}`] = { $in: idL }
     }
     let sqlArr = []
-    if (data.length == 1) {//
+    let buildArr = []
+    if (data.length == 1) {
+      //
       let results: any = await this._findOrGet(id, {
         ...params, //
         query: queryObj
@@ -668,8 +667,9 @@ WHERE table_name = '${schema}'
         let res = builder
           .table(this.serviceName!)
           .update(d, [], { includeTriggerModifications: true })
-          .toQuery()
-        sqlArr.push(res)
+          .toSQL()
+        sqlArr.push(res.sql)
+        buildArr.push(res.bindings)
       }
     } else {
       for (const d of data) {
@@ -693,13 +693,37 @@ WHERE table_name = '${schema}'
         let res = builder
           .table(this.serviceName!)
           .update(d, [], { includeTriggerModifications: true })
-          .toQuery()
-        sqlArr.push(res)
+          .toSQL()
+        sqlArr.push(res.sql)
+        buildArr.push(res.bindings)
       }
     }
-    let rSql = sqlArr.join(';')
-    //@ts-ignore
-    await this.db(params).raw(rSql) //
+    // let fn = function escapeSqlString(value: string): string {
+    //   if (typeof value !== 'string') return value as any
+
+    //   return value
+    //   // .replace(/\\/g, '\\\\') // 反斜杠 → 双反斜杠
+    //   // .replace(/'/g, "''") // 单引号 → 两个单引号（标准 SQL 转义）
+    //   // .replace(/\u0000/g, '') // NULL 字符（Postgres/SQLite 不允许）
+    //   // .replace(/\x08/g, '') // Backspace（MySQL 可能误解释）
+    //   // .replace(/\x09/g, '\\t') // Tab
+    //   // .replace(/\x0A/g, '\\n') // LF
+    //   // .replace(/\x0D/g, '\\r') // CR
+    //   // .replace(/\x1a/g, '') // Ctrl+Z，MySQL 特殊含义
+    // }
+    // let rSql = sqlArr
+    //   .map(s => {
+    //     let s1 = fn(s)
+    //     return s1 //
+    //   })
+    //   .join(';')
+    // let allV = buildArr.flat(1)
+    // await this.db(params).raw(rSql, allV) // //
+    await Promise.all(
+      sqlArr.map(async (s, i) => {
+        return await this.db(params).raw(s, buildArr[i]) //
+      })
+    ) //
     //let items: any = await this._findOrGet(null, updateParams)
     // if (id !== null) {
     //   if (items.length === 1) {
@@ -710,7 +734,7 @@ WHERE table_name = '${schema}'
     // }
 
     // return items
-    return sqlArr
+    return '更新成功' //
   }
   //@ts-ignore
   async _get(id: any, params: ServiceParams = {} as ServiceParams): Promise<Result> {

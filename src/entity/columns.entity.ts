@@ -32,4 +32,12 @@ export class ColumnEntity extends BaseEntity {
   align: string
   @Column({ type: 'varchar', nullable: true })
   frozen: string //
+  @Column({ type: 'varchar', nullable: true })
+  formatFn: string
+  @Column({ type: 'integer', nullable: true })
+  hidden: number
+  @Column({ type: 'varchar', nullable: true })
+  editType: string //
+  @Column({ type: 'varchar', nullable: true })
+  editOptions: string
 }
