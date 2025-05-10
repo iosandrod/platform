@@ -20,7 +20,7 @@ function main() {
     password: '123456',
     database: 'erp', //
     synchronize: true,
-    entities: [User, Role, Permission, RolePermission, UserRole] //
+    entities: [User, Role, Permission, RolePermission, UserRole]
   }
   const dataSource = new DataSource(dbConfig)
   dataSource.initialize().then(() => {

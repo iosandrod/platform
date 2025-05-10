@@ -50,6 +50,7 @@ const METHODS = {
 }
 //@ts-ignore
 export class BaseService extends KnexService implements bs {
+  unionId: any[] = [] //
   _ajvInstance?: Ajv
   ids?: string[] //
   cache: { [key: string]: any } = {}
@@ -82,7 +83,7 @@ export class BaseService extends KnexService implements bs {
         !unAuthMethods.includes(item)
       ) {
         let arr1 = [
-          // _authenticate('jwt'), //
+          _authenticate('jwt'), //
           async (context: HookContext, next: any) => {
             let params = context.params
             //如果没有登陆
@@ -241,15 +242,58 @@ export class BaseService extends KnexService implements bs {
     }
     return resolveData
   }
+  async checkCompositeExists(
+    knex: Knex,
+    table: string,
+    keyColumns: string[],
+    valuePairs: (string | number)[][]
+  ): Promise<any> {
+    if (keyColumns.length === 0 || valuePairs.length === 0) return []
+
+    const formattedValues = valuePairs.map(pair => `(${pair.map(() => '?').join(', ')})`).join(', ')
+
+    const flatValues = valuePairs.flat()
+
+    const whereClause = `(${keyColumns.map(col => `"${col}"`).join(', ')}) IN (${formattedValues})`
+    let result = await knex(table).select('*').whereRaw(whereClause, flatValues).toSQL()
+    console.log(result, 'testResult') //
+    let _res = await this.db().raw(result.sql, result.bindings)
+    let _d = _res?.rows
+    if (_d.length > 0) {
+      throw new errors.BadRequest('联合主键重复') //
+    }
+    return _d //
+  }
   async create(data: any, params?: any): Promise<any> {
     //
     if (typeof params?.getMainParam == 'function') {
       params = params.getMainParam()
     } //
+    let uid = this.unionId
+    if (uid?.length > 1) {
+      await this.validateUid(data) //
+    }
     let _res = await this._create(data, params) ////
-
     return _res?.rows || _res //
-    // return vResult
+  } //
+
+  async validateUid(data: any[]) {
+    if (!Array.isArray(data)) {
+      data = [data] //
+    }
+    let uid = this.unionId
+    let _data = data.map(row => {
+      let arr = uid.map(v => {
+        let v1 = row[v]
+        if (v1 == null) {
+          throw new errors.BadRequest(`联合主键${v}不能为空`)
+        } //
+        return v1
+      })
+      return arr
+    })
+    await this.checkCompositeExists(this.db(), this.serviceName!, uid, _data)
+    return
   }
   async _createDetailData(
     config: {
@@ -488,7 +532,7 @@ WHERE table_name = '${schema}'
     return Model
   }
   //@ts-ignore
-  getOptions(params: any): KnexAdapterOptions {
+  getOptions(params: any = {}): KnexAdapterOptions {
     let paginate = params.paginate !== undefined ? params.paginate : this.options.paginate
     return {
       ...this.options,
@@ -818,5 +862,41 @@ WHERE table_name = '${schema}'
   }
   getId() {
     return this.id //
+  }
+  initHooks(app: any) {
+    let serviceName = this.serviceName
+    let path = serviceName
+    let service: any = this
+    let hooksMetaData = service.hooksMetaData
+    if (hooksMetaData != null && Array.isArray(hooksMetaData)) {
+      for (const hook of hooksMetaData) {
+        hooks(service, hook)
+      }
+    }
+    let routes = service.routes || [] //
+    let routesMethods = routes.map((route: any) => route.path) //
+    let p = serviceName //
+    //@ts-ignore
+    let ts = app.use(p, service, {
+      //@ts-ignore
+      methods: [...defaultServiceMethods, ...routesMethods], // //
+      koa: {
+        before: [
+          async (context: any, next: any) => {
+            await next()
+          }
+        ],
+        after: [
+          async (context: any, next: any) => {
+            await next() ////
+            const response = context.response
+            response.body = {
+              data: response.body,
+              code: 200
+            } //
+          }
+        ]
+      }
+    })
   }
 }

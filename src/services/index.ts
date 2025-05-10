@@ -19,6 +19,7 @@ import FieldsService from './fields.service'
 import ColumnService from './column.service'
 import TableService from './table.service'
 import CaptchaService from './captcha.service'
+import { myAuth } from '../auth'
 export const services = async (app: myFeathers) => {
   let names = Object.keys(createMap) //
   let _names = await app.getCompanyTable()
@@ -58,42 +59,7 @@ export const services = async (app: myFeathers) => {
     const p: string = obj.path //装饰
     const service = obj.service
     //@ts-ignore
-    let hooksMetaData = service.hooksMetaData
-    if (hooksMetaData != null && Array.isArray(hooksMetaData)) {
-      for (const hook of hooksMetaData) {
-        hooks(service, hook)
-      }
-    }
-
-    let routes = service.routes || [] //
-    let routesMethods = routes.map(route => route.path)
-    //@ts-ignore
-    let ts = app.use(p, service, {
-      //@ts-ignore
-      methods: [...defaultServiceMethods, ...routesMethods], // //
-      koa: {
-        before: [
-          async (context: FeathersKoaContext, next: NextFunction) => {
-            await next()
-          }
-        ],
-        after: [
-          async (context: FeathersKoaContext, next: NextFunction) => {
-            await next() ////
-            const response = context.response
-            response.body = {
-              data: response.body,
-              code: 200
-            } //
-          }
-        ]
-      }
-    })
-    ts.hooks({
-      after: {
-        //@ts-ignore
-      }
-    })
+    service.initHooks(app) //
   }
 }
 //构建service实例

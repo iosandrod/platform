@@ -311,7 +311,7 @@ export function useCaptCha(config: any) {
         //@ts-ignore
         async function (context, next) {
           let data = context.data
-          let _captcha = data['_captcha'] //
+          let _captcha: string = data['_captcha'] //
           let _unUse = data['_unUseCaptcha']
           if (_unUse == true) {
             await next()
@@ -327,10 +327,12 @@ export function useCaptCha(config: any) {
             let host = headers.host //
             let sName = service.serviceName //
             let _key = `${sName}_${propertyKey}` //
-            let cText = app.getApiCaptcha(host, _key, true) //
+            let cText: string = app.getApiCaptcha(host, _key, true) //
             if (cText == null || _captcha == null) {
               throw new errors.BadRequest('验证码校验失败')
             } //
+            cText = cText.toLocaleLowerCase()
+            _captcha = _captcha.toLocaleLowerCase() //
             if (cText != _captcha) {
               throw new errors.BadRequest('验证码校验失败') //
             }

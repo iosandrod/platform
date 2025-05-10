@@ -19,6 +19,10 @@ export class myFeathers extends Feathers<any, any> {
   subApp: {
     [key: string]: Application
   } = {}
+  constructor(){
+    super()
+    this.initCurrentHooks()
+  }
   async getAllSubApp() {
     const services = this.services //
   } //
@@ -379,6 +383,27 @@ ORDER BY
     if (_value) {
       cdata[host][key] = null
     } //
+  } //
+  initCurrentHooks() {
+    //
+    this.hooks({
+      all: [
+        async (context: any, next: any) => {
+          //
+          // console.log(context.service.serviceName, 'testName')//
+          await next()
+          let params = context.params || {}
+          let provider = params.provider
+          if (provider == 'socketio') {
+            ////
+            context.result = {
+              data: context.result,
+              code: 200
+            } //
+          }
+        }
+      ]
+    })
   }
 }
 export const createFeathers = () => {

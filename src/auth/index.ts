@@ -16,7 +16,7 @@ import { get, merge, set } from 'lodash'
 import bcrypt from 'bcryptjs'
 import { AuthenticateHookSettings } from '@feathersjs/authentication/lib/hooks/authenticate'
 import { useCaptCha } from '../decoration'
-
+import { hooks } from '@feathersjs/hooks'
 export class myLocalStrategy extends LocalStrategy {
   //@ts-ignore
   async authenticate(data: AuthenticationRequest, params: Params) {
@@ -120,6 +120,19 @@ export class myJwtStrategy extends JWTStrategy {
   }
 }
 export class myAuth extends AuthenticationService {
+  constructor(app: any, key?: any, options?: any) {
+    super(app, key, options) //
+    this.register('jwt', new JWTStrategy())
+    this.register('local', new myLocalStrategy()) //
+    //@ts-ignore
+    let hooksMetaData = this.hooksMetaData
+    if (hooksMetaData != null && Array.isArray(hooksMetaData)) {
+      for (const hook of hooksMetaData) {
+        hooks(this, hook)
+      }
+    } //
+    //@ts-ignore
+  }
   //@ts-ignore
   serviceName = 'authentication'
   async authenticate(
@@ -214,8 +227,8 @@ export class myAuth extends AuthenticationService {
 }
 export const mainAuth = (app: Application) => {
   let s = new myAuth(app, 'authentication', {}) //
-  s.register('jwt', new JWTStrategy())
-  s.register('local', new myLocalStrategy())
+  // s.register('jwt', new JWTStrategy())
+  // s.register('local', new myLocalStrategy())
   app.use('authentication', s)
 }
 

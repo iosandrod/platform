@@ -77,39 +77,22 @@ export async function createApp() {
           //@ts-ignore
           await service.init(app) //
         }
-        // const subApp = app.subApp
-        // const allSubApp = Object.entries(subApp)
-        // for (const [key, sApp] of allSubApp) {
-        //   const services = sApp.services as serviceMap
-        //   const allServices = Object.values(services)
-        //   for (const service of allServices) {
-        //     if (typeof service.init !== 'function') continue
-        //     //@ts-ignore
-        //     await service.init(sApp) //
-        //   }
-        // }
+        const subApp = app.subApp
+        const allSubApp = Object.entries(subApp)
+        for (const [key, sApp] of allSubApp) {
+          const services = sApp.services as serviceMap
+          const allServices = Object.values(services)
+          for (const service of allServices) {
+            if (typeof service.init !== 'function') continue
+            //@ts-ignore
+            await service.init(sApp) //
+          }
+        }
         await next() //
       }
     ],
     teardown: []
   })
-  app.hooks({
-    all: [
-      async (context: HookContext, next: any) => {
-        //
-        // console.log(context.service.serviceName, 'testName')//
-        await next()
-        let params = context.params || {}
-        let provider = params.provider
-        if (provider == 'socketio') {
-          ////
-          context.result = {
-            data: context.result,
-            code: 200
-          } //
-        }
-      }
-    ]
-  })
+  
   return app
 }
