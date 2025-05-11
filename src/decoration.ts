@@ -184,7 +184,10 @@ export function useHook(config: HookOptions<any, any>, fn?: any) {
       if (typeof config !== 'object') {
         return instance //
       }
-      _value.push(config) //
+      if (_value.findIndex(v => v === config) !== -1) {
+      } else {
+        _value.push(config) //
+      }
       if (fn) {
         fn(instance) //
       }

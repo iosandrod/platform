@@ -12,6 +12,8 @@ import * as path from 'path'
 import { pathToFileURL } from 'url'
 import { myFeathers } from '../../feather'
 import BaseService from './base.service'
+import EntityService from '../../services/entity.service'
+import CaptchaService from '../../services/captcha.service'
 export async function importModulesFromFolder(directory: string = __dirname, mainApp?: Application) {
   const files = await fs.readdirSync(directory)
   const modules = [] as any
@@ -37,7 +39,9 @@ export async function importModulesFromFolder(directory: string = __dirname, mai
 const createMap = {
   users: UsersService,
   roles: RoleService,
-  permissions: PermissinoService
+  permissions: PermissinoService,
+  entity: EntityService,
+  captcha: CaptchaService//
 }
 
 export const services = async (app: Application, mainApp: myFeathers) => {

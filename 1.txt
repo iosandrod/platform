@@ -253,3 +253,10 @@ export default function hashPassword(field: string, options: HashPasswordOptions
         ]
       }
     })
+
+    // const service = new AppAuthService(app)
+  // let jwtStarategy = new JWTStrategy()
+  // let localStrategy = new LocalStrategy()
+  // service.register('jwt', jwtStarategy)
+  // service.register('local', localStrategy)
+  // app.use('authentication', service)

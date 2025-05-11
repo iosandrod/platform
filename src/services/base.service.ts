@@ -620,8 +620,8 @@ WHERE table_name = '${schema}'
     if (!filters.$sort && builder.client.driverName === 'mssql') {
       builder.orderBy(`${name}.${id}`, 'asc')
     } //
-    let query = builder.toQuery()
-    console.log(query) //
+    // let query = builder.toQuery()
+    // console.log(query) //
     let data = filters.$limit === 0 ? [] : await builder.catch(errorHandler)
 
     if (paginate && paginate.default) {

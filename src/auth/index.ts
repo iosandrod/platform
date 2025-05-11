@@ -118,11 +118,11 @@ export class myJwtStrategy extends JWTStrategy {
     //@ts-ignore
     return super.parse(...args)
   }
-}
+} 
 export class myAuth extends AuthenticationService {
   constructor(app: any, key?: any, options?: any) {
     super(app, key, options) //
-    this.register('jwt', new JWTStrategy())
+    this.register('jwt', new myJwtStrategy())
     this.register('local', new myLocalStrategy()) //
     //@ts-ignore
     let hooksMetaData = this.hooksMetaData

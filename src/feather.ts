@@ -19,7 +19,7 @@ export class myFeathers extends Feathers<any, any> {
   subApp: {
     [key: string]: Application
   } = {}
-  constructor(){
+  constructor() {
     super()
     this.initCurrentHooks()
   }
@@ -90,8 +90,10 @@ export class myFeathers extends Feathers<any, any> {
   async getCurrentTable() {}
   //@ts-ignore
   async getCompanyConnection(company: any, appName?: string): Promise<Knex> {
+    console.log(company, appName, 'testName') //
     let client = this.getClient()
-    if (typeof company === 'string') {
+    if (typeof company === 'number') {
+      //
       let cacheKnex = this.cacheKnex
       let _key = `${appName}--${company}`
       let _knex = cacheKnex[_key]
@@ -103,7 +105,7 @@ export class myFeathers extends Feathers<any, any> {
       } //
       let companyInfo = await client('company')
         .where({
-          companyid: company,
+          userid: company, //
           appName: appName
         })
         .select() ////
@@ -228,13 +230,16 @@ ORDER BY
   getClient() {
     return this.get('postgresqlClient')
   }
-  async registerSubApp(appName: keyof typeof subAppCreateMap, companyId: string) {
+  async registerSubApp(config: any) {
     const allEn = null
-    let c: Knex = this.get('postgresqlClient')
+    let appName = config.appName //
+    let companyId = config.userid || config.companyid //
+    // let c: Knex = this.get('postgresqlClient')
+    //@ts-ignore
     const createFn = subAppCreateMap[appName] //
     if (typeof createFn !== 'function') return // 不存在的服务不需要注册
     //@ts-ignore
-    const subApp = await createFn(this, companyId) //
+    let subApp = await createFn(this, config) //
     let key = `${appName}_${companyId}` //
     let routePath = `/${key}` //
     this.use(routePath, subApp)
@@ -394,8 +399,9 @@ ORDER BY
           await next()
           let params = context.params || {}
           let provider = params.provider
+          const service = context.service
+          console.log(service.serviceName, 'testName') //`
           if (provider == 'socketio') {
-            ////
             context.result = {
               data: context.result,
               code: 200

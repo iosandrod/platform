@@ -16,6 +16,9 @@ import { myFeathers } from '../feather'
       let query = context.params?.query || {}
       let params = context.params
       let _this: EntityService = context.app.service('entity') //
+      // console.log(query, context.result, 'query') //
+      //@ts-ignore
+      // console.log(_this.hooksMetaData) //
       if (
         Object.keys(query).includes('tableName') &&
         Object.keys(query).length == 1 &&
@@ -119,7 +122,6 @@ export class EntityService extends BaseService {
   async getAllColumns(tableName: string) {
     let _tableName = tableName.split('---')
     tableName = _tableName[0]
-
     let app = this.app
     let colS = app.service('columns')
     let cols = await colS.find({ query: { tableName } })
