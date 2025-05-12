@@ -4,7 +4,7 @@ import { Application } from './declarations'
 import { createApp } from './app/app_index'
 import knex, { Knex } from 'knex'
 import { cacheValue } from './decoration'
-import { nanoid } from './utils'
+import { createNodeGrid, nanoid } from './utils'
 import { errors } from '@feathersjs/errors'
 // const nanoid = () => 'xxxxx' //
 export const subAppCreateMap = {
@@ -292,45 +292,9 @@ ORDER BY
       // throw new errors.NotFound(`table ${tableName} not found`) ////
       return null //
     }
-    let lastList: any[] = []
-    let _node = {
-      ...this.createIdKey('inline'),
-      columns: [
-        {
-          ...this.createIdKey('grid'),
-          options: {
-            gutter: 0,
-            justify: 'start',
-            align: 'top'
-          },
-          style: {
-            width: '100%'
-          },
-          columns: [
-            {
-              ...this.createIdKey('col'), //
-              // list: [_.cloneDeep(node)],
-              list: [
-                {
-                  ...this.createIdKey('inline'),
-                  columns: lastList
-                }
-              ],
-              options: {
-                span: 24,
-                offset: 0,
-                push: 0,
-                pull: 0,
-                style: {}
-              }
-            }
-          ]
-        }
-      ]
-    }
     let config = {
       layout: {
-        pc: [_node],
+        pc: [],
 
         mobile: [
           {
@@ -339,24 +303,32 @@ ORDER BY
           }
         ]
       },
-      fields: [
-        {
-          ...this.createIdKey('entity', tableConfig)
-        }
-      ],
+      fields: [],
       data: {},
       logic: {}
     }
+    let enF = { ...this.createIdKey('entity', tableConfig) }
+    let btnF = {
+      ...this.createIdKey('buttonGroup', {
+        items: [
+          {
+            label: '新增'
+          },
+          {
+            label: '查询'
+          }
+        ]
+      })
+    } 
+    let enId = enF.id
+    let sRow = createNodeGrid(enId, this)
+    let btnId = btnF.id
+    let btnRow = createNodeGrid(btnId, this)
     let pcLayout = config.layout.pc as any
-    let res = lastList //
-    let res1 = this.getLastNodeInLayout(config.layout.mobile)
-    res[0] = config.fields[0].id //
-    res1.forEach((item, i) => {
-      let _field = config.fields[i]
-      if (_field) {
-        item.columns.push(_field.id) //
-      }
-    }) //
+    pcLayout.push(...[btnRow, sRow])
+    let f: any[] = config.fields
+    f.push(...[btnF, enF])
+   
     return config //
   }
   getLastNodeInLayout(layout: any[], res: any[] = []) {
@@ -393,20 +365,21 @@ ORDER BY
     //
     this.hooks({
       all: [
+        //
         async (context: any, next: any) => {
           //
           // console.log(context.service.serviceName, 'testName')//
           await next()
           let params = context.params || {}
-          let provider = params.provider
-          const service = context.service
-          console.log(service.serviceName, 'testName') //`
-          if (provider == 'socketio') {
-            context.result = {
-              data: context.result,
-              code: 200
-            } //
-          }
+          // let provider = params.provider
+          // const service = context.service
+          // console.log(service.serviceName, 'testName') //`
+          // if (provider == 'socketio') {
+          //   context.result = {
+          //     data: context.result,
+          //     code: 200
+          //   } //
+          // }
         }
       ]
     })

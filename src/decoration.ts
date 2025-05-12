@@ -140,29 +140,49 @@ export function useUnAuthenticate() {
 export type methodTransform = {
   [key: string]: AsyncContextFunction<any, any>
 }
-export function useMethodTransform(config: methodTransform) {
+export function useMethodTransform(config: methodTransform, methodName?:any) {
   return function (target: any, propertyKey: any, descriptor: any) {
     if (config == null || typeof config != 'object') {
       return descriptor
     }
     let _value: any[] = getData(target, 'hooksMetaData', [])
+    let _key=methodName
+    if(_key==null){
+      _key=propertyKey
+    }
     _value.push({
       //@ts-ignore
-      [propertyKey]: [
+      [_key]: [
         //@ts-ignore
         async function (context, next) {
           for (const [key, value] of Object.entries(config)) {
             let data = context.data
-            let oldValue = data[key]
-            if (typeof value !== 'function') {
-              await next() //
+            if (Array.isArray(data)) {
+              let _data = data
+              for (const data of _data) {
+                let oldValue = data[key]
+                if (typeof value !== 'function') {
+                  await next() //
+                }
+                //@ts-ignore
+                let _value1 = await value(oldValue, data, context)
+                if (_value1 == null) {
+                  continue
+                }
+                data[key] = _value1 //
+              }
+            } else {
+              let oldValue = data[key]
+              if (typeof value !== 'function') {
+                await next() //
+              }
+              //@ts-ignore
+              let _value1 = await value(oldValue, data, context)
+              if (_value1 == null) {
+                continue
+              }
+              data[key] = _value1 //
             }
-            //@ts-ignore
-            let _value1 = await value(oldValue, data, context)
-            if (_value1 == null) {
-              continue
-            }
-            data[key] = _value1 //
           }
           await next()
         }

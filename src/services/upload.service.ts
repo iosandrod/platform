@@ -15,6 +15,7 @@ import { debug } from 'feathers-hooks-common'
 import { createPasswordTransform } from '../generateHooks'
 import { myFeathers } from '../feather'
 export class UsersService extends BaseService {
+  //
   serviceName?: string | undefined = 'users' //
   constructor(options: any) {
     super(options) //
@@ -23,7 +24,7 @@ export class UsersService extends BaseService {
   async find(...args) {
     return super.find(...args)
   } //
-  
+
   @useMethodTransform({
     //@ts-ignore
     password: createPasswordTransform()

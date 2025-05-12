@@ -414,7 +414,7 @@ WHERE table_name = '${schema}'
     let vResult = await this.validate(resolveData, params) //
     if (vResult?.length! > 0) {
       let fError = vResult[0]
-      throw new Error(`数据校验出错,出错信息${JSON.stringify(fError)}`) //
+      throw new Error(`${this.serviceName}数据校验出错,出错信息${JSON.stringify(fError)}`) //
     }
     //@ts-ignore
     //@ts-ignore    //
@@ -620,8 +620,8 @@ WHERE table_name = '${schema}'
     if (!filters.$sort && builder.client.driverName === 'mssql') {
       builder.orderBy(`${name}.${id}`, 'asc')
     } //
-    // let query = builder.toQuery()
-    // console.log(query) //
+    let query = builder.toQuery()
+    console.log(query) //
     let data = filters.$limit === 0 ? [] : await builder.catch(errorHandler)
 
     if (paginate && paginate.default) {

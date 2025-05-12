@@ -10,10 +10,10 @@ export class ColumnEntity extends BaseEntity {
   tableName: string
   @Column({ type: 'varchar', nullable: true }) //
   comment: string
+  @Column({ type: 'integer', nullable: true })
+  nullable: number //
   @Column({ type: 'varchar', nullable: true })
-  nullable: string
-  @Column({ type: 'varchar', nullable: true })
-  default: string
+  default: string//
   @Column({ type: 'varchar', nullable: true })
   primary: string
   @Column({ type: 'varchar', nullable: true })
