@@ -32,4 +32,6 @@ export class ColumnEntity extends BaseEntity {
   align: string
   @Column({ type: 'varchar', nullable: true })
   frozen: string //
+  @Column({ type: "integer", nullable: true })
+  order: number//
 }

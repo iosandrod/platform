@@ -37,7 +37,7 @@ export const params = (_app: Application, socketMap: WeakMap<RealTimeConnection,
     // "authentication": {
     //   "strategy": "local",
     //   "payload": {
-    //     "iat": 1745995936,
+    //     "iat": 1745995936,//
     //     "exp": 1746082336,
     //     "aud": "https://yourdomain.com",
     //     "sub": "1",
