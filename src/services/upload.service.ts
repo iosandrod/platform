@@ -92,8 +92,6 @@ export class UsersService extends BaseService {
       const hash = bufferToHash(buffer)
       id = `${hash}.${ext}`
     }
-
-    debug(`Creating blob ${id} with ext ${ext} and content type ${contentType}`)
     return new Promise((resolve, reject) => {
       fromBuffer(buffer)
         .pipe(
