@@ -7,7 +7,14 @@ import { HashPasswordOptions } from '@feathersjs/authentication-local/lib/hooks/
 import { BadRequest } from '@feathersjs/errors'
 import { cloneDeep, get, set } from 'lodash'
 import { debug } from 'feathers-hooks-common'
-import { useAuthenticate, useHook, useMethodTransform, useRoute } from '../../decoration'
+import {
+  useAuthenticate,
+  useCaptCha,
+  useHook,
+  useMethodTransform,
+  useRoute,
+  useUnAuthenticate
+} from '../../decoration'
 import { createPasswordTransform } from '../../generateHooks'
 //创建数据转换器
 useHook({})
@@ -25,6 +32,8 @@ export class UsersService extends BaseService {
     //@ts-ignore
     password: createPasswordTransform()
   })
+  @useCaptCha({})
+  @useUnAuthenticate() //
   async create(...args: any[]) {
     //@ts-ignore
     return await super.create(...args)

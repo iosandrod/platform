@@ -15,17 +15,21 @@ import { createFeathers, myFeathers } from './feather'
 import { BaseService } from './services/base.service'
 import { mainAuth } from './auth'
 import { redis } from './redis'
+import featherBlob from 'feathers-blob'
 import { configureSocketio } from './socketio'
-export const appArr = [
+export let appArr = [
   {
     companyid: '1',
-    name: 'erp'
+    name: 'erp',
+    companyId: 1, //
+    appName: 'erp',
+    userid: 1
   }
 ]
 export async function createApp() {
-  const f = createFeathers()
+  let f = createFeathers()
   //@ts-ignore
-  const app: Application = koa(f) //
+  let app: Application = koa(f) //
   app.configure(configuration)
   app.use(cors())
   app.use(serveStatic(app.get('public')))
@@ -55,11 +59,23 @@ export async function createApp() {
     after: {},
     error: {}
   })
-  const allCompany = await app.getAllCompany()
+  let allCompany = await app.getAllCompany()
+  let company = allCompany.map((c: any) => {
+    let uid = c.userid
+    let appName = c.appName
+    let connection = c.connection
+    return {
+      userid: uid,
+      appName: appName,
+      connection
+    }
+  })
+  // console.log(company, 'testCompany') //
   // console.log(allCompany,'testCompany')//
-  for (const sApp of appArr) {
+  for (const sApp of company) {
+    //
     //@ts-ignore
-    await app.registerSubApp(sApp.name, sApp.companyid)
+    await app.registerSubApp(sApp)
   }
   // Register application setup and teardown hooks here
   app.hooks({
@@ -67,49 +83,31 @@ export async function createApp() {
       //@ts-ignore
       async (context: HookContext, next: any) => {
         //@ts-ignore
-        const app: myFeathers = context.app
-        // const postgresqlClient = app.get('postgresqlClient')
-        const services = app.services as serviceMap
-        // const cService = app.service('company')
-        const allServices = Object.values(services)
+        let app: myFeathers = context.app
+        let services = app.services as serviceMap
+        // let cService = app.service('company')
+        let allServices = Object.values(services)
         for (const service of allServices) {
           if (typeof service.init !== 'function') continue
           //@ts-ignore
           await service.init(app) //
         }
-        // const subApp = app.subApp
-        // const allSubApp = Object.entries(subApp)
-        // for (const [key, sApp] of allSubApp) {
-        //   const services = sApp.services as serviceMap
-        //   const allServices = Object.values(services)
-        //   for (const service of allServices) {
-        //     if (typeof service.init !== 'function') continue
-        //     //@ts-ignore
-        //     await service.init(sApp) //
-        //   }
-        // }
+        let subApp = app.subApp
+        let allSubApp = Object.entries(subApp)
+        for (const [key, sApp] of allSubApp) {
+          let services = sApp.services as serviceMap
+          let allServices = Object.values(services)
+          for (const service of allServices) {
+            if (typeof service.init !== 'function') continue
+            //@ts-ignore
+            await service.init(sApp) //
+          }
+        }
         await next() //
       }
     ],
     teardown: []
   })
-  app.hooks({
-    all: [
-      async (context: HookContext, next: any) => {
-        //
-        // console.log(context.service.serviceName, 'testName')//
-        await next()
-        let params = context.params || {}
-        let provider = params.provider
-        if (provider == 'socketio') {
-          ////
-          context.result = {
-            data: context.result,
-            code: 200
-          } //
-        }
-      }
-    ]
-  })
+
   return app
 }

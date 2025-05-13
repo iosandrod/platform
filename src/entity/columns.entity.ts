@@ -10,10 +10,10 @@ export class ColumnEntity extends BaseEntity {
   tableName: string
   @Column({ type: 'varchar', nullable: true }) //
   comment: string
+  @Column({ type: 'integer', nullable: true })
+  nullable: number //
   @Column({ type: 'varchar', nullable: true })
-  nullable: string
-  @Column({ type: 'varchar', nullable: true })
-  default: string
+  default: string//
   @Column({ type: 'varchar', nullable: true })
   primary: string
   @Column({ type: 'varchar', nullable: true })
@@ -32,6 +32,12 @@ export class ColumnEntity extends BaseEntity {
   align: string
   @Column({ type: 'varchar', nullable: true })
   frozen: string //
-  @Column({ type: "integer", nullable: true })
-  order: number//
+  @Column({ type: 'varchar', nullable: true })
+  formatFn: string
+  @Column({ type: 'integer', nullable: true })
+  hidden: number
+  @Column({ type: 'varchar', nullable: true })
+  editType: string //
+  @Column({ type: 'varchar', nullable: true })
+  editOptions: string
 }

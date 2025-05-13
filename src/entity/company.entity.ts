@@ -13,5 +13,10 @@ export class Company extends BaseEntity {
   companyid: string //
   @Column({ nullable: true })
   appName: string ////
+  @Column({ type: 'varchar', nullable: true })
+  //公司描述
+  description: string //
+  @Column({ nullable: true, type: 'integer' })
+  userid: number //
 }
 export default Company //

@@ -11,9 +11,10 @@ import { authenticate } from '@feathersjs/authentication'
 import { Application } from '@feathersjs/koa'
 import { isAsyncFunction, isPromise } from 'util/types'
 import { AuthenticateHookSettings } from '@feathersjs/authentication/lib/hooks/authenticate'
-import { NotAuthenticated } from '@feathersjs/errors'
+import { errors, NotAuthenticated } from '@feathersjs/errors'
 import { myAuth } from './auth'
 import { BaseService } from './services/base.service'
+import { myFeathers } from './feather'
 function getData(obj: any, key: string, defaultValue?: any) {
   let _value = obj[key]
   if (_value == null) {
@@ -139,29 +140,49 @@ export function useUnAuthenticate() {
 export type methodTransform = {
   [key: string]: AsyncContextFunction<any, any>
 }
-export function useMethodTransform(config: methodTransform) {
+export function useMethodTransform(config: methodTransform, methodName?:any) {
   return function (target: any, propertyKey: any, descriptor: any) {
     if (config == null || typeof config != 'object') {
       return descriptor
     }
     let _value: any[] = getData(target, 'hooksMetaData', [])
+    let _key=methodName
+    if(_key==null){
+      _key=propertyKey
+    }
     _value.push({
       //@ts-ignore
-      [propertyKey]: [
+      [_key]: [
         //@ts-ignore
         async function (context, next) {
           for (const [key, value] of Object.entries(config)) {
             let data = context.data
-            let oldValue = data[key]
-            if (typeof value !== 'function') {
-              await next() //
+            if (Array.isArray(data)) {
+              let _data = data
+              for (const data of _data) {
+                let oldValue = data[key]
+                if (typeof value !== 'function') {
+                  await next() //
+                }
+                //@ts-ignore
+                let _value1 = await value(oldValue, data, context)
+                if (_value1 == null) {
+                  continue
+                }
+                data[key] = _value1 //
+              }
+            } else {
+              let oldValue = data[key]
+              if (typeof value !== 'function') {
+                await next() //
+              }
+              //@ts-ignore
+              let _value1 = await value(oldValue, data, context)
+              if (_value1 == null) {
+                continue
+              }
+              data[key] = _value1 //
             }
-            //@ts-ignore
-            let _value1 = await value(oldValue, data, context)
-            if (_value1 == null) {
-              continue
-            }
-            data[key] = _value1 //
           }
           await next()
         }
@@ -183,7 +204,10 @@ export function useHook(config: HookOptions<any, any>, fn?: any) {
       if (typeof config !== 'object') {
         return instance //
       }
-      _value.push(config) //
+      if (_value.findIndex(v => v === config) !== -1) {
+      } else {
+        _value.push(config) //
+      }
       if (fn) {
         fn(instance) //
       }
@@ -294,4 +318,53 @@ export function cacheRedisValue(config?: Function) {
 
 export function cacheFindValue(config?: Function) {
   let _cacheFn = function () { }
+}
+
+//使用验证码功能
+export function useCaptCha(config: any) {
+  return function (target: any, propertyKey: any, descriptor: any) {
+    if (config == null || typeof config != 'object') {
+      return descriptor
+    }
+    let _value: any[] = getData(target, 'hooksMetaData', [])
+    _value.push({
+      //
+      //@ts-ignore
+      [propertyKey]: [
+        //@ts-ignore
+        async function (context, next) {
+          let data = context.data
+          let _captcha: string = data['_captcha'] //
+          let _unUse = data['_unUseCaptcha']
+          if (_unUse == true) {
+            await next()
+          } else {
+            let params = context?.params
+            let headers = params?.headers
+            if (headers == null) {
+              await next()
+              return
+            } //
+            let service = context.service
+            let app: myFeathers = service.app //
+            let host = headers.host //
+            let sName = service.serviceName //
+            let _key = `${sName}_${propertyKey}` //
+            let cText: string = app.getApiCaptcha(host, _key, true) //
+            if (cText == null || _captcha == null) {
+              throw new errors.BadRequest('验证码校验失败')
+            } //
+            cText = cText.toLocaleLowerCase()
+            _captcha = _captcha.toLocaleLowerCase() //
+            if (cText != _captcha) {
+              throw new errors.BadRequest('验证码校验失败') //
+            }
+            app.clearApiCaptcha(host, _key) //
+            await next()
+          }
+        }
+      ]
+    })
+    return descriptor
+  }
 }

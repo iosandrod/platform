@@ -50,6 +50,7 @@ const METHODS = {
 }
 //@ts-ignore
 export class BaseService extends KnexService implements bs {
+  unionId: any[] = [] //
   _ajvInstance?: Ajv
   ids?: string[] //
   cache: { [key: string]: any } = {}
@@ -82,7 +83,7 @@ export class BaseService extends KnexService implements bs {
         !unAuthMethods.includes(item)
       ) {
         let arr1 = [
-          // _authenticate('jwt'), //
+          _authenticate('jwt'), //
           async (context: HookContext, next: any) => {
             let params = context.params
             //如果没有登陆
@@ -176,7 +177,6 @@ export class BaseService extends KnexService implements bs {
     let allT = await this.app.getCompanyTable(companyid, appName) //
     let columns = allT[this.serviceName!]?.columns || []
     if (columns.length == 0) {
-      console.log(this.serviceName, '表不存在', this.app.get('appName')) // //
     }
     let allColumnName = columns.map((col: any) => col.field) //
     this.columns = allColumnName //
@@ -217,6 +217,8 @@ export class BaseService extends KnexService implements bs {
     let columnInfo = this.columnInfo
     let resolveData = null
     if (Array.isArray(data)) {
+      data = data.filter(v => v != null)
+      console.log(data, 'testData') //
       let r = []
       for (const d of data) {
         let d1 = await this.formatData(d)
@@ -240,15 +242,58 @@ export class BaseService extends KnexService implements bs {
     }
     return resolveData
   }
+  async checkCompositeExists(
+    knex: Knex,
+    table: string,
+    keyColumns: string[],
+    valuePairs: (string | number)[][]
+  ): Promise<any> {
+    if (keyColumns.length === 0 || valuePairs.length === 0) return []
+
+    const formattedValues = valuePairs.map(pair => `(${pair.map(() => '?').join(', ')})`).join(', ')
+
+    const flatValues = valuePairs.flat()
+
+    const whereClause = `(${keyColumns.map(col => `"${col}"`).join(', ')}) IN (${formattedValues})`
+    let result = await knex(table).select('*').whereRaw(whereClause, flatValues).toSQL()
+    console.log(result, 'testResult') //
+    let _res = await this.db().raw(result.sql, result.bindings)
+    let _d = _res?.rows
+    if (_d.length > 0) {
+      throw new errors.BadRequest('联合主键重复') //
+    }
+    return _d //
+  }
   async create(data: any, params?: any): Promise<any> {
     //
     if (typeof params?.getMainParam == 'function') {
       params = params.getMainParam()
     } //
+    let uid = this.unionId
+    if (uid?.length > 1) {
+      await this.validateUid(data) //
+    }
     let _res = await this._create(data, params) ////
-
     return _res?.rows || _res //
-    // return vResult
+  } //
+
+  async validateUid(data: any[]) {
+    if (!Array.isArray(data)) {
+      data = [data] //
+    }
+    let uid = this.unionId
+    let _data = data.map(row => {
+      let arr = uid.map(v => {
+        let v1 = row[v]
+        if (v1 == null) {
+          throw new errors.BadRequest(`联合主键${v}不能为空`)
+        } //
+        return v1
+      })
+      return arr
+    })
+    await this.checkCompositeExists(this.db(), this.serviceName!, uid, _data)
+    return
   }
   async _createDetailData(
     config: {
@@ -353,7 +398,6 @@ WHERE table_name = '${schema}'
     let params: any = _params
     let _data1 = data
     let idCreate = await this.getDefaultIncreate()
-    console.log(idCreate, 'testSFSFSDFSDFSDf') //
     //获取数据库的字段
     if (Array.isArray(data)) {
       //批量新增
@@ -362,7 +406,6 @@ WHERE table_name = '${schema}'
     }
     if (idCreate == false) {
       let maxId = await this.getMaxId(params) //
-      console.log(maxId, 'maxId', this.id) //
       let id = this.id
       data[id] = maxId ////
     }
@@ -371,7 +414,7 @@ WHERE table_name = '${schema}'
     let vResult = await this.validate(resolveData, params) //
     if (vResult?.length! > 0) {
       let fError = vResult[0]
-      throw new Error(`数据校验出错,出错信息${JSON.stringify(fError)}`) //
+      throw new Error(`${this.serviceName}数据校验出错,出错信息${JSON.stringify(fError)}`) //
     }
     //@ts-ignore
     //@ts-ignore    //
@@ -489,7 +532,7 @@ WHERE table_name = '${schema}'
     return Model
   }
   //@ts-ignore
-  getOptions(params: any): KnexAdapterOptions {
+  getOptions(params: any = {}): KnexAdapterOptions {
     let paginate = params.paginate !== undefined ? params.paginate : this.options.paginate
     return {
       ...this.options,
@@ -519,7 +562,6 @@ WHERE table_name = '${schema}'
       query: query
     })
   }
-  //批量更新呢
   //@ts-ignore
   async _update(
     id: { id: any } | string | number,
@@ -529,7 +571,6 @@ WHERE table_name = '${schema}'
     if (id === null || Array.isArray(_data)) {
       throw new errors.BadRequest("You can not replace multiple instances. Did you mean 'patch'?")
     }
-    let whereKey = this.id
     if (typeof id == 'object') {
       let _config = id
       id = _config.id
@@ -600,7 +641,7 @@ WHERE table_name = '${schema}'
   async patch(id: NullableId, data: any, params?: any): Promise<any> {
     //@ts-ignore
     let { $limit, ...query } = await this.sanitizeQuery(params)
-    if (Array.isArray(id) || typeof id == 'object') {
+    if (Array.isArray(id) || (typeof id == 'object' && id != null)) {
       let _data = data
       data = id
       id = null //
@@ -649,7 +690,9 @@ WHERE table_name = '${schema}'
       queryObj[`${name}.${idField}`] = { $in: idL }
     }
     let sqlArr = []
-    if (data.length == 1) {//
+    let buildArr = []
+    if (data.length == 1) {
+      //
       let results: any = await this._findOrGet(id, {
         ...params, //
         query: queryObj
@@ -668,8 +711,9 @@ WHERE table_name = '${schema}'
         let res = builder
           .table(this.serviceName!)
           .update(d, [], { includeTriggerModifications: true })
-          .toQuery()
-        sqlArr.push(res)
+          .toSQL()
+        sqlArr.push(res.sql)
+        buildArr.push(res.bindings)
       }
     } else {
       for (const d of data) {
@@ -693,13 +737,37 @@ WHERE table_name = '${schema}'
         let res = builder
           .table(this.serviceName!)
           .update(d, [], { includeTriggerModifications: true })
-          .toQuery()
-        sqlArr.push(res)
+          .toSQL()
+        sqlArr.push(res.sql)
+        buildArr.push(res.bindings)
       }
     }
-    let rSql = sqlArr.join(';')
-    //@ts-ignore
-    await this.db(params).raw(rSql) //
+    // let fn = function escapeSqlString(value: string): string {
+    //   if (typeof value !== 'string') return value as any
+
+    //   return value
+    //   // .replace(/\\/g, '\\\\') // 反斜杠 → 双反斜杠
+    //   // .replace(/'/g, "''") // 单引号 → 两个单引号（标准 SQL 转义）
+    //   // .replace(/\u0000/g, '') // NULL 字符（Postgres/SQLite 不允许）
+    //   // .replace(/\x08/g, '') // Backspace（MySQL 可能误解释）
+    //   // .replace(/\x09/g, '\\t') // Tab
+    //   // .replace(/\x0A/g, '\\n') // LF
+    //   // .replace(/\x0D/g, '\\r') // CR
+    //   // .replace(/\x1a/g, '') // Ctrl+Z，MySQL 特殊含义
+    // }
+    // let rSql = sqlArr
+    //   .map(s => {
+    //     let s1 = fn(s)
+    //     return s1 //
+    //   })
+    //   .join(';')
+    // let allV = buildArr.flat(1)
+    // await this.db(params).raw(rSql, allV) // //
+    await Promise.all(
+      sqlArr.map(async (s, i) => {
+        return await this.db(params).raw(s, buildArr[i]) //
+      })
+    ) //
     //let items: any = await this._findOrGet(null, updateParams)
     // if (id !== null) {
     //   if (items.length === 1) {
@@ -710,7 +778,7 @@ WHERE table_name = '${schema}'
     // }
 
     // return items
-    return sqlArr
+    return '更新成功' //
   }
   //@ts-ignore
   async _get(id: any, params: ServiceParams = {} as ServiceParams): Promise<Result> {
@@ -794,5 +862,41 @@ WHERE table_name = '${schema}'
   }
   getId() {
     return this.id //
+  }
+  initHooks(app: any) {
+    let serviceName = this.serviceName
+    let path = serviceName
+    let service: any = this
+    let hooksMetaData = service.hooksMetaData
+    if (hooksMetaData != null && Array.isArray(hooksMetaData)) {
+      for (const hook of hooksMetaData) {
+        hooks(service, hook)
+      }
+    }
+    let routes = service.routes || [] //
+    let routesMethods = routes.map((route: any) => route.path) //
+    let p = serviceName //
+    //@ts-ignore
+    let ts = app.use(p, service, {
+      //@ts-ignore
+      methods: [...defaultServiceMethods, ...routesMethods], // //
+      koa: {
+        before: [
+          async (context: any, next: any) => {
+            await next()
+          }
+        ],
+        after: [
+          async (context: any, next: any) => {
+            await next() ////
+            const response = context.response
+            response.body = {
+              data: response.body,
+              code: 200
+            } //
+          }
+        ]
+      }
+    })
   }
 }

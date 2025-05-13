@@ -12,6 +12,8 @@ import * as path from 'path'
 import { pathToFileURL } from 'url'
 import { myFeathers } from '../../feather'
 import BaseService from './base.service'
+import EntityService from '../../services/entity.service'
+import CaptchaService from '../../services/captcha.service'
 export async function importModulesFromFolder(directory: string = __dirname, mainApp?: Application) {
   const files = await fs.readdirSync(directory)
   const modules = [] as any
@@ -37,56 +39,51 @@ export async function importModulesFromFolder(directory: string = __dirname, mai
 const createMap = {
   users: UsersService,
   roles: RoleService,
-  permissions: PermissinoService
+  permissions: PermissinoService,
+  entity: EntityService,
+  captcha: CaptchaService//
 }
 
-export const services = async (app: Application, mainApp?: myFeathers) => {
+export const services = async (app: Application, mainApp: myFeathers) => {
   let names = Object.keys(createMap) //
-  let allTable = await mainApp?.getCompanyTable(app.get('companyid'), 'erp') ////
-  allTable = Object.keys(allTable) //
-  names = [...names, ...allTable]
-  names = names.filter((name, i) => names.indexOf(name) === i) //
-  // console.log(names)//
-  let postgresqlClient = app.get('postgresqlClient')
-  if (postgresqlClient != null) {
+  let _names = await mainApp.getCompanyTable()
+  let allT = _names
+  _names = Object.keys(_names) ////
+  names = [...names, ..._names] //
+  names = names.filter((name, i) => names.indexOf(name) == i) //
+  let arr = []
+  for (const name of names) {
+    let id = 'id'
+    let ids = []
+    let _t = allT[name]
+    if (_t) {
+      let primaryKey = _t.columns.filter((col: any) => col['is_primary_key'] == true)
+      ids = primaryKey.map((col: any) => col['column_name'])
+      if (ids.length > 0) {
+        let _key = primaryKey[0]['column_name']
+        id = _key
+      } else {
+        console.log('表格没有主键字段', name, ids) ////
+      }
+    }
+    let opt = {
+      id,
+      ids
+    }
+    //@ts-ignore
+    let s = await createServices(name, opt, app as any) //
+    let obj = {
+      path: name,
+      service: s
+    }
+    arr.push(obj)
   }
-  let allServices = names.map((name: any) => {
-    let obj = { path: name, service: createServices(name, null, app) }
-    return obj
-  })
+  let allServices = arr //
   for (const obj of allServices) {
     const p: string = obj.path //装饰
     const service = obj.service
     //@ts-ignore
-    let hooksMetaData = service.hooksMetaData
-    if (hooksMetaData != null && Array.isArray(hooksMetaData)) {
-      for (const hook of hooksMetaData) {
-        hooks(service, hook)
-      }
-    }
-    let routes = service.routes || [] //
-    let routesMethods = routes.map(route => route.path) //
-    //@ts-ignore
-    let ts = app.use(p, service, {
-      //@ts-ignore
-      methods: [...defaultServiceMethods, ...routesMethods], // //
-      koa: {
-        before: [
-          async (context: FeathersKoaContext, next: NextFunction) => {
-            await next()
-          }
-        ]
-      }
-    })
-    ts.hooks({
-      around: {
-        all: [
-          async (context: HookContext, next) => {
-            await next()
-          }
-        ]
-      }
-    })
+    service.initHooks(app)
   }
 }
 

@@ -4,7 +4,7 @@ import { Application } from './declarations'
 import { createApp } from './app/app_index'
 import knex, { Knex } from 'knex'
 import { cacheValue } from './decoration'
-import { nanoid } from './utils'
+import { createNodeGrid, nanoid } from './utils'
 import { errors } from '@feathersjs/errors'
 // const nanoid = () => 'xxxxx' //
 export const subAppCreateMap = {
@@ -12,12 +12,17 @@ export const subAppCreateMap = {
 }
 //构建自己的feather
 export class myFeathers extends Feathers<any, any> {
+  captchaData: any = {}
   mainApp?: myFeathers
   cache: { [key: string]: any } = {}
   cacheKnex: { [key: string]: Knex } = {}
   subApp: {
     [key: string]: Application
   } = {}
+  constructor() {
+    super()
+    this.initCurrentHooks()
+  }
   async getAllSubApp() {
     const services = this.services //
   } //
@@ -85,8 +90,10 @@ export class myFeathers extends Feathers<any, any> {
   async getCurrentTable() {}
   //@ts-ignore
   async getCompanyConnection(company: any, appName?: string): Promise<Knex> {
+    console.log(company, appName, 'testName') //
     let client = this.getClient()
-    if (typeof company === 'string') {
+    if (typeof company === 'number') {
+      //
       let cacheKnex = this.cacheKnex
       let _key = `${appName}--${company}`
       let _knex = cacheKnex[_key]
@@ -98,7 +105,7 @@ export class myFeathers extends Feathers<any, any> {
       } //
       let companyInfo = await client('company')
         .where({
-          companyid: company,
+          userid: company, //
           appName: appName
         })
         .select() ////
@@ -223,13 +230,16 @@ ORDER BY
   getClient() {
     return this.get('postgresqlClient')
   }
-  async registerSubApp(appName: keyof typeof subAppCreateMap, companyId: string) {
+  async registerSubApp(config: any) {
     const allEn = null
-    let c: Knex = this.get('postgresqlClient')
+    let appName = config.appName //
+    let companyId = config.userid || config.companyid //
+    // let c: Knex = this.get('postgresqlClient')
+    //@ts-ignore
     const createFn = subAppCreateMap[appName] //
     if (typeof createFn !== 'function') return // 不存在的服务不需要注册
     //@ts-ignore
-    const subApp = await createFn(this, companyId) //
+    let subApp = await createFn(this, config) //
     let key = `${appName}_${companyId}` //
     let routePath = `/${key}` //
     this.use(routePath, subApp)
@@ -282,45 +292,9 @@ ORDER BY
       // throw new errors.NotFound(`table ${tableName} not found`) ////
       return null //
     }
-    let lastList: any[] = []
-    let _node = {
-      ...this.createIdKey('inline'),
-      columns: [
-        {
-          ...this.createIdKey('grid'),
-          options: {
-            gutter: 0,
-            justify: 'start',
-            align: 'top'
-          },
-          style: {
-            width: '100%'
-          },
-          columns: [
-            {
-              ...this.createIdKey('col'), //
-              // list: [_.cloneDeep(node)],
-              list: [
-                {
-                  ...this.createIdKey('inline'),
-                  columns: lastList
-                }
-              ],
-              options: {
-                span: 24,
-                offset: 0,
-                push: 0,
-                pull: 0,
-                style: {}
-              }
-            }
-          ]
-        }
-      ]
-    }
     let config = {
       layout: {
-        pc: [_node],
+        pc: [],
 
         mobile: [
           {
@@ -329,24 +303,32 @@ ORDER BY
           }
         ]
       },
-      fields: [
-        {
-          ...this.createIdKey('entity', tableConfig)
-        }
-      ],
+      fields: [],
       data: {},
       logic: {}
     }
+    let enF = { ...this.createIdKey('entity', tableConfig) }
+    let btnF = {
+      ...this.createIdKey('buttonGroup', {
+        items: [
+          {
+            label: '新增'
+          },
+          {
+            label: '查询'
+          }
+        ]
+      })
+    } 
+    let enId = enF.id
+    let sRow = createNodeGrid(enId, this)
+    let btnId = btnF.id
+    let btnRow = createNodeGrid(btnId, this)
     let pcLayout = config.layout.pc as any
-    let res = lastList //
-    let res1 = this.getLastNodeInLayout(config.layout.mobile)
-    res[0] = config.fields[0].id //
-    res1.forEach((item, i) => {
-      let _field = config.fields[i]
-      if (_field) {
-        item.columns.push(_field.id) //
-      }
-    }) //
+    pcLayout.push(...[btnRow, sRow])
+    let f: any[] = config.fields
+    f.push(...[btnF, enF])
+   
     return config //
   }
   getLastNodeInLayout(layout: any[], res: any[] = []) {
@@ -365,6 +347,42 @@ ORDER BY
       }
     })
     return res
+  }
+  getApiCaptcha(host: any, key: any, clear = false) {
+    let cdata = this.captchaData
+    let _value = cdata?.[host]?.[key]
+    let _t = _value?.text
+    return _t //
+  }
+  clearApiCaptcha(host: any, key: any) {
+    let cdata = this.captchaData
+    let _value = cdata?.[host]?.[key]
+    if (_value) {
+      cdata[host][key] = null
+    } //
+  } //
+  initCurrentHooks() {
+    //
+    this.hooks({
+      all: [
+        //
+        async (context: any, next: any) => {
+          //
+          // console.log(context.service.serviceName, 'testName')//
+          await next()
+          let params = context.params || {}
+          // let provider = params.provider
+          // const service = context.service
+          // console.log(service.serviceName, 'testName') //`
+          // if (provider == 'socketio') {
+          //   context.result = {
+          //     data: context.result,
+          //     code: 200
+          //   } //
+          // }
+        }
+      ]
+    })
   }
 }
 export const createFeathers = () => {

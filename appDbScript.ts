@@ -8,9 +8,12 @@ import { RolePermission } from './src/entity/role_permission.entity'
 import { DataSource, DataSourceOptions } from 'typeorm'
 import { UserRole } from './src/entity/user_role.entity'
 import { Navs } from './src/entity/navs.entity'
-import {} from './src/entity/columns.entity'
 import { ServiceEnitty } from './src/entity/services.entity'
 import { ColumnEntity } from './src/entity/columns.entity'
+import { Entity } from './src/entity/entity.entity'
+import { Company } from './src/entity/company.entity'
+import { FieldEntity } from './src/entity/fields.entity'
+import { TableEntity } from './src/entity/table.entity'
 function main() {
   let dbConfig: DataSourceOptions = {
     type: 'postgres',
@@ -20,7 +23,19 @@ function main() {
     password: '123456',
     database: 'erp', //
     synchronize: true,
-    entities: [User, Role, Permission, RolePermission, UserRole] //
+    entities: [
+      FieldEntity,
+      Entity, //
+      User,
+      Role,
+      TableEntity, //
+      Permission,
+      RolePermission,
+      UserRole,
+      Navs,
+      ColumnEntity,
+      Company
+    ]//
   }
   const dataSource = new DataSource(dbConfig)
   dataSource.initialize().then(() => {

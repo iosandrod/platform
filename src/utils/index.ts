@@ -4,31 +4,31 @@ export function stringToFunction<T extends (...args: any[]) => any>(
 ): T | null {
   try {
     if (!str.trim()) {
-      throw new Error("函数字符串不能为空");
+      throw new Error('函数字符串不能为空')
     }
 
     // 检测是否是一个箭头函数
-    const isArrowFunction = str.includes("=>");
+    const isArrowFunction = str.includes('=>')
 
     // 直接是一个普通函数
-    if (str.startsWith("function")) {
-      return new Function(`return (${str})`)() as T;
+    if (str.startsWith('function')) {
+      return new Function(`return (${str})`)() as T
     }
 
     // 可能是箭头函数
     if (isArrowFunction) {
-      return new Function(`return ${str}`)() as T;
+      return new Function(`return ${str}`)() as T
     }
 
     // 如果只是一个表达式，自动包装成箭头函数
-    return new Function(...params, `return (${str})`) as T;
+    return new Function(...params, `return (${str})`) as T
   } catch (error) {
-    console.error("解析函数出错:", error);
-    return null;
+    console.error('解析函数出错:', error)
+    return null
   }
 }
-const urlAlphabet =
-  'useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict'
+const urlAlphabet = 'useandom-26T198340PX75pxJACKVERYMINDBUSHWOLF_GQZbfghjklqvwyzrict'
+import { isArray } from 'lodash'
 import { webcrypto as crypto } from 'node:crypto'
 const scopedUrlAlphabet = urlAlphabet
 const POOL_SIZE_MULTIPLIER = 128
@@ -48,7 +48,11 @@ export function random(bytes: number) {
   fillPool((bytes |= 0))
   return pool.subarray(poolOffset - bytes, poolOffset)
 }
-export function customRandom(alphabet: string | any[], defaultSize: number, getRandom: { (bytes: any): any; (arg0: number): any; }) {
+export function customRandom(
+  alphabet: string | any[],
+  defaultSize: number,
+  getRandom: { (bytes: any): any; (arg0: number): any }
+) {
   let mask = (2 << (31 - Math.clz32((alphabet.length - 1) | 1))) - 1
   let step = Math.ceil((1.6 * mask * defaultSize) / alphabet.length)
   return (size = defaultSize) => {
@@ -75,7 +79,74 @@ export function nanoid(size = 21) {
   return id
 }
 
+export function formatTableColumn(columns: any[]) {
+  //
+}
 
-export function formatTableColumn(columns: any[]) {//
+export const createNodeGrid = (field: string, _this: any) => {
+  let _node = {
+    ..._this.createIdKey('inline'),
+    columns: [
+      {
+        ..._this.createIdKey('grid'),
+        options: {
+          gutter: 0,
+          justify: 'start',
+          align: 'top'
+        },
+        style: {
+          width: '100%'
+        },
+        columns: [
+          {
+            ..._this.createIdKey('col'), //
+            // list: [_.cloneDeep(node)],
+            list: [
+              {
+                ..._this.createIdKey('inline'),
+                columns: [field]
+              }
+            ],
+            options: {
+              span: 24,
+              offset: 0,
+              push: 0,
+              pull: 0,
+              style: {}
+            }
+          }
+        ]
+      }
+    ]
+  }
+  return _node
+}
 
+//cols2是数据库的
+export const mergeCols = (cols1: any, cols2: any) => {
+  if (Array.isArray(cols1) && isArray(cols2)) {
+    for (const col1 of cols1) {
+      let tCol = cols2.find((col: any) => {
+        let field = col.field
+        return field == col1.field
+      })
+      if (tCol != null) {
+        let field = tCol.field
+        // console.log(tCol, 'testTCol') //
+        if (col1.title == col1.field) {
+          //
+          col1.title = tCol.title || tCol.field ////
+        } else {
+          col1.title = tCol.title || col1.title //
+        }
+        Object.entries(tCol).forEach(([k, v]) => {
+          let ov = col1[k]
+          if (ov == null) {
+            col1[k] = v //
+          }
+        })
+        col1['id'] = tCol['id'] //
+      }
+    }
+  }
 }
