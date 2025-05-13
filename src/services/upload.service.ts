@@ -52,24 +52,18 @@ export class UploadService extends BaseService {
     super(options) //
     this.returnBuffer = options.returnBuffer || false
     this.returnUri = options.returnUri !== undefined ? options.returnUri : true
-    let p = path.resolve(__dirname, '../../public')//
-    // console.log(p, 'testPath')//
-    this.fileModel = fileBlob(p)
+    let p = path.resolve(__dirname, '../../public/images')////
+    this.fileModel = fileBlob(p)//
   }
   //@ts-ignore
   async find(...args) {
     return super.find(...args)
   } //
 
-  // @useMethodTransform({
-  //   //@ts-ignore
-  //   password: createPasswordTransform()
-  // })
-  // @useCaptCha({})
   @useUnAuthenticate()
   async create(body: any, params = {}) {
     //
-    let { id, uri, buffer, contentType } = body
+    let { id, uri, buffer, contentType, } = body
     if (uri) {
       const result = parseDataURI(uri)
       contentType = result.MIME
@@ -122,11 +116,18 @@ export class UploadService extends BaseService {
     } catch (error) {
       throw new errors.BadGateway('文件上传失败')//
     }
-    // console.log(res, 'testRes')//
-    /* 
-      id,uri,size,contentType
-    */
-    return res
+    let _data: any = res
+    let fileName = body.fileName || _data.id
+    let obj = {
+      fileName: fileName,
+      ext,
+      size: _data.size,
+      mimeType: _data.contentType,
+      isPublic: true,
+      url: `/${fileName}`//
+    }
+    await super.create(obj, params)////
+    return res//
   }
 }
 export default UploadService;

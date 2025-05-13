@@ -317,3 +317,11 @@ export default function hashPassword(field: string, options: HashPasswordOptions
                   //   f.options = options
                   // }
                   // let oldColumns = options?.columns
+
+
+                  
+  // @useMethodTransform({
+  //   //@ts-ignore
+  //   password: createPasswordTransform()
+  // })
+  // @useCaptCha({})
