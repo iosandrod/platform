@@ -64,6 +64,7 @@ import { myFeathers } from '../feather'
 })
 export class CompanyService extends BaseService {
   //联合
+  serviceName?: string | undefined = 'company'//
   unionId = ['appName', 'userid'] //
   async create(...args: any[]) {
     //@ts-ignore

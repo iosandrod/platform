@@ -20,6 +20,7 @@ import ColumnService from './column.service'
 import TableService from './table.service'
 import CaptchaService from './captcha.service'
 import { myAuth } from '../auth'
+import { UploadService } from './upload.service'
 export const services = async (app: myFeathers) => {
   let names = Object.keys(createMap) //
   let _names = await app.getCompanyTable()
@@ -94,8 +95,9 @@ const createMap = {
   navs: NavService, //
   company: CompanyService,
   users: UsersService,
-  entity: EntityService,
-  captcha: CaptchaService //
+  entity: EntityService,//
+  captcha: CaptchaService, //
+  uploads: UploadService//
 }
 export async function importModulesFromFolder(directory: string) {
   const files = await fs.readdirSync(directory)

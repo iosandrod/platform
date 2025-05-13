@@ -60,6 +60,8 @@ export async function createApp() {
     error: {}
   })
   let allCompany = await app.getAllCompany()
+  // let client = app.get('postgresqlClient')
+  // let allCompany: any[] = []
   let company = allCompany.map((c: any) => {
     let uid = c.userid
     let appName = c.appName

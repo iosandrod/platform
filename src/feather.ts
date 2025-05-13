@@ -28,8 +28,8 @@ export class myFeathers extends Feathers<any, any> {
   } //
   async getAllCompany() {
     const companyService = this.service('company') //
-    const company = await companyService.find() //
-    return company ////
+    const company = await companyService.find() ///
+    return company
   } //
   async createCompany(config: any) {
     let client: Knex = this.get('postgresqlClient')
@@ -86,11 +86,10 @@ export class myFeathers extends Feathers<any, any> {
   getUserPermissions(userid: string) {
     let roles = this.getRoles(userid)
   }
-  async getAllApp() {} //
-  async getCurrentTable() {}
+  async getAllApp() { } //
+  async getCurrentTable() { }
   //@ts-ignore
   async getCompanyConnection(company: any, appName?: string): Promise<Knex> {
-    console.log(company, appName, 'testName') //
     let client = this.getClient()
     if (typeof company === 'number') {
       //
@@ -100,7 +99,7 @@ export class myFeathers extends Feathers<any, any> {
       if (_knex != null) {
         return _knex //
       }
-      if (appName == null) {
+      if (appName == null || company == null) {//
         return this.getPgClient() //
       } //
       let companyInfo = await client('company')
@@ -149,10 +148,14 @@ export class myFeathers extends Feathers<any, any> {
     let _this: myFeathers = this.getMainApp()
     //@ts-ignore
     let _connect: Knex = null
+    // console.log(companyid, appName)//
     if (companyid == null) {
       _connect = this.get('postgresqlClient')
     } else {
       _connect = await _this.getCompanyConnection(companyid, appName) //
+    }
+    if (_connect == null) {
+      _connect = this.getPgClient()//
     }
     let sql = `SELECT 
     cols.attname AS column_name,
@@ -184,7 +187,7 @@ ORDER BY
     tbl.relname, cols.attnum;
 `
     let allColumns = await _connect.raw(sql) //////
-    allColumns = allColumns.rows
+    allColumns = allColumns.rows//
     allColumns.forEach((col: any) => {
       col.tableName = col.table_name //
       let field = col.column_name
@@ -283,7 +286,7 @@ ORDER BY
     let allTable = await this.getCompanyTable()
     return allTable[tableName] //
   }
-  createFieldKey() {}
+  createFieldKey() { }
   async getDefaultPageLayout(tableName: string) {
     let allTable = await this.getCompanyTable() //
     //本地的表格
@@ -319,7 +322,7 @@ ORDER BY
           }
         ]
       })
-    } 
+    }
     let enId = enF.id
     let sRow = createNodeGrid(enId, this)
     let btnId = btnF.id
@@ -328,7 +331,7 @@ ORDER BY
     pcLayout.push(...[btnRow, sRow])
     let f: any[] = config.fields
     f.push(...[btnF, enF])
-   
+
     return config //
   }
   getLastNodeInLayout(layout: any[], res: any[] = []) {

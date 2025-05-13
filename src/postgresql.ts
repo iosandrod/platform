@@ -12,6 +12,6 @@ declare module './declarations' {
 export const postgresql = (app: Application) => {
   const config = app.get('postgresql')
   const db = knex(config!)
-
+  console.log('run here')//
   app.set('postgresqlClient', db)
 }

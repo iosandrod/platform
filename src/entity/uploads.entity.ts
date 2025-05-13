@@ -11,15 +11,15 @@ export enum StorageProvider {
 @Entity('uploads')
 export class Upload extends BaseEntity {
   /** 原始文件名，如 `photo.jpg` */
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar' })
   originalName: string
 
   /** 存储后的文件名或 key，如 `ab12cd34ef.jpg` */
-  @Column({ type: 'varchar', length: 255, unique: true })
+  @Column({ type: 'varchar', unique: true })
   fileName: string
 
   /** 文件扩展名，如 `jpg`, `png` */
-  @Column({ type: 'varchar', length: 50 })
+  @Column({ type: 'varchar', })
   ext: string
 
   /** 文件大小（字节） */
@@ -27,15 +27,15 @@ export class Upload extends BaseEntity {
   size: number
 
   /** MIME 类型，如 `image/png` */
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ type: 'varchar', })
   mimeType: string
 
   /** 可访问 URL 或相对路径 */
-  @Column({ type: 'varchar', length: 500 })
+  @Column({ type: 'varchar', })
   url: string
 
   /** 上传来源（例如 local, s3 等） */
-  @Column({ type: 'enum', enum: StorageProvider, default: StorageProvider.LOCAL })
+  @Column({ type: 'varchar', })
   provider: StorageProvider
 
   /** 是否公开可访问 */
@@ -47,4 +47,4 @@ export class Upload extends BaseEntity {
   metadata: Record<string, any>
   @Column({ type: 'integer', nullable: true })
   userid: number
-}
+} 

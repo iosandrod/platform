@@ -17,15 +17,16 @@ import { myFeathers } from '../feather'
 import mimeTypes from 'mime-types'
 import toBuffer from 'concat-stream'
 import { getBase64DataURI, parseDataURI } from 'dauria'
-import { from } from 'from2'
+import _from from 'from2'
 import crypto from 'crypto'
 import fileBlob from 'fs-blob-store'
+import path from 'path'
 function fromBuffer(buffer: any) {
   // assert.ok(Buffer.isBuffer(buffer))
 
-  return from(function (size: any, next: any) {
+  return _from(function (size: any, next: any) {
     if (buffer.length <= 0) {
-      //@ts-ignore
+      //@ts-ignore 
       return this.push(null)
     }
 
@@ -41,8 +42,7 @@ function bufferToHash(buffer: any) {
   hash.update(buffer)
   return hash.digest('hex')
 }
-export class UsersService extends BaseService {
-  //
+export class UploadService extends BaseService {
   returnBuffer = false
   returnUri = true
   fileModel: any
@@ -52,20 +52,22 @@ export class UsersService extends BaseService {
     super(options) //
     this.returnBuffer = options.returnBuffer || false
     this.returnUri = options.returnUri !== undefined ? options.returnUri : true
-    this.fileModel = fileBlob(__dirname + '/upload')
+    let p = path.resolve(__dirname, '../../public')//
+    // console.log(p, 'testPath')//
+    this.fileModel = fileBlob(p)
   }
   //@ts-ignore
   async find(...args) {
     return super.find(...args)
   } //
 
-  @useMethodTransform({
-    //@ts-ignore
-    password: createPasswordTransform()
-  })
-  @useCaptCha({})
+  // @useMethodTransform({
+  //   //@ts-ignore
+  //   password: createPasswordTransform()
+  // })
+  // @useCaptCha({})
   @useUnAuthenticate()
-  create(body: any, params = {}) {
+  async create(body: any, params = {}) {
     //
     let { id, uri, buffer, contentType } = body
     if (uri) {
@@ -92,28 +94,39 @@ export class UsersService extends BaseService {
       const hash = bufferToHash(buffer)
       id = `${hash}.${ext}`
     }
-    return new Promise((resolve, reject) => {
-      fromBuffer(buffer)
-        .pipe(
-          this.fileModel.createWriteStream(
-            {
-              key: id
-              // params: params.s3
-            },
-            (error: any) =>
-              error
-                ? reject(error)
-                : resolve({
+    let res = null
+    try {
+      res = await new Promise((resolve, reject) => {
+        fromBuffer(buffer)
+          .pipe(
+            this.fileModel.createWriteStream(
+              {
+                key: id
+                // params: params.s3//
+              },
+              (error: any) =>
+                error
+                  ? reject(error)
+                  : resolve({
                     [this.id]: id,
                     ...(this.returnBuffer && { buffer }),
                     ...(this.returnUri && { uri }),
                     size: buffer.length,
                     contentType
                   })
+            )
           )
-        )
-        .on('error', reject)
-    })
+          .on('error', reject)
+
+      })
+    } catch (error) {
+      throw new errors.BadGateway('文件上传失败')//
+    }
+    // console.log(res, 'testRes')//
+    /* 
+      id,uri,size,contentType
+    */
+    return res
   }
 }
-export default UsersService
+export default UploadService;
