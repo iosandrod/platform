@@ -1,5 +1,5 @@
 import { HookContext } from '@feathersjs/feathers'
-import { useHook } from '../decoration'
+import { useHook, useRoute } from '../decoration'
 import { BaseService } from './base.service'
 import { myFeathers } from '../feather'
 @useHook({
@@ -86,6 +86,15 @@ WHERE datname = '${appName}'
     OWNER = postgres
     TEMPLATE = ${appName};` //
     await pgClient.raw(sql) //
+  }
+  @useRoute()
+  async getAllApp() {
+    let _data = await this.find({
+      query: {
+        userid: -1
+      }
+    })
+    return _data //
   }
 }
 

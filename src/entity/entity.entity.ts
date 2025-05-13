@@ -31,6 +31,6 @@ export class Entity extends BaseEntity {
   entityName: string
   @Column({ type: 'varchar', nullable: true })
   tableType: string
-  @Column({ type: 'varchar', nullable: false })
+  @Column({ type: 'varchar', nullable: true })
   tableCnName: string
 } 

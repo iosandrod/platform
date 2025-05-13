@@ -28,4 +28,8 @@ export class User extends BaseEntity {
   companyType: string //
   @Column({ type: 'integer', nullable: true }) //
   companyId: number
+  @Column({
+    type: 'varchar'
+  })
+  phone: string
 } //

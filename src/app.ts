@@ -15,6 +15,7 @@ import { createFeathers, myFeathers } from './feather'
 import { BaseService } from './services/base.service'
 import { mainAuth } from './auth'
 import { redis } from './redis'
+import featherBlob from 'feathers-blob'
 import { configureSocketio } from './socketio'
 export let appArr = [
   {

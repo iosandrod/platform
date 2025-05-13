@@ -65,13 +65,7 @@ import { mergeCols } from '../utils'
               if (type == 'entity') {
                 let tableName = f?.options?.tableName
                 if (tableName) {
-                  // let _config = await _this.getTableConfig(tableName)
-                  // let options = f?.options //
-                  // if (options == null) {
-                  //   options = {}
-                  //   f.options = options
-                  // }
-                  // let oldColumns = options?.columns
+                 
                   let oldColumns = await context.app.service('columns').find({
                     query: {
                       tableName: tableName

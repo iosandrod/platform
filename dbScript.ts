@@ -14,6 +14,7 @@ import { Entity } from './src/entity/entity.entity'
 import { Company } from './src/entity/company.entity'
 import { FieldEntity } from './src/entity/fields.entity'
 import { TableEntity } from './src/entity/table.entity'
+import { Upload } from './src/entity/uploads.entity'
 import knex from 'knex'
 async function main() {
   let _knex = knex({
@@ -41,7 +42,8 @@ async function main() {
       UserRole,
       Navs,
       ColumnEntity,
-      Company
+      Company,
+      Upload,
     ]
   }
   const dataSource = new DataSource(dbConfig)
