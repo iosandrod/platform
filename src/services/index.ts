@@ -7,7 +7,7 @@ import _ from 'lodash'
 import { FeathersKoaContext } from '@feathersjs/koa'
 import { AppService } from './app.service'
 import { UsersService } from './users.service'
-import { hooks } from '@feathersjs/hooks' //
+import { hooks } from '@feathersjs/hooks' ////
 import * as fs from 'fs'
 import * as path from 'path'
 import { pathToFileURL } from 'url'
@@ -75,7 +75,7 @@ export const createServices = async (serverName: keyof typeof createMap, options
   let Model = app.get('postgresqlClient')
   _.merge(_options, {
     methods,
-    name: serverName,
+    name: serverName,//
     Model
   } as KnexAdapterOptions) //
   let service = new createClass(_options) //
@@ -121,4 +121,3 @@ export async function importModulesFromFolder(directory: string) {
   }
   return modules
 }
-//

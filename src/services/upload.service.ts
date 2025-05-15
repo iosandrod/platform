@@ -26,7 +26,7 @@ function fromBuffer(buffer: any) {
 
   return _from(function (size: any, next: any) {
     if (buffer.length <= 0) {
-      //@ts-ignore 
+      //@ts-ignore
       return this.push(null)
     }
 
@@ -52,8 +52,8 @@ export class UploadService extends BaseService {
     super(options) //
     this.returnBuffer = options.returnBuffer || false
     this.returnUri = options.returnUri !== undefined ? options.returnUri : true
-    let p = path.resolve(__dirname, '../../public/images')////
-    this.fileModel = fileBlob(p)//
+    let p = path.resolve(__dirname, '../../public/images') ////
+    this.fileModel = fileBlob(p) //
   }
   //@ts-ignore
   async find(...args) {
@@ -63,7 +63,7 @@ export class UploadService extends BaseService {
   @useUnAuthenticate()
   async create(body: any, params = {}) {
     //
-    let { id, uri, buffer, contentType, } = body
+    let { id, uri, buffer, contentType } = body
     if (uri) {
       const result = parseDataURI(uri)
       contentType = result.MIME
@@ -102,19 +102,18 @@ export class UploadService extends BaseService {
                 error
                   ? reject(error)
                   : resolve({
-                    [this.id]: id,
-                    ...(this.returnBuffer && { buffer }),
-                    ...(this.returnUri && { uri }),
-                    size: buffer.length,
-                    contentType
-                  })
+                      [this.id]: id,
+                      ...(this.returnBuffer && { buffer }),
+                      ...(this.returnUri && { uri }),
+                      size: buffer.length,
+                      contentType
+                    })
             )
           )
           .on('error', reject)
-
       })
     } catch (error) {
-      throw new errors.BadGateway('文件上传失败')//
+      throw new errors.BadGateway('文件上传失败') //
     }
     let _data: any = res
     let fileName = body.fileName || _data.id
@@ -124,10 +123,10 @@ export class UploadService extends BaseService {
       size: _data.size,
       mimeType: _data.contentType,
       isPublic: true,
-      url: `/${fileName}`//
+      url: `/images/${_data.id}` //
     }
-    await super.create(obj, params)////
-    return res//
+    let _res = await super.create(obj, params) //
+    return _res ////
   }
 }
-export default UploadService;
+export default UploadService

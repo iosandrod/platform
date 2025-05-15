@@ -4,6 +4,7 @@ import { BaseService } from './base.service'
 import { myFeathers } from '../feather'
 type TreeNode = {
   id: string
+  sort: number
   pid: string
   navname: string
   [key: string]: any
@@ -30,6 +31,7 @@ export class NavService extends BaseService {
         ...item,
         children: this.buildTreeRecursive(data, item.id) //
       }))
+    _data = _data.sort((a, b) => a.sort - b.sort) //
     return _data
   }
 }

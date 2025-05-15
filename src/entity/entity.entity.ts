@@ -33,4 +33,6 @@ export class Entity extends BaseEntity {
   tableType: string
   @Column({ type: 'varchar', nullable: true })
   tableCnName: string
+  @Column({ type: 'jsonb', nullable: true })
+  hooks: string
 } 

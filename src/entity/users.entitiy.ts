@@ -26,10 +26,15 @@ export class User extends BaseEntity {
   @Column({ type: 'varchar', nullable: true })
   //公司类型
   companyType: string //
-  @Column({ type: 'integer', nullable: true }) //
+  @Column({ type: 'integer', nullable: true }) ////
   companyId: number
   @Column({
-    type: 'varchar'
+    type: 'varchar',
+    nullable: true//
   })
   phone: string
+  @Column({ type: 'varchar', nullable: true })
+  avatar: string//头像
+  @Column({ type: 'varchar', nullable: true })
+  companyLogo: string//公司logo
 } //
