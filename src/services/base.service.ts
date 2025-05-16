@@ -476,14 +476,6 @@ WHERE table_name = '${schema}'
     return _rows //
   } //
   //@ts-ignore
-  async find(params?: any): Promise<Paginated<Result> | Result[]> {
-    return this._find({
-      ...params,
-      //@ts-ignore
-      query: await this.sanitizeQuery(params)
-    })
-  }
-  //@ts-ignore
   async sanitizeQuery(params: any = {} as ServiceParams): Promise<Query> {
     // We don't need legacy query sanitisation if the query has been validated by a schema already
     //@ts-ignore
@@ -491,7 +483,12 @@ WHERE table_name = '${schema}'
       //@ts-ignore 
       return params.query || {}
     }
-
+    let _query = params.query || {}
+    let $paginate = _query['$paginate']
+    if ($paginate != null) {//
+      params.paginate = params.paginate || $paginate
+      delete _query['$paginate']////
+    }//
     const options = this.getOptions(params)
     const { query, filters } = filterQuery(params.query, options)
     return {
@@ -569,13 +566,7 @@ WHERE table_name = '${schema}'
     }
   }
   //@ts-ignore
-  async find(params?: ServiceParams): Promise<Paginated<Result> | Result[]> {
-    return this._find({
-      ...params,
-      //@ts-ignore
-      query: await this.sanitizeQuery(params)
-    })
-  }
+
   async update(
     id: Id,
     data: Partial<any>,
@@ -628,9 +619,21 @@ WHERE table_name = '${schema}'
     return this._get(id, params)
   }
   //@ts-ignore
+  async find(params?: any): Promise<Paginated<Result> | Result[]> {
+    let q = await this.sanitizeQuery(params)
+    // console.log(q, params)
+    return this._find({
+      ...params,
+      //@ts-ignore
+      query: q//
+    })
+  }
+  //@ts-ignore
   async _find(params: ServiceParams = {} as ServiceParams): Promise<Paginated<any> | any[]> {
+    // console.log(params, 'sfjkdslfjslfsd')//
     //@ts-ignore
     let { filters, paginate } = this.filterQuery(params)
+    // console.log(paginate, 'testP')//
     //@ts-ignore
     let { name, id } = this.getOptions(params)
     //@ts-ignore
@@ -770,27 +773,7 @@ WHERE table_name = '${schema}'
         buildArr.push(res.bindings)
       }
     }
-    // let fn = function escapeSqlString(value: string): string {
-    //   if (typeof value !== 'string') return value as any
 
-    //   return value
-    //   // .replace(/\\/g, '\\\\') // 反斜杠 → 双反斜杠
-    //   // .replace(/'/g, "''") // 单引号 → 两个单引号（标准 SQL 转义）
-    //   // .replace(/\u0000/g, '') // NULL 字符（Postgres/SQLite 不允许）
-    //   // .replace(/\x08/g, '') // Backspace（MySQL 可能误解释）
-    //   // .replace(/\x09/g, '\\t') // Tab
-    //   // .replace(/\x0A/g, '\\n') // LF
-    //   // .replace(/\x0D/g, '\\r') // CR
-    //   // .replace(/\x1a/g, '') // Ctrl+Z，MySQL 特殊含义
-    // }
-    // let rSql = sqlArr
-    //   .map(s => {
-    //     let s1 = fn(s)
-    //     return s1 //
-    //   })
-    //   .join(';')
-    // let allV = buildArr.flat(1)
-    // await this.db(params).raw(rSql, allV) // //
     await Promise.all(
       sqlArr.map(async (s, i) => {
         return await this.db(params).raw(s, buildArr[i]) //

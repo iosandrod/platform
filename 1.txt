@@ -325,3 +325,27 @@ export default function hashPassword(field: string, options: HashPasswordOptions
   //   password: createPasswordTransform()
   // })
   // @useCaptCha({})
+
+
+
+  // let fn = function escapeSqlString(value: string): string {
+    //   if (typeof value !== 'string') return value as any
+
+    //   return value
+    //   // .replace(/\\/g, '\\\\') // 反斜杠 → 双反斜杠
+    //   // .replace(/'/g, "''") // 单引号 → 两个单引号（标准 SQL 转义）
+    //   // .replace(/\u0000/g, '') // NULL 字符（Postgres/SQLite 不允许）
+    //   // .replace(/\x08/g, '') // Backspace（MySQL 可能误解释）
+    //   // .replace(/\x09/g, '\\t') // Tab
+    //   // .replace(/\x0A/g, '\\n') // LF
+    //   // .replace(/\x0D/g, '\\r') // CR
+    //   // .replace(/\x1a/g, '') // Ctrl+Z，MySQL 特殊含义
+    // }
+    // let rSql = sqlArr
+    //   .map(s => {
+    //     let s1 = fn(s)
+    //     return s1 //
+    //   })
+    //   .join(';')
+    // let allV = buildArr.flat(1)
+    // await this.db(params).raw(rSql, allV) // //

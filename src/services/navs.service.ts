@@ -14,6 +14,7 @@ type TreeNode = {
   //
   find: [
     async function (context: HookContext, next: any) {
+      // console.log(context.params, 'testParams')//
       await next() //
       const result = context.result
       const s = context.service //
