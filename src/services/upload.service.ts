@@ -102,12 +102,12 @@ export class UploadService extends BaseService {
                 error
                   ? reject(error)
                   : resolve({
-                      [this.id]: id,
-                      ...(this.returnBuffer && { buffer }),
-                      ...(this.returnUri && { uri }),
-                      size: buffer.length,
-                      contentType
-                    })
+                    [this.id]: id,
+                    ...(this.returnBuffer && { buffer }),
+                    ...(this.returnUri && { uri }),
+                    size: buffer.length,
+                    contentType
+                  })
             )
           )
           .on('error', reject)
@@ -118,7 +118,7 @@ export class UploadService extends BaseService {
     let _data: any = res
     let fileName = body.fileName || _data.id
     let obj = {
-      fileName: fileName,
+      fileName: fileName,//
       ext,
       size: _data.size,
       mimeType: _data.contentType,
