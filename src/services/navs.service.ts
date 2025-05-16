@@ -18,8 +18,8 @@ type TreeNode = {
       const result = context.result
       const s = context.service //
       //@ts-ignore
-      const data = result
-      context.result = s.buildTreeRecursive(data) //
+      // const data = result
+      // context.result = s.buildTreeRecursive(data) //
     }
   ]
 })

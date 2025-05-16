@@ -132,9 +132,7 @@ export const mergeCols = (cols1: any, cols2: any) => {
       })
       if (tCol != null) {
         let field = tCol.field
-        // console.log(tCol, 'testTCol') //
-        if (col1.title == col1.field) {
-          //
+        if (col1.title == col1.field) {//
           col1.title = tCol.title || tCol.field ////
         } else {
           col1.title = tCol.title || col1.title //

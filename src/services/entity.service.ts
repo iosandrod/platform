@@ -41,9 +41,20 @@ import { mergeCols } from '../utils'
         let colService = context.app.service('columns')
         if (defaultTableInfo != null) {
           context.result = [defaultTableInfo] //
-          await colService.create(cols)
+          let oldCols = await colService.find({
+            queyr: {
+              tableName: tableName
+            }
+          })
+          let allF = oldCols.map((f: any) => {
+            return f.field
+          })
+          let _cols = cols.filter((f1: any) => {
+            return allF.includes(f1.field)
+          })
+          await colService.create(_cols)//
           let _res = await _this.create(defaultTableInfo) ////
-          return _res //
+          return _res// 
         }
       } else {
         let result = context.result
@@ -65,7 +76,7 @@ import { mergeCols } from '../utils'
               if (type == 'entity') {
                 let tableName = f?.options?.tableName
                 if (tableName) {
-                 
+
                   let oldColumns = await context.app.service('columns').find({
                     query: {
                       tableName: tableName

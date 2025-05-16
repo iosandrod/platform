@@ -9,13 +9,13 @@ import knex, { Knex, QueryBuilder } from 'knex'
 import { Application, HookContext } from '../declarations'
 import { _authenticate, cacheValue, routeConfig, useHook } from '../decoration'
 import { typeMap } from './validate/typeMap'
-import { AdapterQuery } from '@feathersjs/adapter-commons'
+import { AdapterQuery, FilterQueryOptions, VALIDATED } from '@feathersjs/adapter-commons'
 import { ServiceParams } from '@feathersjs/transport-commons/lib/http'
 import _, { result } from 'lodash'
 
 //@ts-ignore
 import { format } from '@scaleleap/pg-format'
-import { defaultServiceMethods, Id, NullableId, Paginated, Params } from '@feathersjs/feathers'
+import { defaultServiceMethods, Id, NullableId, Paginated, Params, Query } from '@feathersjs/feathers'
 import { TObject, TPick, Type } from '@feathersjs/typebox'
 import Ajv, { ValidateFunction } from 'ajv'
 import { addFormats } from '@feathersjs/schema'
@@ -28,6 +28,7 @@ import { myFeathers } from '../feather'
 import { _auth } from '../auth' //
 import Redis, { Result } from 'ioredis'
 import { errors } from '@feathersjs/errors'
+import { filterQuery, FILTERS } from './query'
 const parse = (value: any) => (typeof value !== 'undefined' ? parseInt(value, 10) : value)
 interface bs {
   hooksMetaData: any[]
@@ -48,6 +49,9 @@ const METHODS = {
   $or: 'orWhere',
   $and: 'andWhere'
 }
+
+
+
 //@ts-ignore
 export class BaseService extends KnexService implements bs {
   unionId: any[] = [] //
@@ -134,7 +138,7 @@ export class BaseService extends KnexService implements bs {
   routes?: routeConfig[] //
   columns: string[] = [] ////
   columnInfo: columnInfo[] = []
-  getCompanyName() {}
+  getCompanyName() { }
   //@ts-ignore
   createQuery(params: ServiceParams = {} as ServiceParams) {
     let { name, id } = this.getOptions(params)
@@ -233,6 +237,13 @@ export class BaseService extends KnexService implements bs {
           if (type == 'jsonb' || type == 'json') {
             if (typeof value == 'object') {
               value = JSON.stringify(value)
+            }
+          }
+          if (typeof value == 'boolean') {
+            if (value === true) {
+              value = 1
+            } else {
+              value = 0//
             }
           }
           result[key] = value
@@ -472,7 +483,24 @@ WHERE table_name = '${schema}'
       query: await this.sanitizeQuery(params)
     })
   }
-  async multiCreate(data: any, params?: any) {}
+  //@ts-ignore
+  async sanitizeQuery(params: any = {} as ServiceParams): Promise<Query> {
+    // We don't need legacy query sanitisation if the query has been validated by a schema already
+    //@ts-ignore
+    if (params.query && (params.query as any)[VALIDATED]) {
+      //@ts-ignore 
+      return params.query || {}
+    }
+
+    const options = this.getOptions(params)
+    const { query, filters } = filterQuery(params.query, options)
+    return {
+      ...filters,
+      ...query
+    }
+  }
+
+  async multiCreate(data: any, params?: any) { }
   async buildDbSchema() {
     let columnInfo = this.columnInfo
     let schema = columnInfo.reduce((result: any, item) => {
