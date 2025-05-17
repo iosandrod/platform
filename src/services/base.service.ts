@@ -94,7 +94,7 @@ export class BaseService extends KnexService implements bs {
       let unAuthMethods = _this['unAuthMethods'] || []
       //设置需要权限//
       if (
-        ['create', 'update', 'patch', 'remove','batchUpdate'].includes(item) && //
+        ['create', 'update', 'patch', 'remove', 'batchUpdate'].includes(item) && //
         !unAuthMethods.includes(item)
       ) {
         //
@@ -151,7 +151,7 @@ export class BaseService extends KnexService implements bs {
   _routes?: routeConfig[] //
   columns: string[] = [] ////
   columnInfo: columnInfo[] = []
-  getCompanyName() {}
+  getCompanyName() { }
   //@ts-ignore
   createQuery(params: ServiceParams = {} as ServiceParams) {
     let { name, id } = this.getOptions(params)
@@ -531,7 +531,7 @@ WHERE table_name = '${schema}'
     }
   }
 
-  async multiCreate(data: any, params?: any) {}
+  async multiCreate(data: any, params?: any) { }
   async buildDbSchema() {
     let columnInfo = this.columnInfo
     let schema = columnInfo.reduce((result: any, item) => {
@@ -682,8 +682,9 @@ WHERE table_name = '${schema}'
     }
 
     // provide default sorting if its not set
-    if (!filters.$sort && builder.client.driverName === 'mssql') {
-      builder.orderBy(`${name}.${id}`, 'asc')
+    // if (!filters.$sort && builder.client.driverName === 'mssql') {
+    if (!filters.$sort && ['mssql', 'pg'].includes(builder.client.driverName)) {
+      builder.orderBy(`${name}.${id}`, 'asc')//
     } //
     let query = builder.toQuery()
     console.log(query) //
@@ -711,7 +712,7 @@ WHERE table_name = '${schema}'
       data = id
       id = null //
       params = _data //
-    }
+    }//
     return this._patch(id, data, {
       ...params,
       query
@@ -741,11 +742,10 @@ WHERE table_name = '${schema}'
       data = raw
     } else {
       data = [raw]
-    }
-    // data = data.map((d: any) => _.omit(d, idField))
+    }//
     let queryObj = {
       ...params.query
-    } //
+    } ////
     if (id == null) {
       let _r = raw
       if (!Array.isArray(_r)) {
@@ -753,15 +753,16 @@ WHERE table_name = '${schema}'
       }
       let idL = _r.map((r: any) => r[idField])
       queryObj[`${name}.${idField}`] = { $in: idL }
-    }
+    }//
     let sqlArr = []
     let buildArr = []
-    if (data.length == 1) {
-      //
+    if (data.length == 1) {//
+      console.log(queryObj, 'qObj')//
       let results: any = await this._findOrGet(id, {
-        ...params, //
+        ...params,
         query: queryObj
       })
+      // console.log(results, 'testRes')
       let idList = results.map((current: any) => current[idField])
       for (const d of data) {
         let updateParams = {
@@ -958,6 +959,16 @@ WHERE table_name = '${schema}'
   // @useGlobalAuthenticate() //
   async batchUpdate(data: any, params: any) {
     //@ts-ignore
-    return '修改成功123' //
+    let _data = data
+    // console.log(_data, 'test_data')//
+    let addData = _data['addData'] || []
+    let patchData = _data['patchData'] || []
+    if (addData?.length > 0) {
+      await this.create(addData, params)//
+    }
+    if (patchData?.length > 0) {//
+      await this.patch(patchData, params)//
+    }//
+    return '数据更新成功' //
   }
 }
