@@ -116,12 +116,7 @@ export class EntityService extends BaseService {
   constructor(options: any) {
     super(options) //
   }
-  @useRoute()
-  @useAuthenticate()
-  async getSomeUser(data: any, params: Params) {
-    let app = this.app
-    let Model = this.Model //
-  } //
+  
   async create(...args: any[]) {
     //@ts-ignore
     return await super.create(...args)
@@ -137,13 +132,7 @@ export class EntityService extends BaseService {
     let targetTable = app.getDefaultPageLayout(tableName) //
     return targetTable //
   }
-  @useRoute()
-  @useAuthenticate() //
-  async getOneUser(context: any, params: any) {
-    return {
-      test: 2
-    }
-  }
+ 
   async getAllColumns(tableName: string) {
     let _tableName = tableName.split('---')
     tableName = _tableName[0]

@@ -13,15 +13,13 @@ export class ColumnEntity extends BaseEntity {
   @Column({ type: 'integer', nullable: true })
   nullable: number //
   @Column({ type: 'varchar', nullable: true })
-  default: string//
+  default: string //
   @Column({ type: 'varchar', nullable: true })
   primary: string
   @Column({ type: 'varchar', nullable: true })
   unique: string
   @Column({ type: 'jsonb', nullable: true })
   validate: string
-  @Column({ type: 'varchar', nullable: true })
-  options: string
   @Column({ type: 'integer', nullable: true })
   serviceId: number
   @Column({ type: 'varchar', nullable: true })
@@ -40,4 +38,12 @@ export class ColumnEntity extends BaseEntity {
   editType: string //
   @Column({ type: 'varchar', nullable: true })
   editOptions: string
+  @Column({ type: 'varchar', nullable: true })
+  defaultValue: string//
+  @Column({ type: 'varchar', nullable: true })
+  defaultValueType: string //
+  @Column({ type: 'jsonb', nullable: true }) //
+  options: number
+  @Column({ type: 'varchar', nullable: true })
+  optionsField: string //
 }

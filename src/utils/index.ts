@@ -132,14 +132,15 @@ export const mergeCols = (cols1: any, cols2: any) => {
       })
       if (tCol != null) {
         let field = tCol.field
-        if (col1.title == col1.field) {//
+        if (col1.title == col1.field) {
+          //
           col1.title = tCol.title || tCol.field ////
         } else {
           col1.title = tCol.title || col1.title //
         }
         Object.entries(tCol).forEach(([k, v]) => {
-          let ov = col1[k]
-          if (ov == null) {
+          let ov = col1[k] //
+          if (ov == null || ['type'].includes(k)) {
             col1[k] = v //
           }
         })

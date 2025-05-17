@@ -19,8 +19,8 @@ type TreeNode = {
       const result = context.result
       const s = context.service //
       //@ts-ignore
-      // const data = result
-      // context.result = s.buildTreeRecursive(data) //
+      const data = result
+      context.result = s.buildTreeRecursive(data) //
     }
   ]
 })
@@ -29,7 +29,7 @@ export class NavService extends BaseService {
     let _data = data
       .filter(item => item.pid == parentId)
       .map(item => ({
-        ...item,
+        ...item, 
         children: this.buildTreeRecursive(data, item.id) //
       }))
     _data = _data.sort((a, b) => a.sort - b.sort) //

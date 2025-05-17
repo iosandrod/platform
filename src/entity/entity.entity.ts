@@ -32,7 +32,11 @@ export class Entity extends BaseEntity {
   @Column({ type: 'varchar', nullable: true })
   tableType: string
   @Column({ type: 'varchar', nullable: true })
-  tableCnName: string
+  tableCnName: string //
   @Column({ type: 'jsonb', nullable: true })
-  hooks: string
-} 
+  hooks: string //
+  @Column({ type: 'jsonb', nullable: true })
+  dialog: string
+  @Column({ type: 'jsonb', nullable: true })
+  searchDialog: string // 
+} //

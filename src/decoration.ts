@@ -41,7 +41,20 @@ export function useRoute(config: routeConfig = {}) {
       target.routes = []
       routes = target.routes
     }
-    const route: routeConfig = { ...config, path: propertyKey }
+    let route: routeConfig = { ...config, path: propertyKey }
+    routes.push(route) //
+    return descriptor
+  }
+}
+export function useGlobalRoute(config: routeConfig = {}) {
+  //@ts-ignore
+  return function (target, propertyKey, descriptor) {
+    let routes = target._routes
+    if (routes == null) {
+      target._routes = []
+      routes = target._routes //
+    }
+    let route: routeConfig = { ...config, path: propertyKey }
     routes.push(route) //
     return descriptor
   }
@@ -93,7 +106,6 @@ export const _authenticate = (
       debug('Authenticating with', authentication, strategies)
       //@ts-ignore
       const authResult = await authService.authenticate(authentication, authParams, ...strategies)
-      console.log(authResult, 'testAuthResult')//
       const { accessToken, ...authResultWithoutToken } = authResult
       context.params = {
         ...params,
@@ -108,7 +120,7 @@ export const _authenticate = (
 }
 
 //使用校验规则
-export function useValidate(config: any) { }
+export function useValidate(config: any) {}
 export type useAuthConfig = {}
 export function useAuthenticate(config?: useAuthConfig) {
   //@ts-ignore
@@ -126,7 +138,22 @@ export function useAuthenticate(config?: useAuthConfig) {
     return descriptor
   }
 }
-
+export function useGlobalAuthenticate(config?: useAuthConfig) {
+  //@ts-ignore
+  return function (target, propertyKey, descriptor) {
+    let _target = target
+    let hooksMetaData = _target._hooksMetaData
+    if (hooksMetaData == null || !Array.isArray(hooksMetaData)) {
+      _target._hooksMetaData = []
+      hooksMetaData = _target._hooksMetaData
+    }
+    let _config: HookOptions<any, any> = {
+      [propertyKey]: [_authenticate('jwt')] ////
+    }
+    hooksMetaData.push(_config) //
+    return descriptor
+  }
+}
 export function useUnAuthenticate() {
   //@ts-ignore
   return function (target, propertyKey, descriptor) {
@@ -140,15 +167,15 @@ export function useUnAuthenticate() {
 export type methodTransform = {
   [key: string]: AsyncContextFunction<any, any>
 }
-export function useMethodTransform(config: methodTransform, methodName?:any) {
+export function useMethodTransform(config: methodTransform, methodName?: any) {
   return function (target: any, propertyKey: any, descriptor: any) {
     if (config == null || typeof config != 'object') {
       return descriptor
     }
     let _value: any[] = getData(target, 'hooksMetaData', [])
-    let _key=methodName
-    if(_key==null){
-      _key=propertyKey
+    let _key = methodName
+    if (_key == null) {
+      _key = propertyKey
     }
     _value.push({
       //@ts-ignore
@@ -316,8 +343,10 @@ export function cacheRedisValue(config?: Function) {
   return cacheReturnValue
 }
 
+export function useTranslate(config: any) {}
+
 export function cacheFindValue(config?: Function) {
-  let _cacheFn = function () { }
+  let _cacheFn = function () {}
 }
 
 //使用验证码功能

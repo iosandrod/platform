@@ -77,7 +77,7 @@ export async function createApp() {
   for (const sApp of company) {
     //
     //@ts-ignore
-    await app.registerSubApp(sApp)
+    // await app.registerSubApp(sApp)
   }
   // Register application setup and teardown hooks here
   app.hooks({
@@ -95,16 +95,16 @@ export async function createApp() {
           await service.init(app) //
         }
         let subApp = app.subApp
-        let allSubApp = Object.entries(subApp)
-        for (const [key, sApp] of allSubApp) {
-          let services = sApp.services as serviceMap
-          let allServices = Object.values(services)
-          for (const service of allServices) {
-            if (typeof service.init !== 'function') continue
-            //@ts-ignore
-            await service.init(sApp) //
-          }
-        }
+        // let allSubApp = Object.entries(subApp)
+        // for (const [key, sApp] of allSubApp) {
+        //   let services = sApp.services as serviceMap
+        //   let allServices = Object.values(services)
+        //   for (const service of allServices) {
+        //     if (typeof service.init !== 'function') continue
+        //     //@ts-ignore
+        //     await service.init(sApp) //
+        //   }
+        // }
         await next() //
       }
     ],

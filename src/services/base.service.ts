@@ -7,7 +7,16 @@ import {
 } from '@feathersjs/knex'
 import knex, { Knex, QueryBuilder } from 'knex'
 import { Application, HookContext } from '../declarations'
-import { _authenticate, cacheValue, routeConfig, useHook } from '../decoration'
+import {
+  _authenticate,
+  cacheValue,
+  routeConfig,
+  useAuthenticate,
+  useGlobalAuthenticate,
+  useGlobalRoute,
+  useHook,
+  useRoute
+} from '../decoration'
 import { typeMap } from './validate/typeMap'
 import { AdapterQuery, FilterQueryOptions, VALIDATED } from '@feathersjs/adapter-commons'
 import { ServiceParams } from '@feathersjs/transport-commons/lib/http'
@@ -50,8 +59,6 @@ const METHODS = {
   $and: 'andWhere'
 }
 
-
-
 //@ts-ignore
 export class BaseService extends KnexService implements bs {
   unionId: any[] = [] //
@@ -72,7 +79,11 @@ export class BaseService extends KnexService implements bs {
       metaData = _this.hooksMetaData //
     }
     let r = this.routes || []
-    let dMethods = [...defaultServiceMethods, ...r.map(r => r.path)]
+    let r1 = this._routes || []
+    if (r1.length > 0) {
+      // console.log(r1) //
+    }
+    let dMethods = [...defaultServiceMethods, ...r.map(r => r.path), ...r1.map(r => r.path)]
     dMethods = dMethods.filter(
       (v, i) => dMethods.indexOf(v) == i //
     )
@@ -83,9 +94,10 @@ export class BaseService extends KnexService implements bs {
       let unAuthMethods = _this['unAuthMethods'] || []
       //设置需要权限//
       if (
-        ['create', 'update', 'patch', 'remove'].includes(item) && //
+        ['create', 'update', 'patch', 'remove','batchUpdate'].includes(item) && //
         !unAuthMethods.includes(item)
       ) {
+        //
         let arr1 = [
           _authenticate('jwt'), //
           async (context: HookContext, next: any) => {
@@ -109,9 +121,9 @@ export class BaseService extends KnexService implements bs {
           //开启事务
         ]
         _arr.push(...arr1)
-      }
+      }//
       //开启事务
-      if (['create', 'update', 'patch', 'remove'].includes(item)) {
+      if (['create', 'update', 'patch', 'remove', 'batchUpdate'].includes(item)) {
         _arr.push(async (context: HookContext, next: any) => {
           try {
             await transaction.start()(context)
@@ -136,9 +148,10 @@ export class BaseService extends KnexService implements bs {
   }
   app: myFeathers //
   routes?: routeConfig[] //
+  _routes?: routeConfig[] //
   columns: string[] = [] ////
   columnInfo: columnInfo[] = []
-  getCompanyName() { }
+  getCompanyName() {}
   //@ts-ignore
   createQuery(params: ServiceParams = {} as ServiceParams) {
     let { name, id } = this.getOptions(params)
@@ -185,6 +198,12 @@ export class BaseService extends KnexService implements bs {
     let allColumnName = columns.map((col: any) => col.field) //
     this.columns = allColumnName //
     this.columnInfo = columns ////
+    let routes = this.routes
+    if (!routes) {
+      this.routes = []
+      routes = this.routes
+    }
+
     //构建校验
     await this.buildDbSchema()
   }
@@ -243,7 +262,7 @@ export class BaseService extends KnexService implements bs {
             if (value === true) {
               value = 1
             } else {
-              value = 0//
+              value = 0 //
             }
           }
           result[key] = value
@@ -480,15 +499,30 @@ WHERE table_name = '${schema}'
     // We don't need legacy query sanitisation if the query has been validated by a schema already
     //@ts-ignore
     if (params.query && (params.query as any)[VALIDATED]) {
-      //@ts-ignore 
+      //@ts-ignore
       return params.query || {}
     }
     let _query = params.query || {}
     let $paginate = _query['$paginate']
-    if ($paginate != null) {//
+    if ($paginate != null) {
+      //
+      if (typeof $paginate == 'object') {
+        let _default = $paginate.default
+        if (_default == null) {
+          $paginate = null //
+        } //
+      }
+      if (typeof $paginate == 'number' || typeof $paginate == 'string') {
+        let _n = Number($paginate)
+        if (isNaN(_n)) {
+          $paginate = null //
+        } else {
+          $paginate = { default: _n, max: 20000 } //
+        }
+      } //
       params.paginate = params.paginate || $paginate
-      delete _query['$paginate']////
-    }//
+      delete _query['$paginate'] ////
+    } //
     const options = this.getOptions(params)
     const { query, filters } = filterQuery(params.query, options)
     return {
@@ -497,7 +531,7 @@ WHERE table_name = '${schema}'
     }
   }
 
-  async multiCreate(data: any, params?: any) { }
+  async multiCreate(data: any, params?: any) {}
   async buildDbSchema() {
     let columnInfo = this.columnInfo
     let schema = columnInfo.reduce((result: any, item) => {
@@ -625,7 +659,7 @@ WHERE table_name = '${schema}'
     return this._find({
       ...params,
       //@ts-ignore
-      query: q//
+      query: q //
     })
   }
   //@ts-ignore
@@ -884,13 +918,21 @@ WHERE table_name = '${schema}'
         hooks(service, hook)
       }
     }
+    let _hooksMetaData = service._hooksMetaData
+    if (_hooksMetaData != null && Array.isArray(_hooksMetaData)) {
+      for (const hook of _hooksMetaData) {
+        hooks(service, hook) //
+      }
+    }
     let routes = service.routes || [] //
+    let _routes = service._routes || [] //
     let routesMethods = routes.map((route: any) => route.path) //
+    let _routeMethods = _routes.map((route: any) => route.path) //
     let p = serviceName //
     //@ts-ignore
     let ts = app.use(p, service, {
       //@ts-ignore
-      methods: [...defaultServiceMethods, ...routesMethods], // //
+      methods: [...defaultServiceMethods, ...routesMethods, ..._routeMethods], // //
       koa: {
         before: [
           async (context: any, next: any) => {
@@ -904,10 +946,18 @@ WHERE table_name = '${schema}'
             response.body = {
               data: response.body,
               code: 200
-            } //
+            } //////
           }
         ]
       }
     })
+  } //
+  //批量
+  // @useRoute()
+  @useGlobalRoute()
+  // @useGlobalAuthenticate() //
+  async batchUpdate(data: any, params: any) {
+    //@ts-ignore
+    return '修改成功123' //
   }
 }
