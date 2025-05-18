@@ -698,7 +698,7 @@ WHERE table_name = '${schema}'
         //@ts-ignore
         limit: filters.$limit,
         skip: filters.$skip || 0, //
-        data
+        data//
       }
     }
     return data

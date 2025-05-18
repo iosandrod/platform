@@ -367,3 +367,7 @@ export default function hashPassword(field: string, options: HashPasswordOptions
                     //   }
                     // })
                   } //
+
+                  // console.log(query, context.result, 'query') //
+      //@ts-ignore
+      // console.log(_this.hooksMetaData) //

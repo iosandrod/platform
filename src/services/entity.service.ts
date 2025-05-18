@@ -15,11 +15,8 @@ import { mergeCols } from '../utils'
       await next()
       let result = context.result
       let query = context.params?.query || {}
-      let params = context.params
-      let _this: EntityService = context.app.service('entity') //
-      // console.log(query, context.result, 'query') //
-      //@ts-ignore
-      // console.log(_this.hooksMetaData) //
+      let params = context.params//
+      let _this: EntityService = context.app.service('entity') //      
       if (
         Object.keys(query).includes('tableName') &&
         Object.keys(query).length == 1 &&
@@ -82,11 +79,13 @@ import { mergeCols } from '../utils'
                     query: {
                       tableName: tableName
                     } //
-                  })
-                  // console.log(oldColumns,'fjsdklfsdjflsd')//
-                  let _columns = f?.options?.columns || []
-                  mergeCols(_columns, oldColumns) //
-
+                  })//
+                  let _columns = f?.options?.columns || []//
+                  let isMain = tableName == res.tableName
+                  if (tableName == null) {
+                    isMain = false
+                  }
+                  mergeCols(_columns, oldColumns, isMain) //
                   f.options = { ...f.options, columns: _columns }
                 }
               }
@@ -125,6 +124,7 @@ export class EntityService extends BaseService {
     let app = this.app
     let colS = app.service('columns')
     let cols = await colS.find({ query: { tableName } })
+    // console.log(cols, 'testCols')//
     if (cols.length == 0) {
       let _config = await app.getTableConfig(tableName)
       let _columns = _config?.columns || []

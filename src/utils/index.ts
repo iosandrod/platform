@@ -7,7 +7,7 @@ export function stringToFunction<T extends (...args: any[]) => any>(
       // throw new Error('函数字符串不能为空')
       return null
     }
-    if(Boolean(str)==false){
+    if (Boolean(str) == false) {
       return null
     }
     // 检测是否是一个箭头函数
@@ -125,7 +125,7 @@ export const createNodeGrid = (field: string, _this: any) => {
 }
 
 //cols2是数据库的
-export const mergeCols = (cols1: any, cols2: any) => {
+export const mergeCols = (cols1: any, cols2: any, isMain: boolean = false) => {
   if (Array.isArray(cols1) && isArray(cols2)) {
     for (const col1 of cols1) {
       let tCol = cols2.find((col: any) => {
@@ -149,5 +149,15 @@ export const mergeCols = (cols1: any, cols2: any) => {
         col1['id'] = tCol['id'] //
       }
     }
-  }
+    if (isMain) {//
+      let _f = cols1.map(c => c.field)
+      let addCols = cols2.filter(col => {
+        let f = col.field
+        if (!_f.includes(f)) {
+          return true
+        }
+      })//
+      cols1.push(...addCols)//
+    }//
+  }//
 }

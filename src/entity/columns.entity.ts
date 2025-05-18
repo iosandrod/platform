@@ -48,4 +48,4 @@ export class ColumnEntity extends BaseEntity {
   optionsField: string //
   @Column({ type: 'varchar', nullable: true })
   fieldFormat: string //
-}
+}//
