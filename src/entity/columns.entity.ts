@@ -36,14 +36,16 @@ export class ColumnEntity extends BaseEntity {
   hidden: number
   @Column({ type: 'varchar', nullable: true })
   editType: string //
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'varchar', nullable: true })//
   editOptions: string
   @Column({ type: 'varchar', nullable: true })
-  defaultValue: string//
+  defaultValue: string //
   @Column({ type: 'varchar', nullable: true })
   defaultValueType: string //
   @Column({ type: 'jsonb', nullable: true }) //
   options: number
   @Column({ type: 'varchar', nullable: true })
   optionsField: string //
+  @Column({ type: 'varchar', nullable: true })
+  fieldFormat: string //
 }

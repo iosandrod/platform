@@ -52,16 +52,18 @@ import { mergeCols } from '../utils'
           let _cols = cols.filter((f1: any) => {
             return allF.includes(f1.field)
           })
-          await colService.create(_cols)//
+          await colService.create(_cols) //
           let _res = await _this.create(defaultTableInfo) ////
-          return _res// 
+          return _res //
         }
       } else {
+        // console.log('获取了entity')//
         let result = context.result
-        for (const res of result) {
+        for (let res of result) {
           let fields = res?.fields
           let tableName = res?.tableName
           let allCol = await _this.getAllColumns(tableName)
+          // console.log(allCol,'testAll')//
           let hasPrimaryKey = allCol.some((col: any) => col.primary != null)
           if (hasPrimaryKey == false) {
             //
@@ -76,37 +78,21 @@ import { mergeCols } from '../utils'
               if (type == 'entity') {
                 let tableName = f?.options?.tableName
                 if (tableName) {
-
                   let oldColumns = await context.app.service('columns').find({
                     query: {
                       tableName: tableName
-                    }//
+                    } //
                   })
                   // console.log(oldColumns,'fjsdklfsdjflsd')//
                   let _columns = f?.options?.columns || []
                   mergeCols(_columns, oldColumns) //
-                  if (Array.isArray(oldColumns)) {
-                    // oldColumns.forEach((col: any) => {
-                    //   //有什么需要合并的呢
-                    //   let f = col.filed
-                    //   let nColumns = _config?.columns || []
-                    //   let tCol = nColumns.find((col: any) => col.field == f)
-                    //   if (tCol) {
-                    //     Object.entries(tCol).forEach(([key, value]) => {
-                    //       if (['title', 'order', 'hidden', 'formatFn'].includes(key)) {
-                    //         //
-                    //         return
-                    //       } //
-                    //       col[key] = value
-                    //     })
-                    //   }
-                    // })
-                  } //
+
                   f.options = { ...f.options, columns: _columns }
                 }
               }
             }
           }
+          res.columns = allCol
         }
       } //
     }
@@ -116,7 +102,7 @@ export class EntityService extends BaseService {
   constructor(options: any) {
     super(options) //
   }
-  
+
   async create(...args: any[]) {
     //@ts-ignore
     return await super.create(...args)
@@ -126,13 +112,13 @@ export class EntityService extends BaseService {
   async getDefaultPageLayout(data: any, context: any) {
     let app = this.app //
     let tableName = data.tableName
-    if (tableName == null) {
+    if (tableName == null) {//
       return null
     }
     let targetTable = app.getDefaultPageLayout(tableName) //
     return targetTable //
   }
- 
+
   async getAllColumns(tableName: string) {
     let _tableName = tableName.split('---')
     tableName = _tableName[0]

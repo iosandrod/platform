@@ -4,9 +4,12 @@ export function stringToFunction<T extends (...args: any[]) => any>(
 ): T | null {
   try {
     if (!str.trim()) {
-      throw new Error('函数字符串不能为空')
+      // throw new Error('函数字符串不能为空')
+      return null
     }
-
+    if(Boolean(str)==false){
+      return null
+    }
     // 检测是否是一个箭头函数
     const isArrowFunction = str.includes('=>')
 
@@ -23,7 +26,6 @@ export function stringToFunction<T extends (...args: any[]) => any>(
     // 如果只是一个表达式，自动包装成箭头函数
     return new Function(...params, `return (${str})`) as T
   } catch (error) {
-    console.error('解析函数出错:', error)
     return null
   }
 }

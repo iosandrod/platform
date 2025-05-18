@@ -349,3 +349,21 @@ export default function hashPassword(field: string, options: HashPasswordOptions
     //   .join(';')
     // let allV = buildArr.flat(1)
     // await this.db(params).raw(rSql, allV) // //
+
+    if (Array.isArray(oldColumns)) {
+                    // oldColumns.forEach((col: any) => {
+                    //   //有什么需要合并的呢
+                    //   let f = col.filed
+                    //   let nColumns = _config?.columns || []
+                    //   let tCol = nColumns.find((col: any) => col.field == f)
+                    //   if (tCol) {
+                    //     Object.entries(tCol).forEach(([key, value]) => {
+                    //       if (['title', 'order', 'hidden', 'formatFn'].includes(key)) {
+                    //         //
+                    //         return
+                    //       } //
+                    //       col[key] = value
+                    //     })
+                    //   }
+                    // })
+                  } //
