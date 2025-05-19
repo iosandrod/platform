@@ -62,7 +62,6 @@ export class UploadService extends BaseService {
 
   @useUnAuthenticate()
   async create(body: any, params = {}) {
-    //
     let { id, uri, buffer, contentType } = body
     if (uri) {
       const result = parseDataURI(uri)
@@ -77,13 +76,12 @@ export class UploadService extends BaseService {
     }
     let ext = mimeTypes.extension(contentType)
 
-    // Unrocognized mime type
     if (typeof ext === 'boolean' && !ext) {
       // Fallback to binary content
       ext = 'bin'
       contentType = 'application/octet-stream'
     }
-
+//
     if (!id) {
       const hash = bufferToHash(buffer)
       id = `${hash}.${ext}`
