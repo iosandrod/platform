@@ -67,7 +67,7 @@ import { mergeCols } from '../utils'
             let _config = await _this.getTableConfig(tableName)
             let _columns = _config?.columns || []
             let keyCol = _columns.find((col: any) => col.primary != null)
-          }
+          }//
           // res.columns = allCol //
           if (Array.isArray(fields)) {
             for (const f of fields) {
@@ -117,7 +117,25 @@ export class EntityService extends BaseService {
     let targetTable = app.getDefaultPageLayout(tableName) //
     return targetTable //
   }
-
+  //@ts-ignore
+  @useRoute()
+  async hasEntity(data: string) {
+    if (Boolean(data) == false || typeof data != 'string') {
+      return false
+    }
+    let hTable = this.app.getTableConfig(data)//
+    if (hTable == null) {
+      let _d = await this.find({
+        query: {
+          tableName: data
+        }
+      })
+      if (_d.length == 0) {
+        return false
+      }
+    }
+    return true//
+  }
   async getAllColumns(tableName: string) {
     let _tableName = tableName.split('---')
     tableName = _tableName[0]

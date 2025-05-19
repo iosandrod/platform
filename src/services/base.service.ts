@@ -653,9 +653,10 @@ WHERE table_name = '${schema}'
     return this._get(id, params)
   }
   //@ts-ignore
-  async find(params?: any): Promise<Paginated<Result> | Result[]> {
+  async find(params?: any): Promise<any[]> {
     let q = await this.sanitizeQuery(params)
     // console.log(q, params)
+    //@ts-ignore
     return this._find({
       ...params,
       //@ts-ignore

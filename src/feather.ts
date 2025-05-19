@@ -312,7 +312,7 @@ ORDER BY
     }
     let enF = { ...this.createIdKey('entity', tableConfig) }
     let btnF = {
-      ...this.createIdKey('buttonGroup', {
+      ...this.createIdKey('buttongroup', {
         items: [
           {
             label: '新增'
