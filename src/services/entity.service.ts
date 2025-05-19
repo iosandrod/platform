@@ -15,8 +15,8 @@ import { mergeCols } from '../utils'
       await next()
       let result = context.result
       let query = context.params?.query || {}
-      let params = context.params//
-      let _this: EntityService = context.app.service('entity') //      
+      let params = context.params //
+      let _this: EntityService = context.app.service('entity') //
       if (
         Object.keys(query).includes('tableName') &&
         Object.keys(query).length == 1 &&
@@ -79,8 +79,8 @@ import { mergeCols } from '../utils'
                     query: {
                       tableName: tableName
                     } //
-                  })//
-                  let _columns = f?.options?.columns || []//
+                  }) //
+                  let _columns = f?.options?.columns || [] //
                   let isMain = tableName == res.tableName
                   if (tableName == null) {
                     isMain = false
@@ -111,7 +111,8 @@ export class EntityService extends BaseService {
   async getDefaultPageLayout(data: any, context: any) {
     let app = this.app //
     let tableName = data.tableName
-    if (tableName == null) {//
+    if (tableName == null) {
+      //
       return null
     }
     let targetTable = app.getDefaultPageLayout(tableName) //
@@ -134,7 +135,7 @@ export class EntityService extends BaseService {
   }
   async getTableConfig(tableName: any) {
     let app = this.app
-    return app.getTableConfig(tableName)
+    return app.getTableConfig(tableName) //
   }
 }
 
