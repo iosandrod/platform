@@ -85,7 +85,7 @@ export function formatTableColumn(columns: any[]) {
   //
 }
 
-export const createNodeGrid = (field: string, _this: any) => {
+export const createNodeGrid = (field: any, _this: any) => {
   let _node = {
     ..._this.createIdKey('inline'),
     columns: [

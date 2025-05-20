@@ -24,18 +24,33 @@ import { mergeCols } from '../utils'
         result.length == 0
       ) {
         //获取默认的表格信息
-        let tableName = query.tableName
-        let obj = {
-          tableName: tableName
+        let tableName: string = query.tableName
+        let realTableName = tableName
+        let _t1Arr = tableName.split('---')
+        let isEdit = false
+        if (_t1Arr.length > 1) {
+          realTableName = _t1Arr[0]//
+          let type = _t1Arr[1]
+          if (type == 'edit') {
+            isEdit = true
+          }
         }
-        let defaultTableInfo: any = await _this.getDefaultPageLayout(obj, params)
+        let obj = {
+          tableName: realTableName
+        }
+        let defaultTableInfo: any = null
+        if (isEdit == true) {
+          defaultTableInfo = await _this.getDefaultEditPageLayout(obj, params)
+        } else {//
+          defaultTableInfo = await _this.getDefaultPageLayout(obj, params)
+        }
         let tConfig: any = defaultTableInfo?.fields.find((c: any) => c.type == 'entity')
         if (defaultTableInfo == null) {
           return //
         }
         defaultTableInfo.tableName = tableName //
         let cols = tConfig?.options?.columns || []
-        let colService = context.app.service('columns')
+        let colService = context.app.service('columns')//
         if (defaultTableInfo != null) {
           context.result = [defaultTableInfo] //
           let oldCols = await colService.find({
@@ -116,6 +131,15 @@ export class EntityService extends BaseService {
     }
     let targetTable = app.getDefaultPageLayout(tableName) //
     return targetTable //
+  }
+  async getDefaultEditPageLayout(data: any, context: any) {//
+    let tableName = data.tableName
+    if (tableName == null) {
+      return null//
+    }
+    let app = this.app
+    let editLayout = app.getDefaultEditPageLayout(tableName)
+    return editLayout
   }
   //@ts-ignore
   @useRoute()
