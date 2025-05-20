@@ -51,7 +51,6 @@ import { mergeCols } from '../utils'
           })
           await colService.create(_cols) //
           let _res = await _this.create(defaultTableInfo) ////
-          return _res //
         }
       } else {
         // console.log('获取了entity')//
@@ -67,7 +66,7 @@ import { mergeCols } from '../utils'
             let _config = await _this.getTableConfig(tableName)
             let _columns = _config?.columns || []
             let keyCol = _columns.find((col: any) => col.primary != null)
-          }//
+          } //
           // res.columns = allCol //
           if (Array.isArray(fields)) {
             for (const f of fields) {
@@ -124,7 +123,7 @@ export class EntityService extends BaseService {
     if (Boolean(data) == false || typeof data != 'string') {
       return false
     }
-    let hTable = this.app.getTableConfig(data)//
+    let hTable = this.app.getTableConfig(data) //
     if (hTable == null) {
       let _d = await this.find({
         query: {
@@ -135,7 +134,7 @@ export class EntityService extends BaseService {
         return false
       }
     }
-    return true//
+    return true //
   }
   async getAllColumns(tableName: string) {
     let _tableName = tableName.split('---')

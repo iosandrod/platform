@@ -38,5 +38,7 @@ export class Entity extends BaseEntity {
   @Column({ type: 'jsonb', nullable: true })
   dialog: string
   @Column({ type: 'jsonb', nullable: true })
-  searchDialog: string // 
+  searchDialog: string //
+  @Column({ type: 'varchar', nullable: true })
+  pageEditType: string //
 } //
