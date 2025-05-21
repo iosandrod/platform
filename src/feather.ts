@@ -273,7 +273,7 @@ ORDER BY
     }
     // if (config == null) {
     //   delete obj.options
-    // }
+    // }//
     return obj
   }
   getTablePrimaryKey(tableName: string) {//

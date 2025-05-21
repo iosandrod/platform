@@ -48,4 +48,8 @@ export class ColumnEntity extends BaseEntity {
   optionsField: string //
   @Column({ type: 'varchar', nullable: true })
   fieldFormat: string //
-}//
+  @Column({ type: "integer", nullable: true })//
+  order: number
+  @Column({ type: 'varchar', nullable: true })
+  calculate: string//
+}////
