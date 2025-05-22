@@ -43,8 +43,8 @@ function fillPool(bytes: any) {
   } else if (poolOffset + bytes > pool.length) {
     crypto.getRandomValues(pool)
     poolOffset = 0
-  }
-  poolOffset += bytes
+  } //
+  poolOffset += bytes //
 }
 export function random(bytes: number) {
   fillPool((bytes |= 0))
@@ -144,23 +144,42 @@ export const mergeCols = (cols1: any, cols2: any, isMain: boolean = false) => {
           let ov = col1[k] //
           if (ov == null || ['type', 'fieldFormat'].includes(k)) {
             col1[k] = v
-          }//
+          } //
           if (isMain) {
-            col1[k] = v//
+            col1[k] = v //
           }
         })
         col1['id'] = tCol['id']
       }
     }
-    if (isMain) {//
+    if (isMain) {
+      //
       let _f = cols1.map(c => c.field)
       let addCols = cols2.filter(col => {
         let f = col.field
         if (!_f.includes(f)) {
           return true
         }
-      })//
-      cols1.push(...addCols)//
-    }//
-  }//
+      }) //
+      cols1.push(...addCols) //
+    } //
+  } //
+}
+
+export const mergeEditCols = (cols1: any, cols2: any, isMain: boolean = false) => {
+  cols1.forEach((col1: any) => {
+    let field = col1.field
+    if (field != null) {
+      // let _col2 = cols2.find((col: any) => {
+      //   let field = col.field
+      //   return field == col1.field
+      // })
+      // if (_col2 != null) {
+      //   let editType = _col2.editType
+      //   if (editType != null) {
+      //     col1.editType = editType
+      //   } //
+      // }
+    }
+  })
 }
