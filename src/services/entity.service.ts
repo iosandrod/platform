@@ -164,8 +164,22 @@ export class EntityService extends BaseService {
       //
       return null
     }
-    let targetTable = await app.getDefaultSearchPageLayout(tableName, params) //
+    let targetTable = await app.getDefaultSearchPageLayout(tableName, params)//
     return targetTable //
+  }
+  async getDefaultImportPageLayout(data: any, params: any) {//
+    //
+    let tableName = data.tableName
+    if (tableName == null) {
+      return null//
+    }//
+    let app = this.app
+    let importLayout = app.getDefaultImportPageLayout(tableName, params)
+    if (importLayout == null) {
+      return null
+    }
+    //处理导入的页面
+    return importLayout
   }
   async getDefaultEditPageLayout(data: any, context: any) {
     //

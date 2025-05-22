@@ -334,6 +334,9 @@ ORDER BY
 
     return config //
   }
+  async getDefaultImportPageLayout(tableName: any, context: any) {
+
+  }
   async getDefaultSearchPageLayout(tableName: any, params: any) {
     let allTable = await this.getCompanyTable() //
     //本地的表格
