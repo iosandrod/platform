@@ -29,6 +29,7 @@ import { mergeCols, mergeEditCols } from '../utils'
         let _t1Arr = tableName.split('---')
         let isEdit = false
         let isSearch = false
+        let isImport = false //
         if (_t1Arr.length > 1) {
           realTableName = _t1Arr[0] //
           let type = _t1Arr[1]
@@ -37,6 +38,9 @@ import { mergeCols, mergeEditCols } from '../utils'
           }
           if (type == 'search') {
             isSearch = true
+          }
+          if (type == 'import') {
+            isImport = true
           }
         }
         let obj = {
@@ -47,6 +51,8 @@ import { mergeCols, mergeEditCols } from '../utils'
           defaultTableInfo = await _this.getDefaultEditPageLayout(obj, params)
         } else if (isSearch == true) {
           defaultTableInfo = await _this.getDefaultSearchPageLayout(obj, params)
+        } else if (isImport == true) {
+          defaultTableInfo = await _this.getDefaultImportPageLayout(obj, params)
         } else {
           //
           defaultTableInfo = await _this.getDefaultPageLayout(obj, params)
@@ -157,22 +163,23 @@ export class EntityService extends BaseService {
     let targetTable = app.getDefaultPageLayout(tableName) //
     return targetTable //
   }
-  async getDefaultSearchPageLayout(data: any, params: any) {//
+  async getDefaultSearchPageLayout(data: any, params: any) {
+    //
     let app = this.app //
     let tableName = data.tableName
     if (tableName == null) {
       //
       return null
     }
-    let targetTable = await app.getDefaultSearchPageLayout(tableName, params)//
+    let targetTable = await app.getDefaultSearchPageLayout(tableName, params) //
     return targetTable //
   }
-  async getDefaultImportPageLayout(data: any, params: any) {//
-    //
+  async getDefaultImportPageLayout(data: any, params: any) {
+    console.log('执行到这里了') //
     let tableName = data.tableName
     if (tableName == null) {
-      return null//
-    }//
+      return null //
+    } //
     let app = this.app
     let importLayout = app.getDefaultImportPageLayout(tableName, params)
     if (importLayout == null) {

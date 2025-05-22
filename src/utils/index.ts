@@ -83,7 +83,7 @@ export function nanoid(size = 21) {
 
 export function formatTableColumn(columns: any[]) {
   //
-}
+}//
 
 export const createNodeGrid = (field: any, _this: any) => {
   let _node = {

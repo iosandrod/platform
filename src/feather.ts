@@ -6,7 +6,7 @@ import knex, { Knex } from 'knex'
 import { cacheValue } from './decoration'
 import { createNodeGrid, nanoid } from './utils'
 import { errors } from '@feathersjs/errors'
-import { getDefaultEditPageLayout, getDefaultPageLayout } from './layoutGetFn'
+import { getDefaultEditPageLayout, getDefaultImportPageLayout, getDefaultPageLayout } from './layoutGetFn'
 // const nanoid = () => 'xxxxx' //
 export const subAppCreateMap = {
   erp: createApp //
@@ -87,8 +87,8 @@ export class myFeathers extends Feathers<any, any> {
   getUserPermissions(userid: string) {
     let roles = this.getRoles(userid)
   }
-  async getAllApp() { } //
-  async getCurrentTable() { }
+  async getAllApp() {} //
+  async getCurrentTable() {}
   //@ts-ignore
   async getCompanyConnection(company: any, appName?: string): Promise<Knex> {
     let client = this.getClient()
@@ -100,7 +100,8 @@ export class myFeathers extends Feathers<any, any> {
       if (_knex != null) {
         return _knex //
       }
-      if (appName == null || company == null) {//
+      if (appName == null || company == null) {
+        //
         return this.getPgClient() //
       } //
       let companyInfo = await client('company')
@@ -149,14 +150,13 @@ export class myFeathers extends Feathers<any, any> {
     let _this: myFeathers = this.getMainApp()
     //@ts-ignore
     let _connect: Knex = null
-    // console.log(companyid, appName)//
     if (companyid == null) {
       _connect = this.get('postgresqlClient')
     } else {
       _connect = await _this.getCompanyConnection(companyid, appName) //
     }
     if (_connect == null) {
-      _connect = this.getPgClient()//
+      _connect = this.getPgClient() //
     }
     let sql = `SELECT 
     cols.attname AS column_name,
@@ -188,7 +188,7 @@ ORDER BY
     tbl.relname, cols.attnum;
 `
     let allColumns = await _connect.raw(sql) //////
-    allColumns = allColumns.rows//
+    allColumns = allColumns.rows //
     allColumns.forEach((col: any) => {
       col.tableName = col.table_name //
       let field = col.column_name
@@ -277,7 +277,8 @@ ORDER BY
     // }//
     return obj
   }
-  getTablePrimaryKey(tableName: string) {//
+  getTablePrimaryKey(tableName: string) {
+    //
     let tableInfo = this.getCompanyTable()
     //@ts-ignore//
     let table = tableInfo[tableName]
@@ -286,18 +287,17 @@ ORDER BY
   async getTableConfig(tableName: any) {
     let allTable = await this.getCompanyTable()
     return allTable[tableName] //
-  }//
-  createFieldKey() { }
+  } //
+  createFieldKey() {}
   async getDefaultPageLayout(tableName: string) {
     let obj = await getDefaultPageLayout(this, tableName)
     return obj
   }
   async getDefaultImportPageLayout(tableName: any, context: any) {
-
+    let obj = await getDefaultImportPageLayout(this, tableName, context)
+    return obj //
   }
-  async getDefaultSearchPageLayout(tableName: any, params: any) {
-
-  }
+  async getDefaultSearchPageLayout(tableName: any, params: any) {}
   async getDefaultEditPageLayout(tableName: string) {
     let obj = await getDefaultEditPageLayout(this, tableName)
     return obj
@@ -339,12 +339,10 @@ ORDER BY
         //
         async (context: any, next: any) => {
           //
-          // console.log(context.service.serviceName, 'testName')//
           await next()
           let params = context.params || {}
           // let provider = params.provider
-          // const service = context.service
-          // console.log(service.serviceName, 'testName') //`
+          // const service = context.service//
           // if (provider == 'socketio') {
           //   context.result = {
           //     data: context.result,
