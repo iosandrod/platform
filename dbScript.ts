@@ -15,36 +15,39 @@ import { Company } from './src/entity/company.entity'
 import { FieldEntity } from './src/entity/fields.entity'
 import { TableEntity } from './src/entity/table.entity'
 import { Upload } from './src/entity/uploads.entity'
+import { Dictionary } from './src/entity/dictionary.entity'
+import { Selection } from './src/entity/selection.entity' 
 import knex from 'knex'
 async function main() {
   let _knex = knex({
     client: 'pg',
     connection: 'postgres://postgres:123456@localhost:5432/platform'
   })
-  await _knex('users').delete()//
+  await _knex('users').delete() //
   let dbConfig: DataSourceOptions = {
     type: 'postgres',
     host: 'localhost',
-    port: 5432,//
+    port: 5432, //
     username: 'postgres', //
     password: '123456',
     database: 'platform',
     synchronize: true, ////
     entities: [
-
+      Dictionary,
+      Selection,
       FieldEntity,
       Entity, //
       User,
       Role,
-      TableEntity,//
+      TableEntity, //
       Permission,
       RolePermission,
       UserRole,
       Navs,
       ColumnEntity,
       Company,
-      Upload,
-    ]
+      Upload
+    ]//
   }
   const dataSource = new DataSource(dbConfig)
   dataSource.initialize().then(() => {

@@ -8,7 +8,7 @@ import { debug } from 'feathers-hooks-common'
 import { createPasswordTransform } from '../generateHooks'
 import { Params } from '@feathersjs/feathers'
 import { myFeathers } from '../feather'
-import { mergeCols } from '../utils'
+import { mergeCols, mergeEditCols } from '../utils'
 @useHook({
   find: [
     async (context: HookContext, next) => {
@@ -23,13 +23,13 @@ import { mergeCols } from '../utils'
         Array.isArray(result) &&
         result.length == 0
       ) {
-        //获取默认的表格信息
+        //获取默认的表格信息//
         let tableName: string = query.tableName
         let realTableName = tableName
         let _t1Arr = tableName.split('---')
         let isEdit = false
         if (_t1Arr.length > 1) {
-          realTableName = _t1Arr[0]//
+          realTableName = _t1Arr[0] //
           let type = _t1Arr[1]
           if (type == 'edit') {
             isEdit = true
@@ -41,7 +41,8 @@ import { mergeCols } from '../utils'
         let defaultTableInfo: any = null
         if (isEdit == true) {
           defaultTableInfo = await _this.getDefaultEditPageLayout(obj, params)
-        } else {//
+        } else {
+          //
           defaultTableInfo = await _this.getDefaultPageLayout(obj, params)
         }
         let tConfig: any = defaultTableInfo?.fields.find((c: any) => c.type == 'entity')
@@ -50,7 +51,7 @@ import { mergeCols } from '../utils'
         }
         defaultTableInfo.tableName = tableName //
         let cols = tConfig?.options?.columns || []
-        let colService = context.app.service('columns')//
+        let colService = context.app.service('columns') //
         if (defaultTableInfo != null) {
           context.result = [defaultTableInfo] //
           let oldCols = await colService.find({
@@ -64,7 +65,9 @@ import { mergeCols } from '../utils'
           let _cols = cols.filter((f1: any) => {
             return allF.includes(f1.field)
           })
-          await colService.create(_cols) //
+          if (_t1Arr.length == 1) {
+            await colService.create(_cols) //
+          }
           let _res = await _this.create(defaultTableInfo) ////
         }
       } else {
@@ -103,6 +106,22 @@ import { mergeCols } from '../utils'
                   f.options = { ...f.options, columns: _columns }
                 }
               }
+              if (type == 'dform') {
+                let tableName = f?.options?.tableName
+                if (tableName) {
+                  let rTableName = tableName.split('---')[0]
+                  let oldColumns = await context.app.service('columns').find({
+                    query: {
+                      tableName: rTableName
+                    } //
+                  })
+                  let _field = f.options?.layoutData?.fields || []
+                  if (Array.isArray(_field)) {
+                    //
+                    mergeEditCols(_field, oldColumns)
+                  }
+                }
+              }
             }
           }
           res.columns = allCol
@@ -132,10 +151,11 @@ export class EntityService extends BaseService {
     let targetTable = app.getDefaultPageLayout(tableName) //
     return targetTable //
   }
-  async getDefaultEditPageLayout(data: any, context: any) {//
+  async getDefaultEditPageLayout(data: any, context: any) {
+    //
     let tableName = data.tableName
     if (tableName == null) {
-      return null//
+      return null //
     }
     let app = this.app
     let editLayout = app.getDefaultEditPageLayout(tableName)
