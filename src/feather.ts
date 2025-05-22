@@ -285,7 +285,7 @@ ORDER BY
   async getTableConfig(tableName: any) {
     let allTable = await this.getCompanyTable()
     return allTable[tableName] //
-  }
+  }//
   createFieldKey() { }
   async getDefaultPageLayout(tableName: string) {
     let allTable = await this.getCompanyTable() //
