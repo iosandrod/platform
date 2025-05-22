@@ -6,6 +6,7 @@ import knex, { Knex } from 'knex'
 import { cacheValue } from './decoration'
 import { createNodeGrid, nanoid } from './utils'
 import { errors } from '@feathersjs/errors'
+import { getDefaultEditPageLayout, getDefaultPageLayout } from './layoutGetFn'
 // const nanoid = () => 'xxxxx' //
 export const subAppCreateMap = {
   erp: createApp //
@@ -288,184 +289,18 @@ ORDER BY
   }//
   createFieldKey() { }
   async getDefaultPageLayout(tableName: string) {
-    let allTable = await this.getCompanyTable() //
-    //本地的表格
-    let tableConfig = allTable[tableName]
-    if (tableConfig == null) {
-      // throw new errors.NotFound(`table ${tableName} not found`) ////
-      return null //
-    }
-    let config = {
-      layout: {
-        pc: [],
-
-        mobile: [
-          {
-            columns: [],
-            ...this.createIdKey('inline')
-          }
-        ]
-      },
-      fields: [],
-      data: {},
-      logic: {}
-    }
-    let enF = { ...this.createIdKey('entity', tableConfig) }
-    let btnF = {
-      ...this.createIdKey('buttongroup', {
-        items: [
-          {
-            label: '新增'
-          },
-          {
-            label: '查询'
-          }
-        ]
-      })
-    }
-    let enId = enF.id
-    let sRow = createNodeGrid(enId, this)
-    let btnId = btnF.id
-    let btnRow = createNodeGrid(btnId, this)
-    let pcLayout = config.layout.pc as any
-    pcLayout.push(...[btnRow, sRow])
-    let f: any[] = config.fields
-    f.push(...[btnF, enF])
-
-    return config //
+    let obj = await getDefaultPageLayout(this, tableName)
+    return obj
   }
   async getDefaultImportPageLayout(tableName: any, context: any) {
 
   }
   async getDefaultSearchPageLayout(tableName: any, params: any) {
-    let allTable = await this.getCompanyTable() //
-    //本地的表格
-    let tableConfig = allTable[tableName]
-    if (tableConfig == null) {//
-      return null //
-    }
-    let config = {
-      layout: {
-        pc: [],
 
-        mobile: [
-          {
-            columns: [],
-            ...this.createIdKey('inline')
-          }
-        ]
-      },
-      fields: [],
-      data: {},
-      logic: {}
-    }
-    let lF = { ...this.createIdKey('dform'), options: {} }
-    let fId = lF.id
-    let enF = {
-      ...this.createIdKey("tabs", {}),//
-      columns: [
-        {
-          ...this.createIdKey('tabsCol'),
-          label: "表单",
-          list: [
-            {
-              ...this.createIdKey('inline'),
-              columns: [//
-                fId
-              ]
-            }
-          ]
-        }
-      ]
-    }
-    let btnF = {
-      ...this.createIdKey('buttongroup', {
-        items: [
-          {
-            label: '新增'
-          },
-          {
-            label: '保存'
-          }, {
-            label: '编辑'//
-          }
-        ]
-      })
-    }
-    let btnId = btnF.id
-    let btnRow = createNodeGrid(btnId, this)
-    let pcLayout = config.layout.pc as any
-    let _nodeEnf = createNodeGrid(enF, this)
-    pcLayout.push(...[btnRow, _nodeEnf])//
-    let f: any[] = config.fields
-    f.push(...[btnF, lF])//
-    return config
   }
   async getDefaultEditPageLayout(tableName: string) {
-    let allTable = await this.getCompanyTable() //
-    //本地的表格
-    let tableConfig = allTable[tableName]
-
-    if (tableConfig == null) {
-      // throw new errors.NotFound(`table ${tableName} not found`) ////
-      return null //
-    }
-    let config = {
-      layout: {
-        pc: [],
-
-        mobile: [
-          {
-            columns: [],
-            ...this.createIdKey('inline')
-          }
-        ]
-      },
-      fields: [],
-      data: {},
-      logic: {}
-    }
-    let lF = { ...this.createIdKey('dform'), options: {} }
-    let fId = lF.id
-    let enF = {
-      ...this.createIdKey("tabs", {}),//
-      columns: [
-        {
-          ...this.createIdKey('tabsCol'),
-          label: "表单",
-          list: [
-            {
-              ...this.createIdKey('inline'),
-              columns: [//
-                fId
-              ]
-            }
-          ]
-        }
-      ]
-    }
-    let btnF = {
-      ...this.createIdKey('buttongroup', {
-        items: [
-          {
-            label: '新增'
-          },
-          {
-            label: '保存'
-          }, {
-            label: '编辑'//
-          }
-        ]
-      })
-    }
-    let btnId = btnF.id
-    let btnRow = createNodeGrid(btnId, this)
-    let pcLayout = config.layout.pc as any
-    let _nodeEnf = createNodeGrid(enF, this)
-    pcLayout.push(...[btnRow, _nodeEnf])//
-    let f: any[] = config.fields
-    f.push(...[btnF, lF])//
-    return config
+    let obj = await getDefaultEditPageLayout(this, tableName)
+    return obj
   }
   getLastNodeInLayout(layout: any[], res: any[] = []) {
     layout.forEach(item => {
