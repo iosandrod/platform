@@ -334,6 +334,70 @@ ORDER BY
 
     return config //
   }
+  async getDefaultSearchPageLayout(tableName: any, params: any) {
+    let allTable = await this.getCompanyTable() //
+    //本地的表格
+    let tableConfig = allTable[tableName]
+    if (tableConfig == null) {//
+      return null //
+    }
+    let config = {
+      layout: {
+        pc: [],
+
+        mobile: [
+          {
+            columns: [],
+            ...this.createIdKey('inline')
+          }
+        ]
+      },
+      fields: [],
+      data: {},
+      logic: {}
+    }
+    let lF = { ...this.createIdKey('dform'), options: {} }
+    let fId = lF.id
+    let enF = {
+      ...this.createIdKey("tabs", {}),//
+      columns: [
+        {
+          ...this.createIdKey('tabsCol'),
+          label: "表单",
+          list: [
+            {
+              ...this.createIdKey('inline'),
+              columns: [//
+                fId
+              ]
+            }
+          ]
+        }
+      ]
+    }
+    let btnF = {
+      ...this.createIdKey('buttongroup', {
+        items: [
+          {
+            label: '新增'
+          },
+          {
+            label: '保存'
+          }, {
+            label: '编辑'//
+          }
+        ]
+      })
+    }
+    let btnId = btnF.id
+    let btnRow = createNodeGrid(btnId, this)
+    let pcLayout = config.layout.pc as any
+    let _nodeEnf = createNodeGrid(enF, this)
+    pcLayout.push(...[btnRow, _nodeEnf])//
+    let f: any[] = config.fields
+    f.push(...[btnF, lF])//
+    return config
+  }
   async getDefaultEditPageLayout(tableName: string) {
     let allTable = await this.getCompanyTable() //
     //本地的表格

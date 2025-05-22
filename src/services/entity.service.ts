@@ -28,11 +28,15 @@ import { mergeCols, mergeEditCols } from '../utils'
         let realTableName = tableName
         let _t1Arr = tableName.split('---')
         let isEdit = false
+        let isSearch = false
         if (_t1Arr.length > 1) {
           realTableName = _t1Arr[0] //
           let type = _t1Arr[1]
           if (type == 'edit') {
             isEdit = true
+          }
+          if (type == 'search') {
+            isSearch = true
           }
         }
         let obj = {
@@ -41,6 +45,8 @@ import { mergeCols, mergeEditCols } from '../utils'
         let defaultTableInfo: any = null
         if (isEdit == true) {
           defaultTableInfo = await _this.getDefaultEditPageLayout(obj, params)
+        } else if (isSearch == true) {
+          defaultTableInfo = await _this.getDefaultSearchPageLayout(obj, params)
         } else {
           //
           defaultTableInfo = await _this.getDefaultPageLayout(obj, params)
@@ -149,6 +155,16 @@ export class EntityService extends BaseService {
       return null
     }
     let targetTable = app.getDefaultPageLayout(tableName) //
+    return targetTable //
+  }
+  async getDefaultSearchPageLayout(data: any, params: any) {//
+    let app = this.app //
+    let tableName = data.tableName
+    if (tableName == null) {
+      //
+      return null
+    }
+    let targetTable = await app.getDefaultSearchPageLayout(tableName, params) //
     return targetTable //
   }
   async getDefaultEditPageLayout(data: any, context: any) {
