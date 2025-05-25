@@ -121,7 +121,7 @@ export class BaseService extends KnexService implements bs {
           //开启事务
         ]
         _arr.push(...arr1)
-      }//
+      } //
       //开启事务
       if (['create', 'update', 'patch', 'remove', 'batchUpdate'].includes(item)) {
         _arr.push(async (context: HookContext, next: any) => {
@@ -151,7 +151,7 @@ export class BaseService extends KnexService implements bs {
   _routes?: routeConfig[] //
   columns: string[] = [] ////
   columnInfo: columnInfo[] = []
-  getCompanyName() { }
+  getCompanyName() {}
   //@ts-ignore
   createQuery(params: ServiceParams = {} as ServiceParams) {
     let { name, id } = this.getOptions(params)
@@ -531,7 +531,7 @@ WHERE table_name = '${schema}'
     }
   }
 
-  async multiCreate(data: any, params?: any) { }
+  async multiCreate(data: any, params?: any) {}
   async buildDbSchema() {
     let columnInfo = this.columnInfo
     let schema = columnInfo.reduce((result: any, item) => {
@@ -685,7 +685,7 @@ WHERE table_name = '${schema}'
     // provide default sorting if its not set
     // if (!filters.$sort && builder.client.driverName === 'mssql') {
     if (!filters.$sort && ['mssql', 'pg'].includes(builder.client.driverName)) {
-      builder.orderBy(`${name}.${id}`, 'asc')//
+      builder.orderBy(`${name}.${id}`, 'asc') //
     } //
     let query = builder.toQuery()
     console.log(query) //
@@ -699,7 +699,7 @@ WHERE table_name = '${schema}'
         //@ts-ignore
         limit: filters.$limit,
         skip: filters.$skip || 0, //
-        data//
+        data //
       }
     }
     return data
@@ -713,7 +713,7 @@ WHERE table_name = '${schema}'
       data = id
       id = null //
       params = _data //
-    }//
+    } //
     return this._patch(id, data, {
       ...params,
       query
@@ -743,10 +743,11 @@ WHERE table_name = '${schema}'
       data = raw
     } else {
       data = [raw]
-    }//
+    } //
     let queryObj = {
       ...params.query
-    } ////
+    }
+    let resArr = []
     if (id == null) {
       let _r = raw
       if (!Array.isArray(_r)) {
@@ -754,15 +755,18 @@ WHERE table_name = '${schema}'
       }
       let idL = _r.map((r: any) => r[idField])
       queryObj[`${name}.${idField}`] = { $in: idL }
-    }//
+    } //
     let sqlArr = []
     let buildArr = []
-    if (data.length == 1) {//
-      console.log(queryObj, 'qObj')//
+    let _qArr = []
+    if (data.length == 1) {
+      //
+      // console.log(queryObj, 'qObj') //
       let results: any = await this._findOrGet(id, {
         ...params,
         query: queryObj
       })
+      _qArr.push(queryObj) //
       // console.log(results, 'testRes')
       let idList = results.map((current: any) => current[idField])
       for (const d of data) {
@@ -798,8 +802,13 @@ WHERE table_name = '${schema}'
             [`${name}.${idField}`]: { $in: idList },
             ...(params?.query?.$select ? { $select: params?.query?.$select } : {})
           }
-        } //
+        }
+        let _q = updateParams.query //
+        _qArr.push(_q)
         delete d[idField]
+        if (Object.keys(d).length == 0) {
+          continue //
+        }
         let builder = this.createQuery(updateParams)
         let res = builder
           .table(this.serviceName!)
@@ -810,11 +819,17 @@ WHERE table_name = '${schema}'
       }
     }
 
-    await Promise.all(
+    resArr = await Promise.all(
       sqlArr.map(async (s, i) => {
         return await this.db(params).raw(s, buildArr[i]) //
       })
-    ) //
+    )
+    let allD = await this.find({
+      query: {
+        $or: _qArr
+      }
+    })
+    return allD //
     //let items: any = await this._findOrGet(null, updateParams)
     // if (id !== null) {
     //   if (items.length === 1) {
@@ -825,7 +840,7 @@ WHERE table_name = '${schema}'
     // }
 
     // return items
-    return '更新成功' //
+    // return resArr //
   }
   //@ts-ignore
   async _get(id: any, params: ServiceParams = {} as ServiceParams): Promise<Result> {
@@ -965,11 +980,44 @@ WHERE table_name = '${schema}'
     let addData = _data['addData'] || []
     let patchData = _data['patchData'] || []
     if (addData?.length > 0) {
-      await this.create(addData, params)//
+      await this.create(addData, params) //
     }
-    if (patchData?.length > 0) {//
-      await this.patch(patchData, params)//
-    }//
+    if (patchData?.length > 0) {
+      //
+      await this.patch(patchData, params) //
+    } //
     return '数据更新成功' //
+  }
+  //@ts-ignore
+  async remove(...args): Promise<any> {
+    //@ts-ignore//
+    await super.remove(...args)
+  }
+  //@ts-ignore
+  async _remove(id: any, params: any = {} as ServiceParams): Promise<any> {
+    if (id === null && !this.allowsMulti('remove', params)) {
+      return
+    }
+
+    const items: any = await this._findOrGet(id, params)
+    const { query } = this.filterQuery(params)
+    const q: any = this.db(params)
+    const idList = items.map((current: any) => current[this.id])
+
+    query[this.id] = { $in: idList }
+
+    // build up the knex query out of the query params
+    this.knexify(q, query)
+
+    await q.delete([], { includeTriggerModifications: true }).catch(errorHandler)
+
+    if (id !== null) {
+      if (items.length === 1) {
+        return items[0]
+      }
+      throw new errors.NotFound(`No record found for id '${id}'`)
+    }
+
+    return items
   }
 }

@@ -14,7 +14,7 @@ export class ColumnEntity extends BaseEntity {
   nullable: number //
   @Column({ type: 'varchar', nullable: true })
   default: string //
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'integer', nullable: true })
   primary: string
   @Column({ type: 'varchar', nullable: true })
   unique: string
@@ -36,20 +36,22 @@ export class ColumnEntity extends BaseEntity {
   hidden: number
   @Column({ type: 'varchar', nullable: true })
   editType: string //
-  @Column({ type: 'varchar', nullable: true })//
+  @Column({ type: 'varchar', nullable: true }) //
   editOptions: string
   @Column({ type: 'varchar', nullable: true })
   defaultValue: string //
   @Column({ type: 'varchar', nullable: true })
-  defaultValueType: string //
+  defaultValueType: string ////
   @Column({ type: 'jsonb', nullable: true }) //
   options: number
   @Column({ type: 'varchar', nullable: true })
   optionsField: string //
   @Column({ type: 'varchar', nullable: true })
   fieldFormat: string //
-  @Column({ type: "integer", nullable: true })//
+  @Column({ type: 'integer', nullable: true }) //
   order: number
   @Column({ type: 'varchar', nullable: true })
-  calculate: string//
-}////
+  calculate: string //
+  @Column({ type: 'integer', nullable: true })
+  tree: number ////
+} ////

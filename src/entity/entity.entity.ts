@@ -35,12 +35,23 @@ export class Entity extends BaseEntity {
   tableCnName: string //
   @Column({ type: 'jsonb', nullable: true })
   hooks: string //
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: 'jsonb', nullable: true }) //
   dialog: string
   @Column({ type: 'jsonb', nullable: true })
-  searchDialog: string //
+  searchDialog: string ////
   @Column({ type: 'varchar', nullable: true })
   pageEditType: string //
-  @Column({ type: 'jsonb', nullable: true })////
-  treeConfig: string//
+  @Column({ type: 'jsonb', nullable: true })
+  treeConfig: string //
+  @Column({ type: 'jsonb', nullable: true })
+  //分页
+  pagination: string //
+  @Column({ type: 'varchar', nullable: true })
+  keyColumn: string
+  @Column({ type: 'varchar', nullable: true })
+  keyCodeColumn: string ////
+  @Column({ type: 'jsonb', nullable: true }) //
+  methods: string //
+  @Column({ type: 'jsonb', nullable: true })
+  events: string//
 } //
