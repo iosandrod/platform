@@ -989,10 +989,13 @@ WHERE table_name = '${schema}'
     return '数据更新成功' //
   }
   //@ts-ignore
-  async remove(...args): Promise<any> {
-    //@ts-ignore//
-    await super.remove(...args)
-  }
+  async remove(id: NullableId, params?: ServiceParams): Promise<Result | Result[]> {
+    const { $limit, ...query } = await this.sanitizeQuery(params)
+    return this._remove(id, {
+      ...params,
+      query
+    })
+  } //
   //@ts-ignore
   async _remove(id: any, params: any = {} as ServiceParams): Promise<any> {
     if (id === null && !this.allowsMulti('remove', params)) {
@@ -1017,7 +1020,6 @@ WHERE table_name = '${schema}'
       }
       throw new errors.NotFound(`No record found for id '${id}'`)
     }
-
     return items
   }
 }
