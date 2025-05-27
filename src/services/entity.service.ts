@@ -2,7 +2,7 @@ import { LocalStrategy } from '@feathersjs/authentication-local'
 import { useAuthenticate, useHook, useMethodTransform, useRoute } from '../decoration'
 import { BaseService } from './base.service'
 import { HookContext, hooks } from '@feathersjs/hooks'
-import { BadRequest } from '@feathersjs/errors'
+import { BadRequest, errors } from '@feathersjs/errors'
 import { cloneDeep, get, set } from 'lodash'
 import { debug } from 'feathers-hooks-common'
 import { createPasswordTransform } from '../generateHooks'
@@ -37,8 +37,8 @@ import { mergeCols, mergeEditCols } from '../utils'
             isEdit = true
           }
           if (type == 'search') {
-            isSearch = true
-          }
+            isSearch = true //
+          } //
           if (type == 'import') {
             isImport = true
           }
@@ -73,14 +73,14 @@ import { mergeCols, mergeEditCols } from '../utils'
           })
           let allF = oldCols.map((f: any) => {
             return f.field
-          })
+          }) //
           let _cols = cols.filter((f1: any) => {
             return allF.includes(f1.field)
           })
           if (_t1Arr.length == 1) {
             await colService.create(_cols) //
           }
-          let _res = await _this.create(defaultTableInfo) ////
+          let _res = await _this.create(defaultTableInfo)
         }
       } else {
         // console.log('获取了entity')//
@@ -129,7 +129,6 @@ import { mergeCols, mergeEditCols } from '../utils'
                   })
                   let _field = f.options?.layoutData?.fields || []
                   if (Array.isArray(_field)) {
-                    //
                     mergeEditCols(_field, oldColumns)
                   }
                 }
@@ -171,8 +170,25 @@ export class EntityService extends BaseService {
       //
       return null
     }
-    let targetTable = await app.getDefaultSearchPageLayout(tableName, params) //
-    return targetTable //
+    let sInfo = await this.find({ query: { tableName } })
+    let row = sInfo?.[0]
+    if (row == null) {
+      throw new errors.BadGateway('找不到模块') //
+    } ////
+    let _row = { ...row, createdAt: null, updatedAt: null } //
+    delete _row.id
+    delete _row.createdAt
+    delete _row.updatedAt
+    let allKey = Object.keys(_row)
+    for (let key of allKey) {
+      if (_row[key] == null) {
+        delete _row[key] //
+      }
+    }
+    // console.log('我执行到这里了') //
+    return _row //
+    // let targetTable = await app.getDefaultSearchPageLayout(tableName, params) //
+    // return targetTable //
   }
   async getDefaultImportPageLayout(data: any, params: any) {
     console.log('执行到这里了') //

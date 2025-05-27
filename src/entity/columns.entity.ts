@@ -1,6 +1,7 @@
 import { BaseEntity } from './base.entity'
-import { Column, Entity } from 'typeorm'
+import { Column, Entity, Unique } from 'typeorm'
 @Entity('columns')
+@Unique(['field', 'tableName']) //
 export class ColumnEntity extends BaseEntity {
   @Column({ type: 'varchar' })
   field: string
