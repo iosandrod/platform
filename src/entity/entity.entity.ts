@@ -1,7 +1,8 @@
-import { Column } from 'typeorm'
+import { Column, Unique } from 'typeorm'
 import { BaseEntity } from './base.entity'
 import { Entity as _Entity } from 'typeorm'
 @_Entity('entity')
+// @Unique(['uuid'])
 export class Entity extends BaseEntity {
   @Column({ type: 'varchar', nullable: true })
   //可能是视图名称

@@ -995,7 +995,7 @@ WHERE table_name = '${schema}'
       ...params,
       query
     })
-  } //
+  }
   //@ts-ignore
   async _remove(id: any, params: any = {} as ServiceParams): Promise<any> {
     if (id === null && !this.allowsMulti('remove', params)) {
