@@ -74,10 +74,9 @@ export async function createApp() {
   })
   // console.log(company, 'testCompany') //
   // console.log(allCompany,'testCompany')//
-  for (const sApp of company) {
-    //
+  for (const sApp of company) {//
     //@ts-ignore
-    // await app.registerSubApp(sApp)
+    await app.registerSubApp(sApp)
   }
   // Register application setup and teardown hooks here
   app.hooks({

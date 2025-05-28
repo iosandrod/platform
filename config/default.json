@@ -47,9 +47,9 @@
   },
   "defaultConnection": {
     "client": "pg",
-    "connection": "postgres://postgres:123456@localhost:5432" 
+    "connection": "postgres://postgres:123456@localhost:5432"
   },
-  "redis": {
+  "redis": { 
     "host": "localhost",
     "port": 6379,
     "password": "123456"

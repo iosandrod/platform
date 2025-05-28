@@ -13,24 +13,35 @@ import { ColumnEntity } from './src/entity/columns.entity'
 import { Entity } from './src/entity/entity.entity'
 import { Company } from './src/entity/company.entity'
 import { FieldEntity } from './src/entity/fields.entity'
-import { TableEntity } from './src/entity/table.entity'
+// import { TableEntity } from './src/entity/table.entity'
 import { Upload } from './src/entity/uploads.entity'
 import { Dictionary } from './src/entity/dictionary.entity'
-import { Selection } from './src/entity/selection.entity' 
+import { Selection } from './src/entity/selection.entity'
 import knex from 'knex'
+import { setCurrentDbType } from './src/entity/json/jsonColumnFactory'
 async function main() {
-  let _knex = knex({
-    client: 'pg',
-    connection: 'postgres://postgres:123456@localhost:5432/platform'
-  })
-  await _knex('users').delete() //
+  // let _knex = knex({
+  //   client: 'pg',
+  //   connection: 'postgres://postgres:123456@localhost:5432/platform'
+  // })
+  // setCurrentDbType('mssql')////
+  // await _knex('users').delete() //
   let dbConfig: DataSourceOptions = {
     type: 'postgres',
     host: 'localhost',
+    username: 'postgres',
+    password: '123456',//
+    database: 'platform', //
+    // type: 'mssql',
+    // host: 'localhost\\MSSQLSERVER2016',
+    // options: {
+    //   encrypt: true,
+    //   trustServerCertificate: true // 👈 关键配置
+    // }, //
+    // username: 'sa', //
+    // password: '123456',
+    // database: 'HeTai', //
     port: 5432, //
-    username: 'postgres', //
-    password: '123456',
-    database: 'platform',
     synchronize: true, ////
     entities: [
       Dictionary,
@@ -39,7 +50,6 @@ async function main() {
       Entity, //
       User,
       Role,
-      TableEntity, //
       Permission,
       RolePermission,
       UserRole,
@@ -47,8 +57,9 @@ async function main() {
       ColumnEntity,
       Company,
       Upload
-    ]//
+    ] //
   }
+  setCurrentDbType(dbConfig.type)////
   const dataSource = new DataSource(dbConfig)
   dataSource.initialize().then(() => {
     console.log('主数据库创建成功') //

@@ -659,7 +659,7 @@ WHERE table_name = '${schema}'
     //@ts-ignore
     return this._find({
       ...params,
-      //@ts-ignore
+      //@ts-ignore//
       query: q //
     })
   }
