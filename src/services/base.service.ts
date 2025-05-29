@@ -99,7 +99,7 @@ export class BaseService extends KnexService implements bs {
       ) {
         //
         let arr1 = [
-          _authenticate('jwt'), //
+          // _authenticate('jwt'), //
           async (context: HookContext, next: any) => {
             let params = context.params
             //如果没有登陆
@@ -241,7 +241,6 @@ export class BaseService extends KnexService implements bs {
     let resolveData = null
     if (Array.isArray(data)) {
       data = data.filter(v => v != null)
-      console.log(data, 'testData') //
       let r = []
       for (const d of data) {
         let d1 = await this.formatData(d)
@@ -356,12 +355,32 @@ export class BaseService extends KnexService implements bs {
     }
     let arr1: any[] = [] //
     //一次性
-    for (const dRow of data) {
-      dRow[relateKey] = mainRow[relateMainKey] //////
-      params.getMainParam = () => params
-      let _res = await s.create(dRow, params) //
-      arr1.push(_res) //
-    }
+    let _obj = data.reduce(
+      (result: any, item: any) => {
+        let _rowState = item._rowState
+        if (_rowState == 'add') {
+          item[relateKey] = mainRow[relateMainKey]
+          result.addData.push(item)
+        }
+        if (_rowState == 'change') {
+          item[relateKey] = mainRow[relateMainKey] //
+          result.patchData.push(item) //
+        }
+        return result
+      },
+      {
+        addData: [],
+        patchData: [],
+        removeData: []
+      }
+    )
+    await s.batchUpdate(_obj, params) //
+    // for (const dRow of data) {
+    //   dRow[relateKey] = mainRow[relateMainKey] //////
+    //   params.getMainParam = () => params
+    //   let _res = await s.batchUpdate(dRow, params) //
+    //   arr1.push(_res) //
+    // }
     return arr1 //
   } //
   getRedisClient(): Redis {
@@ -674,6 +693,10 @@ WHERE table_name = '${schema}'
     //@ts-ignore
     let builder = params.knex ? params.knex.clone() : this.createQuery(params)
     let countBuilder = builder.clone().clearSelect().clearOrder().count(`${name}.${id} as total`)
+    let _limit = filters.$limit
+    if (_limit == null) {
+      filters.$limit = 1000 //
+    }
     if (filters.$limit) {
       builder.limit(filters.$limit)
     } //
@@ -736,14 +759,17 @@ WHERE table_name = '${schema}'
     if (id === null && !this.allowsMulti('patch', params)) {
       throw new errors.MethodNotAllowed('Can not patch multiple entries')
     }
-    let raw = await this.formatData(raw1) //
-    let { name, id: idField } = this.getOptions(params) as any
     let data = null
-    if (Array.isArray(raw)) {
-      data = raw
+    if (Array.isArray(raw1)) {
+      data = raw1
     } else {
-      data = [raw]
+      data = [raw1]
     } //
+    let originData = data //
+    let raw = await this.formatData(data) //
+    data = raw //
+    let { name, id: idField } = this.getOptions(params) as any
+
     let queryObj = {
       ...params.query
     }
@@ -824,6 +850,35 @@ WHERE table_name = '${schema}'
         return await this.db(params).raw(s, buildArr[i]) //
       })
     )
+    if (resArr.length == 1) {
+      let _data = originData
+      for (const row of _data) {
+        let _data1 = row
+        let _relateData = _data1['_relateData'] //关联数据
+        if (_relateData != null && typeof _relateData == 'object') {
+          for (const [key, object] of Object.entries(_relateData)) {
+            let dTableName = key //子表表名
+            let _obj = object as any
+            let data2 = _obj.data || []
+            // let required = _obj.required //是否必须有数据
+            // if (data2.length == 0 && required == true) {
+            //   throw new errors.BadRequest(`子表${dTableName}必须有数据`) //
+            // }
+            await this._createDetailData(
+              {
+                data: data2,
+                mainRow: _data1, //
+                tableName: dTableName,
+                detailConfig: _obj,
+                relateKey: _obj.relateKey,
+                relateMainKey: _obj.relateMainKey
+              }, //
+              params
+            ) //
+          }
+        }
+      }
+    }
     let allD = await this.find({
       query: {
         $or: _qArr
@@ -976,6 +1031,7 @@ WHERE table_name = '${schema}'
   async batchUpdate(data: any, params: any) {
     //@ts-ignore
     let _data = data
+    console.log(_data, 'test_data') //
     // console.log(_data, 'test_data')//
     let addData = _data['addData'] || []
     let patchData = _data['patchData'] || []

@@ -51,15 +51,16 @@ export class myFeathers extends Feathers<any, any> {
   }
   @cacheValue() //
   async getRoles(userid: string) {
-    let client = this.getPgClient()
-    let sql = client('roles')
-      .join('user_roles', 'roles.id', '=', 'user_roles.rolesId')
-      .where('user_roles.usersId', userid)
-      .select('roles.*')
-      .toQuery() //
-    let data = await client.raw(sql)
-    let rows = data.rows
-    return rows //
+    // let client = this.getPgClient()
+    // let sql = client('roles')
+    //   .join('user_roles', 'roles.id', '=', 'user_roles.rolesId')
+    //   .where('user_roles.usersId', userid)
+    //   .select('roles.*')
+    //   .toQuery() //
+    // let data = await client.raw(sql)
+    // let rows = data.rows
+    // return rows //
+    return []//
   }
   getPgClient(): Knex {
     return this.get('postgresqlClient')

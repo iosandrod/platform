@@ -62,4 +62,8 @@ export class ColumnEntity extends BaseEntity {
   calculate: string //
   @Column({ type: 'integer', nullable: true })
   tree: number ////
+  @Column(jsonColumn({
+      nullable: true
+    }))////
+  baseinfoConfig:string
 } ////

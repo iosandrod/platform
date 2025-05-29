@@ -30,12 +30,16 @@ export const typeMap: Record<string, any> = {
 
   // 📅 日期/时间类型
   date: () => Type.String({ format: 'date' }), // YYYY-MM-DD
-  timestamp: () => Type.String({ format: 'date-time' }), // ISO 8601 时间格式
-  'timestamp without time zone': () => Type.String({ format: 'date-time' }),
-  'timestamp with time zone': () => Type.String({ format: 'date-time' }),
-  'timestamp(6)': () => Type.String({ format: 'date-time' }),
-  'timestamp(6) without time zone': () => Type.String({ format: 'date-time' }),
+  timestamp: () => Type.Union([Type.String({ format: 'date-time' }), Type.String({ format: 'date' })]), // ISO 8601 时间格式
+  'timestamp without time zone': () =>
+    Type.Union([Type.String({ format: 'date-time' }), Type.String({ format: 'date' })]),
+  'timestamp with time zone': () =>
+    Type.Union([Type.String({ format: 'date-time' }), Type.String({ format: 'date' })]), 
+  'timestamp(6)': () => Type.Union([Type.String({ format: 'date-time' }), Type.String({ format: 'date' })]),
+  'timestamp(6) without time zone': () =>
+    Type.Union([Type.String({ format: 'date-time' }), Type.String({ format: 'date' })]),
   'character varying(50)': () => Type.String(),
+  'character varying(6)': () => Type.String(), //
   // 📦 JSON 类型
   // json: () => Type.Record(Type.String(), Type.Any(), Type.Array(Type.Any())), // 任意 JSON 对象
   // jsonb: () => Type.Record(Type.String(), Type.Any(), Type.Array(Type.Any())), // JSONB 结构化数据

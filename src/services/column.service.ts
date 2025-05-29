@@ -9,6 +9,28 @@ import { myFeathers } from '../feather'
       const query = context.query || {} //
       await next()
     }
+  ],
+  create: [
+    async (context: HookContext, next: any) => {
+      let data = context.data || {} //
+      let _this = context.app.service('columns')
+      let allD = await _this.find()
+      if (Array.isArray(data)) {//
+        let _data = data
+          .map(item => {
+            let tableName = item.tableName
+            let field = item.field
+            if (allD.findIndex((v: any) => v.tableName == tableName && v.field == field) != -1) {
+              return null
+            }
+            return item//
+          })
+          .filter(v => v != null)
+          // console.log(_data,allD)//
+        context.data = _data //
+      }
+      await next()
+    }
   ]
 })
 export class ColumnService extends BaseService {
