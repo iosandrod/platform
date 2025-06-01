@@ -1,0 +1,4 @@
+ // "postgresql": {
+  //   "client": "pg",
+  //   "connection": "postgres://postgres:123456789sike@47.92.84.152:5432/platform"
+  // },

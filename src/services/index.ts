@@ -2,7 +2,7 @@
 import { KnexAdapterOptions } from '@feathersjs/knex'
 import type { Application, HookContext, NextFunction } from '../declarations'
 import { CompanyService } from './company.service'
-import { defaultServiceMethods } from '@feathersjs/feathers'
+// import { defaultServiceMethods } from '@feathersjs/feathers'
 import _ from 'lodash'
 import { FeathersKoaContext } from '@feathersjs/koa'
 import { AppService } from './app.service'
@@ -21,6 +21,7 @@ import TableService from './table.service'
 import CaptchaService from './captcha.service'
 import { myAuth } from '../auth'
 import { UploadService } from './upload.service'
+export const defaultServiceMethods = ['find', 'get', 'create', 'update', 'patch', 'remove']
 export const services = async (app: myFeathers) => {
   let names = Object.keys(createMap) //
   let _names = await app.getCompanyTable()
@@ -75,7 +76,7 @@ export const createServices = async (serverName: keyof typeof createMap, options
   let Model = app.get('postgresqlClient')
   _.merge(_options, {
     methods,
-    name: serverName,//
+    name: serverName, //
     Model
   } as KnexAdapterOptions) //
   let service = new createClass(_options) //
@@ -89,15 +90,15 @@ export const createServices = async (serverName: keyof typeof createMap, options
   return service
 }
 
-const createMap = {
+export const createMap = {
   columns: ColumnService, //
   tables: TableService,
   navs: NavService, //
   company: CompanyService,
   users: UsersService,
-  entity: EntityService,//
+  entity: EntityService, //
   captcha: CaptchaService, //
-  uploads: UploadService//
+  uploads: UploadService //
 }
 export async function importModulesFromFolder(directory: string) {
   const files = await fs.readdirSync(directory)

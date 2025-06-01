@@ -15,3 +15,4 @@ export const postgresql = (app: Application) => {
   // console.log('run here')//
   app.set('postgresqlClient', db)
 }
+//

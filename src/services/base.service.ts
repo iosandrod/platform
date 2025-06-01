@@ -151,6 +151,11 @@ export class BaseService extends KnexService implements bs {
   _routes?: routeConfig[] //
   columns: string[] = [] ////
   columnInfo: columnInfo[] = []
+  get id() {
+    let _id = this.options.id as string
+    // console.log('kdjfldsjflksdfjsdlkfjklds ' , _id)
+    return _id
+  }
   getCompanyName() {}
   //@ts-ignore
   createQuery(params: ServiceParams = {} as ServiceParams) {
@@ -264,6 +269,15 @@ export class BaseService extends KnexService implements bs {
               value = 0 //
             }
           }
+          //@ts-ignore
+          if (['integer', 'decimal'].includes(type)) {
+            if (typeof value == 'string') {
+              let n = Number(value)
+              if (!isNaN(n)) {
+                value = n //
+              }
+            }
+          } //
           result[key] = value
         } //
         return result
@@ -885,17 +899,6 @@ WHERE table_name = '${schema}'
       }
     })
     return allD //
-    //let items: any = await this._findOrGet(null, updateParams)
-    // if (id !== null) {
-    //   if (items.length === 1) {
-    //     return items[0]
-    //   } else {
-    //     throw new errors.NotFound(`No record found for id '${id}'`)
-    //   }
-    // }
-
-    // return items
-    // return resArr //
   }
   //@ts-ignore
   async _get(id: any, params: ServiceParams = {} as ServiceParams): Promise<Result> {
@@ -1003,6 +1006,7 @@ WHERE table_name = '${schema}'
     let p = serviceName //
     //@ts-ignore
     let ts = app.use(p, service, {
+      //
       //@ts-ignore
       methods: [...defaultServiceMethods, ...routesMethods, ..._routeMethods], // //
       koa: {
@@ -1029,9 +1033,8 @@ WHERE table_name = '${schema}'
   @useGlobalRoute()
   // @useGlobalAuthenticate() //
   async batchUpdate(data: any, params: any) {
-    //@ts-ignore
+    //@ts-ignore//
     let _data = data
-    console.log(_data, 'test_data') //
     // console.log(_data, 'test_data')//
     let addData = _data['addData'] || []
     let patchData = _data['patchData'] || []
