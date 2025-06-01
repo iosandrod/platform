@@ -39,7 +39,7 @@
   },
   "postgresql": {
     "client": "pg",
-    "connection": "postgres://postgres:123456789sike@47.92.84.152:5432/platform_2"
+    "connection": "postgres://postgres:123456@localhost:5432/platform"
   },
   "appDb": {
     "client": "pg",
@@ -47,7 +47,7 @@
   },
   "defaultConnection": {
     "client": "pg",
-    "connection": "postgres://postgres:123456789sike@47.92.84.152:5432/platform_2"
+    "connection": "postgres://postgres:123456@localhost:5432/platform"
   },
   "redis": {
     "host": "localhost",

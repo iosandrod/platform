@@ -156,7 +156,7 @@ export class BaseService extends KnexService implements bs {
     // console.log('kdjfldsjflksdfjsdlkfjklds ' , _id)
     return _id
   }
-  getCompanyName() {}
+  getCompanyName() { }
   //@ts-ignore
   createQuery(params: ServiceParams = {} as ServiceParams) {
     let { name, id } = this.getOptions(params)
@@ -306,9 +306,11 @@ export class BaseService extends KnexService implements bs {
       throw new errors.BadRequest('联合主键重复') //
     }
     return _d //
-  }
+  }//
   async create(data: any, params?: any): Promise<any> {
-    //
+    console.log(Object.keys(params))//
+    let route = params['route']
+    console.log(route, 'testRoute')// 
     if (typeof params?.getMainParam == 'function') {
       params = params.getMainParam()
     } //
@@ -564,7 +566,7 @@ WHERE table_name = '${schema}'
     }
   }
 
-  async multiCreate(data: any, params?: any) {}
+  async multiCreate(data: any, params?: any) { }
   async buildDbSchema() {
     let columnInfo = this.columnInfo
     let schema = columnInfo.reduce((result: any, item) => {
@@ -1047,8 +1049,9 @@ WHERE table_name = '${schema}'
     } //
     return '数据更新成功' //
   }
-  //@ts-ignore
-  async remove(id: NullableId, params?: ServiceParams): Promise<Result | Result[]> {
+  //@ts-ignorex
+  async remove(id: NullableId, params?: any, data): Promise<Result | Result[]> {
+    console.log(id, params?.query, data, 'remove')//
     const { $limit, ...query } = await this.sanitizeQuery(params)
     return this._remove(id, {
       ...params,
@@ -1059,20 +1062,39 @@ WHERE table_name = '${schema}'
   async _remove(id: any, params: any = {} as ServiceParams): Promise<any> {
     if (id === null && !this.allowsMulti('remove', params)) {
       return
-    }
-
-    const items: any = await this._findOrGet(id, params)
+    }//
+    // const items: any = await this._findOrGet(id, params)
     const { query } = this.filterQuery(params)
+    if (id == null && Object.keys(query).length == 0) {
+      throw new errors.NotFound(`没有设置删除条件`)//
+    }
     const q: any = this.db(params)
-    const idList = items.map((current: any) => current[this.id])
-
+    if (Array.isArray(id)) {
+      id = id
+    } else {
+      id = [id]//
+    }
+    id = id.filter((id: any) => id != null).map((id: any) => {
+      if (typeof id == 'number') {
+        return id
+      }
+      return id[this.id]//
+    })
+    if (id.lengh == 0) {
+      throw new errors.NotFound(`没有设置删除条件`)
+    }
+    let items = id.map((current: any) => current[this.id])
+    // const idList = items.map((current: any) => current[this.id])
+    let idList: any[] = []//
     query[this.id] = { $in: idList }
-
     // build up the knex query out of the query params
     this.knexify(q, query)
 
-    await q.delete([], { includeTriggerModifications: true }).catch(errorHandler)
-
+    // let s= q.delete([], { includeTriggerModifications: true }).catch(errorHandler)
+    let s = q.delete([], { includeTriggerModifications: true }).toSQL()
+    if (1 == 1) {
+      return s//
+    }
     if (id !== null) {
       if (items.length === 1) {
         return items[0]

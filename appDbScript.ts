@@ -13,7 +13,8 @@ import { ColumnEntity } from './src/entity/columns.entity'
 import { Entity } from './src/entity/entity.entity'
 import { Company } from './src/entity/company.entity'
 import { FieldEntity } from './src/entity/fields.entity'
-import { TableEntity } from './src/entity/table.entity'
+import { Upload } from './src/entity/uploads.entity'
+import { DataDictionary } from './src/entity/dictionary.entity'
 function main() {
   let dbConfig: DataSourceOptions = {
     type: 'postgres',
@@ -28,13 +29,14 @@ function main() {
       Entity, //
       User,
       Role,
-      TableEntity, //
       Permission,
       RolePermission,
       UserRole,
       Navs,
-      ColumnEntity,
-      Company
+      ColumnEntity,//
+      Company,
+      Upload,
+      DataDictionary,//
     ]//
   }
   const dataSource = new DataSource(dbConfig)

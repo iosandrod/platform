@@ -91,8 +91,8 @@ export class myFeathers extends Feathers<any, any> {
   getUserPermissions(userid: string) {
     let roles = this.getRoles(userid)
   }
-  async getAllApp() {} //
-  async getCurrentTable() {}
+  async getAllApp() { } //
+  async getCurrentTable() { }
   //@ts-ignore
   async getCompanyConnection(company: any, appName?: string): Promise<Knex> {
     let client = this.getClient()
@@ -292,7 +292,7 @@ ORDER BY
     let allTable = await this.getCompanyTable()
     return allTable[tableName] //
   } //
-  createFieldKey() {}
+  createFieldKey() { }
   async getDefaultPageLayout(tableName: string) {
     let obj = await getDefaultPageLayout(this, tableName)
     return obj
@@ -301,7 +301,7 @@ ORDER BY
     let obj = await getDefaultImportPageLayout(this, tableName, context)
     return obj //
   }
-  async getDefaultSearchPageLayout(tableName: any, params: any) {}
+  async getDefaultSearchPageLayout(tableName: any, params: any) { }
   async getDefaultEditPageLayout(tableName: string) {
     let obj = await getDefaultEditPageLayout(this, tableName)
     return obj
@@ -321,7 +321,7 @@ ORDER BY
         }
       }
     })
-    return res
+    return res//
   }
   getApiCaptcha(host: any, key: any, clear = false) {
     let cdata = this.captchaData

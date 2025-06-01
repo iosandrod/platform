@@ -97,6 +97,7 @@ WHERE datname = '${appName}'
     })
     return _data //
   }
+
 }
 
 export default CompanyService
