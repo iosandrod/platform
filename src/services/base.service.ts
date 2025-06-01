@@ -156,7 +156,7 @@ export class BaseService extends KnexService implements bs {
     // console.log('kdjfldsjflksdfjsdlkfjklds ' , _id)
     return _id
   }
-  getCompanyName() { }
+  getCompanyName() {}
   //@ts-ignore
   createQuery(params: ServiceParams = {} as ServiceParams) {
     let { name, id } = this.getOptions(params)
@@ -306,11 +306,9 @@ export class BaseService extends KnexService implements bs {
       throw new errors.BadRequest('联合主键重复') //
     }
     return _d //
-  }//
+  }
   async create(data: any, params?: any): Promise<any> {
-    console.log(Object.keys(params))//
     let route = params['route']
-    console.log(route, 'testRoute')// 
     if (typeof params?.getMainParam == 'function') {
       params = params.getMainParam()
     } //
@@ -391,12 +389,7 @@ export class BaseService extends KnexService implements bs {
       }
     )
     await s.batchUpdate(_obj, params) //
-    // for (const dRow of data) {
-    //   dRow[relateKey] = mainRow[relateMainKey] //////
-    //   params.getMainParam = () => params
-    //   let _res = await s.batchUpdate(dRow, params) //
-    //   arr1.push(_res) //
-    // }
+
     return arr1 //
   } //
   getRedisClient(): Redis {
@@ -566,7 +559,7 @@ WHERE table_name = '${schema}'
     }
   }
 
-  async multiCreate(data: any, params?: any) { }
+  async multiCreate(data: any, params?: any) {}
   async buildDbSchema() {
     let columnInfo = this.columnInfo
     let schema = columnInfo.reduce((result: any, item) => {
@@ -1040,67 +1033,89 @@ WHERE table_name = '${schema}'
     // console.log(_data, 'test_data')//
     let addData = _data['addData'] || []
     let patchData = _data['patchData'] || []
+    let delData = _data['delData'] || []
     if (addData?.length > 0) {
-      await this.create(addData, params) //
+      await this.create(addData, params)
     }
     if (patchData?.length > 0) {
       //
-      await this.patch(patchData, params) //
+      await this.patch(patchData, { ...params, query: {} }) //
     } //
+    if (delData?.length > 0) {
+      await this.remove(delData, { ...params, query: {} })
+    }
     return '数据更新成功' //
   }
+
   //@ts-ignorex
-  async remove(id: NullableId, params?: any, data): Promise<Result | Result[]> {
-    console.log(id, params?.query, data, 'remove')//
+  async remove(id: any, params?: any, data?: any): Promise<Result | Result[]> {
+    console.log(id, params?.query, data, 'remove') //
     const { $limit, ...query } = await this.sanitizeQuery(params)
     return this._remove(id, {
       ...params,
       query
     })
   }
+  @useGlobalRoute() //
+  async batchDelete(data: any, params: any) {
+    let _r = await this.remove(data, params)
+    // return '数据删除成功' //
+    return _r
+  } //
   //@ts-ignore
   async _remove(id: any, params: any = {} as ServiceParams): Promise<any> {
     if (id === null && !this.allowsMulti('remove', params)) {
       return
-    }//
-    // const items: any = await this._findOrGet(id, params)
-    const { query } = this.filterQuery(params)
+    } //
+    let { query } = this.filterQuery(params)
     if (id == null && Object.keys(query).length == 0) {
-      throw new errors.NotFound(`没有设置删除条件`)//
+      throw new errors.NotFound(`没有设置删除条件`) //
     }
-    const q: any = this.db(params)
+    let q: any = this.db(params)
     if (Array.isArray(id)) {
       id = id
     } else {
-      id = [id]//
+      id = [id] //
     }
-    id = id.filter((id: any) => id != null).map((id: any) => {
-      if (typeof id == 'number') {
-        return id
-      }
-      return id[this.id]//
-    })
-    if (id.lengh == 0) {
+    id = id
+      .filter((id: any) => id != null)
+      .map((id: any) => {
+        if (typeof id == 'number') {
+          return id
+        }
+        return id[this.id] //
+      })
+    // console.log(id, 'sjfkslfdslkkfsdf') // //
+    if (id.length == 0 && Object.keys(query).length == 0) {
+      //
       throw new errors.NotFound(`没有设置删除条件`)
     }
     let items = id.map((current: any) => current[this.id])
     // const idList = items.map((current: any) => current[this.id])
-    let idList: any[] = []//
-    query[this.id] = { $in: idList }
-    // build up the knex query out of the query params
-    this.knexify(q, query)
-
+    let idList: any[] = id
+    let q1 = {
+      [this.id]: { $in: idList }
+    }
+    q = q.table(this.serviceName) //
+    q = this.knexify(q, query)
+    q = this.knexify(q, q1) //
     // let s= q.delete([], { includeTriggerModifications: true }).catch(errorHandler)
     let s = q.delete([], { includeTriggerModifications: true }).toSQL()
-    if (1 == 1) {
-      return s//
-    }
-    if (id !== null) {
-      if (items.length === 1) {
-        return items[0]
-      }
-      throw new errors.NotFound(`No record found for id '${id}'`)
-    }
-    return items
+    // if (1 == 1) {
+    //   return s //
+    // }
+    let sql = s.sql
+    let bindings = s.bindings
+    // console.log(sql, 'sql') //
+    let _res = await this.db().raw(sql, bindings)
+    // if (id !== null) {
+    //   if (items.length === 1) {
+    //     return items[0]
+    //   }
+    //   throw new errors.NotFound(`No record found for id '${id}'`)
+    // }
+    // return items
+    return '删除单据成功' //
   }
 }
+//

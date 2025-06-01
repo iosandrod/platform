@@ -54,8 +54,9 @@ export function useGlobalRoute(config: routeConfig = {}) {
       target._routes = []
       routes = target._routes //
     }
-    let route: routeConfig = { ...config, path: propertyKey }
-    routes.push(route) //
+    let route: routeConfig = { ...config, path: config?.path || propertyKey }
+    routes.push(route)
+
     return descriptor
   }
 }

@@ -430,3 +430,10 @@ export default function hashPassword(field: string, options: HashPasswordOptions
     "client": "pg",
     "connection": "postgres://postgres:123456@localhost:5432/platform"
   },
+
+      // for (const dRow of data) {
+    //   dRow[relateKey] = mainRow[relateMainKey] //////
+    //   params.getMainParam = () => params
+    //   let _res = await s.batchUpdate(dRow, params) //
+    //   arr1.push(_res) //
+    // }
