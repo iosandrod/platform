@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, PrimaryColumn } from 'typeorm'
 import { BaseEntity } from './base.entity'
+import { dateColumn } from './json/jsonColumnFactory'
 
 // extends BaseEntity
 @Entity({ name: 'DataDictionary' })
@@ -25,7 +26,7 @@ export class DataDictionary {
   @Column({ type: 'varchar', name: 'cType', nullable: true })
   cType?: string
 
-  @Column({ type: 'timestamp', name: 'dOpeDate',)
+  @Column({ ...dateColumn({ name: "dOpeDate" }), })//
   dOpeDate?: Date
 
   @Column({ type: 'varchar', name: 'cDetailNote', nullable: true })

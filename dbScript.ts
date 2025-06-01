@@ -15,7 +15,7 @@ import { Company } from './src/entity/company.entity'
 import { FieldEntity } from './src/entity/fields.entity'
 // import { TableEntity } from './src/entity/table.entity'
 import { Upload } from './src/entity/uploads.entity'
-import { Dictionary } from './src/entity/dictionary.entity'
+import { DataDictionary } from './src/entity/dictionary.entity'
 import { Selection } from './src/entity/selection.entity'
 import knex from 'knex'
 import { setCurrentDbType } from './src/entity/json/jsonColumnFactory'
@@ -44,7 +44,7 @@ async function main() {
     port: 5432, //
     synchronize: true, ////
     entities: [
-      Dictionary,
+      DataDictionary,
       Selection,
       FieldEntity,
       Entity, //

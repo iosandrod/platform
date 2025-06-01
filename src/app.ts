@@ -1,8 +1,9 @@
 // For more information about this file see https://dove.feathersjs.com/guides/cli/application.html
 import { feathers, HookContext } from '@feathersjs/feathers'
 import 'reflect-metadata'
-import { koa, rest, bodyParser, errorHandler, parseAuthentication, cors, serveStatic } from '@feathersjs/koa'
+import { koa, bodyParser, errorHandler, parseAuthentication, cors, serveStatic } from '@feathersjs/koa'
 import socketio from '@feathersjs/socketio'
+import { rest } from './rest'
 import { services } from './services/index'
 import { configurationValidator } from './configuration'
 import type { Application, serviceMap } from './declarations'
