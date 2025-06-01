@@ -2,11 +2,14 @@ import { Feathers } from '@feathersjs/feathers'
 // import { Service } from '@feathersjs/feathers'
 import { Application } from './declarations'
 import { createApp } from './app/app_index'
+import _ from 'lodash'
 import knex, { Knex } from 'knex'
 import { cacheValue } from './decoration'
 import { createNodeGrid, nanoid } from './utils'
 import { errors } from '@feathersjs/errors'
 import { getDefaultEditPageLayout, getDefaultImportPageLayout, getDefaultPageLayout } from './layoutGetFn'
+import { BaseService } from './services/base.service'
+import { createMap, defaultServiceMethods } from './services'
 // const nanoid = () => 'xxxxx' //
 export const subAppCreateMap = {
   erp: createApp //
@@ -51,15 +54,16 @@ export class myFeathers extends Feathers<any, any> {
   }
   @cacheValue() //
   async getRoles(userid: string) {
-    let client = this.getPgClient()
-    let sql = client('roles')
-      .join('user_roles', 'roles.id', '=', 'user_roles.rolesId')
-      .where('user_roles.usersId', userid)
-      .select('roles.*')
-      .toQuery() //
-    let data = await client.raw(sql)
-    let rows = data.rows
-    return rows //
+    // let client = this.getPgClient()
+    // let sql = client('roles')
+    //   .join('user_roles', 'roles.id', '=', 'user_roles.rolesId')
+    //   .where('user_roles.usersId', userid)
+    //   .select('roles.*')
+    //   .toQuery() //
+    // let data = await client.raw(sql)
+    // let rows = data.rows
+    // return rows //
+    return [] //
   }
   getPgClient(): Knex {
     return this.get('postgresqlClient')
@@ -352,6 +356,79 @@ ORDER BY
         }
       ]
     })
+  }
+  async initTableService() {
+    let names: any[] = Object.keys(createMap) //
+    let app = this
+    let _names = await app.getCompanyTable()
+    let allT = _names
+    _names = Object.keys(_names) ////
+    names = [...names, ..._names] //
+    names = names.filter((name, i) => names.indexOf(name) == i) //
+    // let arr = []
+    for (const name of names) {
+      let id = 'id'
+      let ids = [] //
+      let _t = allT[name]
+      if (_t) {
+        let primaryKey = _t.columns.filter((col: any) => col['is_primary_key'] == true)
+        ids = primaryKey.map((col: any) => col['column_name'])
+        // console.log(name, ids)//
+        if (ids.length > 0) {
+          let _key = primaryKey[0]['column_name']
+          id = _key
+        } else {
+          console.log('表格没有主键字段', name, ids) ////
+        }
+      }
+      let opt = {
+        serviceName: name,
+        id,
+        ids
+      }
+      //@ts-ignore
+      // let s = await this.createService(opt, app as any) //
+      // let obj = {
+      //   path: name,
+      //   service: s
+      // }
+      // arr.push(obj)
+      await this.addService({ options: opt, serviceName:name }) //
+    }
+    // let allServices = arr //
+    // for (const obj of allServices) {
+    //   const p: string = obj.path //装饰
+    //   const service = obj.service
+    //   //@ts-ignore
+    //   service.initHooks(app) //
+    // }
+  }
+  async addService(config: any) {
+    let s = await this.createService(config)
+    await s.initHooks(this) //
+  }
+  async createService(config: any) {
+    let serviceName = config.serviceName //
+    let app = this
+    //创建类
+    let _class = BaseService
+    let _options = config.options || {}
+    let methods = defaultServiceMethods
+    let Model = this.get('postgresqlClient')
+    _.merge(_options, {
+      methods,
+      name: serviceName, //
+      Model
+    })
+    let createClass = _class
+    //@ts-ignore
+    let _sClass = createMap[serviceName]
+    if (_sClass) {
+      createClass = _sClass
+    }
+    let service = new createClass(_options) //
+    service.serviceName = serviceName //服务名称
+    return service
   }
 }
 export const createFeathers = () => {

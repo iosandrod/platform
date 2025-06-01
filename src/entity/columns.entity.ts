@@ -1,5 +1,6 @@
 import { BaseEntity } from './base.entity'
 import { Column, Entity, Unique } from 'typeorm'
+import { jsonColumn } from './json/jsonColumnFactory'
 @Entity('columns')
 @Unique(['field', 'tableName']) //
 export class ColumnEntity extends BaseEntity {
@@ -18,8 +19,10 @@ export class ColumnEntity extends BaseEntity {
   @Column({ type: 'integer', nullable: true })
   primary: string
   @Column({ type: 'varchar', nullable: true })
-  unique: string
-  @Column({ type: 'jsonb', nullable: true })
+  unique: string 
+  @Column( jsonColumn({
+      nullable: true
+    }))
   validate: string
   @Column({ type: 'integer', nullable: true })
   serviceId: number
@@ -43,7 +46,11 @@ export class ColumnEntity extends BaseEntity {
   defaultValue: string //
   @Column({ type: 'varchar', nullable: true })
   defaultValueType: string ////
-  @Column({ type: 'jsonb', nullable: true }) //
+  @Column(
+    jsonColumn({
+      nullable: true
+    })
+  ) //
   options: number
   @Column({ type: 'varchar', nullable: true })
   optionsField: string //
@@ -55,4 +62,8 @@ export class ColumnEntity extends BaseEntity {
   calculate: string //
   @Column({ type: 'integer', nullable: true })
   tree: number ////
+  @Column(jsonColumn({
+      nullable: true
+    }))////
+  baseinfoConfig:string
 } ////

@@ -1,5 +1,6 @@
 import { Entity, Column, ManyToOne, ManyToMany, JoinTable } from 'typeorm'
 import { BaseEntity } from './base.entity'
+import { jsonColumn } from './json/jsonColumnFactory'
 
 export enum StorageProvider {
   LOCAL = 'local',
@@ -39,11 +40,11 @@ export class Upload extends BaseEntity {
   provider: StorageProvider
 
   /** 是否公开可访问 */
-  @Column({ type: 'boolean', nullable: true })
+  @Column({ type: 'integer', nullable: true })
   isPublic: boolean
 
   /** 额外元数据，如图片宽高、拍摄时间等 */
-  @Column({ type: 'json', nullable: true })
+  @Column(jsonColumn({ nullable: true }))
   metadata: Record<string, any>
   @Column({ type: 'integer', nullable: true })
   userid: number

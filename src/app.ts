@@ -25,7 +25,7 @@ export let appArr = [
     appName: 'erp',
     userid: 1
   }
-]
+] //
 export async function createApp() {
   let f = createFeathers()
   //@ts-ignore
@@ -47,7 +47,8 @@ export async function createApp() {
     })
   )
   await app.configure(postgresql) ////
-  await services(app) //
+  // await services(app) //
+  await app.initTableService() //
   app.configure(channels)
   //设置用户认证
   app.configure(mainAuth) //
@@ -77,7 +78,7 @@ export async function createApp() {
   for (const sApp of company) {
     //
     //@ts-ignore
-    // await app.registerSubApp(sApp)
+    await app.registerSubApp(sApp)
   }
   // Register application setup and teardown hooks here
   app.hooks({
@@ -109,7 +110,6 @@ export async function createApp() {
       }
     ],
     teardown: []
-  })
-
+  }) //
   return app
 }

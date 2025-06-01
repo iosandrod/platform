@@ -371,3 +371,32 @@ export default function hashPassword(field: string, options: HashPasswordOptions
                   // console.log(query, context.result, 'query') //
       //@ts-ignore
       // console.log(_this.hooksMetaData) //
+
+
+      //let items: any = await this._findOrGet(null, updateParams)
+    // if (id !== null) {
+    //   if (items.length === 1) {
+    //     return items[0]
+    //   } else {
+    //     throw new errors.NotFound(`No record found for id '${id}'`)
+    //   }
+    // }
+
+    // return items
+    // return resArr 
+
+
+
+
+    "postgresql": {
+    "client": "pg",
+    "connection": "postgres://postgres:123456789sike@47.92.84.152:5432/platform_2"
+  },
+  "appDb": {
+    "client": "pg",
+    "connection": "postgres://postgres:123456@localhost:5432/erp"
+  },
+  "defaultConnection": {
+    "client": "pg",
+    "connection": "postgres://postgres:123456789sike@47.92.84.152:5432/platform_2"
+  },

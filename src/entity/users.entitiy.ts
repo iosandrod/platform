@@ -12,12 +12,10 @@ export class User extends BaseEntity {
   @Column({ type: 'varchar', nullable: true })
   password: string //
   @Column({ type: 'varchar', nullable: true }) //
-  companyid: string
-  @Column({ type: 'varchar', nullable: true }) //
   appName: string
-  @ManyToMany(() => Role, { nullable: true })
-  @JoinTable({ name: 'user_roles' }) // 用户角色表
-  roles: Role[]
+  // @ManyToMany(() => Role, { nullable: true })
+  // @JoinTable({ name: 'user_roles' }) // 用户角色表
+  // roles: Role[]
   @Column({ type: 'varchar', nullable: true })
   companyName: string
   @Column({ type: 'varchar', nullable: true })

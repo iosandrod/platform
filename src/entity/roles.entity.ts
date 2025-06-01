@@ -8,7 +8,7 @@ export class Role extends BaseEntity {
 
   @Column({ type: "varchar", unique: true })
   name: string; // admin, editor, user
-  @ManyToMany(() => Permission)
-  @JoinTable({ name: "role_permissions" }) // 角色权限表
-  permissions: Permission[];
-}
+  // @ManyToMany(() => Permission)
+  // @JoinTable({ name: "role_permissions" }) // 角色权限表
+  // permissions: Permission[];
+} 

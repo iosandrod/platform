@@ -1,6 +1,7 @@
 import { Column, Unique } from 'typeorm'
 import { BaseEntity } from './base.entity'
 import { Entity as _Entity } from 'typeorm'
+import { jsonColumn } from './json/jsonColumnFactory'
 @_Entity('entity')
 // @Unique(['uuid'])
 export class Entity extends BaseEntity {
@@ -16,13 +17,18 @@ export class Entity extends BaseEntity {
     nullable: true
   })
   parentId: number //
-  @Column({ type: 'jsonb', nullable: true })
+  @Column(
+    jsonColumn({
+      nullable: true
+    })
+  )
   layout: string //
   //is json
-  @Column({
-    type: 'jsonb', //
-    nullable: true ////
-  })
+  @Column(
+    jsonColumn({
+      nullable: true
+    })
+  )
   fields: string
   @Column({ type: 'varchar', nullable: true })
   uuid: string
@@ -34,25 +40,53 @@ export class Entity extends BaseEntity {
   tableType: string
   @Column({ type: 'varchar', nullable: true })
   tableCnName: string //
-  @Column({ type: 'jsonb', nullable: true })
+  @Column(
+    jsonColumn({
+      nullable: true
+    })
+  )
   hooks: string //
-  @Column({ type: 'jsonb', nullable: true }) //
+  @Column(
+    jsonColumn({
+      nullable: true
+    })
+  ) //
   dialog: string
-  @Column({ type: 'jsonb', nullable: true })
+  @Column(
+    jsonColumn({
+      nullable: true
+    })
+  )
   searchDialog: string ////
   @Column({ type: 'varchar', nullable: true })
   pageEditType: string //
-  @Column({ type: 'jsonb', nullable: true })
+  @Column(
+    jsonColumn({
+      nullable: true
+    })
+  )
   treeConfig: string //
-  @Column({ type: 'jsonb', nullable: true })
+  @Column(
+    jsonColumn({
+      nullable: true
+    })
+  )
   //分页
   pagination: string //
   @Column({ type: 'varchar', nullable: true })
   keyColumn: string
   @Column({ type: 'varchar', nullable: true })
   keyCodeColumn: string ////
-  @Column({ type: 'jsonb', nullable: true }) //
+  @Column(
+    jsonColumn({
+      nullable: true
+    })
+  ) //
   methods: string //
-  @Column({ type: 'jsonb', nullable: true })
-  events: string//
+  @Column(
+    jsonColumn({
+      nullable: true
+    })
+  )
+  events: string //
 } //
