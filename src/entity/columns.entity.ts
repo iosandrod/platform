@@ -19,10 +19,12 @@ export class ColumnEntity extends BaseEntity {
   @Column({ type: 'integer', nullable: true })
   primary: string
   @Column({ type: 'varchar', nullable: true })
-  unique: string 
-  @Column( jsonColumn({
+  unique: string
+  @Column(
+    jsonColumn({
       nullable: true
-    }))
+    })
+  )
   validate: string
   @Column({ type: 'integer', nullable: true })
   serviceId: number
@@ -62,8 +64,12 @@ export class ColumnEntity extends BaseEntity {
   calculate: string //
   @Column({ type: 'integer', nullable: true })
   tree: number ////
-  @Column(jsonColumn({
+  @Column(
+    jsonColumn({
       nullable: true
-    }))////
-  baseinfoConfig:string
+    })
+  ) ////
+  baseinfoConfig: string
+  @Column({ type: 'varchar', nullable: true })
+  bgColor: string //
 } ////

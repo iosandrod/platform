@@ -83,7 +83,6 @@ import { mergeCols, mergeEditCols } from '../utils'
           let _res = await _this.create(defaultTableInfo)
         }
       } else {
-        // console.log('获取了entity')//
         let result = context.result
         for (let res of result) {
           let fields = res?.fields
@@ -137,7 +136,25 @@ import { mergeCols, mergeEditCols } from '../utils'
           }
           res.columns = allCol
         }
-      } //
+      }
+      let _res = context.result
+      for (const en of _res) {
+        let tableName = en?.tableName //
+        if (en.keyColumn != null) {
+          continue//
+        }
+        tableName = tableName.split('---')[0]
+        let _app: myFeathers = context.app
+        let _tConfig = await _app.getTableConfig(tableName)
+        if (_tConfig) {
+          let _columns = _tConfig?.columns || []
+          let primaryKey = _columns.find((col: any) => col.is_primary_key == true)
+          if (primaryKey) {
+            let _key = primaryKey?.column_name
+            en.keyColumn = _key //
+          }
+        }
+      }
     }
   ]
 })

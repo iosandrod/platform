@@ -1034,7 +1034,7 @@ WHERE table_name = '${schema}'
     let addData = _data['addData'] || []
     let patchData = _data['patchData'] || []
     let delData = _data['delData'] || []
-    if (addData?.length > 0) {
+    if (addData?.length > 0) {//
       await this.create(addData, params)
     }
     if (patchData?.length > 0) {
@@ -1046,10 +1046,9 @@ WHERE table_name = '${schema}'
     }
     return '数据更新成功' //
   }
-
   //@ts-ignorex
   async remove(id: any, params?: any, data?: any): Promise<Result | Result[]> {
-    console.log(id, params?.query, data, 'remove') //
+    // console.log(id, params?.query, data, 'remove') //
     const { $limit, ...query } = await this.sanitizeQuery(params)
     return this._remove(id, {
       ...params,
