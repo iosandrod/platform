@@ -141,7 +141,7 @@ import { mergeCols, mergeEditCols } from '../utils'
       for (const en of _res) {
         let tableName = en?.tableName //
         if (en.keyColumn != null) {
-          continue//
+          continue //
         }
         tableName = tableName.split('---')[0]
         let _app: myFeathers = context.app
@@ -264,9 +264,19 @@ export class EntityService extends BaseService {
     }
     return cols
   }
+  @useRoute() //
   async getTableConfig(tableName: any) {
+    if (typeof tableName == 'string') {
+      tableName = {
+        tableName
+      }
+    }
+    let _tableName = tableName.tableName
+    if (Boolean(_tableName) == false) {
+      throw new errors.BadGateway('找不到表格配置信息')
+    }//
     let app = this.app
-    return app.getTableConfig(tableName) //
+    return app.getTableConfig(_tableName) //
   }
 }
 

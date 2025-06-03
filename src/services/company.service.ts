@@ -2,6 +2,7 @@ import { HookContext } from '@feathersjs/feathers'
 import { useHook, useRoute } from '../decoration'
 import { BaseService } from './base.service'
 import { myFeathers } from '../feather'
+import { errors } from '@feathersjs/errors'
 @useHook({
   //
   find: [
@@ -27,7 +28,7 @@ import { myFeathers } from '../feather'
   create: [
     async function (context: any, next: any) {
       let data = context.data
-      let uid = context?.params?.user?.id
+      let uid = context?.params?.user?.id || data.userid //
       let _data = null
       if (!Array.isArray(data)) {
         _data = [data]
@@ -40,17 +41,17 @@ import { myFeathers } from '../feather'
         }
         data.type = 'pg'
         let defaultConnection = context.app.get('defaultConnection')
-        let key = `${data.appName}_${data.userid}` //
+        let key = `${data.appName}_${data.userid}`
         data.connection = `${defaultConnection.connection}/${key}`
-      }
+      } //
       await next() //
       //创建数据库//
-      let app: myFeathers = context.app //
-      let _this: CompanyService = app.service('company') as any //
-      let res = context.result
-      for (const item of res) {
-        await _this.createCompany(item.appName, item.userid) //
-      }
+      // let app: myFeathers = context.app //
+      // let _this: CompanyService = app.service('company') as any //
+      // let res = context.result
+      // for (const item of res) {
+      //   await _this.createCompany(item.appName, item.userid) //
+      // }
     }
   ] //
 })
@@ -73,20 +74,11 @@ export class CompanyService extends BaseService {
   }
   //生成公司数据库
   async createCompany(appName: any, userid: any) {
-    //创建数据库//
     let app = this.app
-    let sql1 = `SELECT pg_terminate_backend(pid)
-FROM pg_stat_activity
-WHERE datname = '${appName}'
-  AND pid <> pg_backend_pid();` //
-    let pgClient = app.get('postgresqlClient') //
-    await pgClient.raw(sql1)
-    let _key = `${appName}_${userid}` //
-    let sql = `CREATE DATABASE ${_key}
-    WITH 
-    OWNER = postgres
-    TEMPLATE = ${appName};` //
-    await pgClient.raw(sql) //
+    await app.createCompany({
+      appName,
+      userid: userid //
+    })
   }
   @useRoute()
   async getAllApp() {
@@ -95,9 +87,46 @@ WHERE datname = '${appName}'
         userid: -1
       }
     })
-    return _data //
+    return _data
+  } //
+  @useRoute()
+  async registerCompany(data: any) {
+    let userid = data.userid
+    let appName = data.appName
+    if (userid == null || appName == null) {
+      throw new errors.BadRequest('参数不能为空')
+    } //
+    await this.app.createCompany(data) //
+    return '创建成功' //
   }
-
+  @useRoute()
+  async getAllRegisterCompany() {
+    let allCompany = await this.app.getAllCompany() //
+    allCompany = allCompany.map((item: any) => {
+      return {
+        ...item,
+        entities: []
+      } //
+    })
+    let query = allCompany.map((item: any) => {
+      let userid = item.userid
+      return userid
+    })
+    let users = await this.app.service('users').find({
+      query: {
+        id: {
+          $in: query
+        }
+      }
+    }) //
+    allCompany = allCompany
+      .map((item: any) => {
+        item.user = users.find((user: any) => user.id == item.userid)
+        return item
+      })
+      .filter((item: any) => item.user != null) //
+    return allCompany //
+  }
 }
 
 export default CompanyService

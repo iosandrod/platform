@@ -16,6 +16,7 @@ import { SocketOptions, socket as socketMiddleware } from '@feathersjs/transport
 import isEqual from 'lodash/isEqual'
 import { BadRequest, MethodNotAllowed, NotFound } from '@feathersjs/errors'
 import { Application } from '@feathersjs/koa'
+import { reject } from 'lodash'
 // console.log(getDispatcher, runMethod)
 export function appSocketio(port?: any, options?: any, config?: any) {
   if (typeof port !== 'number') {
@@ -61,6 +62,11 @@ export function appSocketio(port?: any, options?: any, config?: any) {
             // io.sockets.setMaxListeners(64)
             this.io = io
           }
+          // if (this.io) {
+          //   resolve(this.io)
+          // } else {
+          //   reject('找不到父级IO实例')
+          // }
           resolve(this.io)
           return setup.call(this, server, ...rest)
         }

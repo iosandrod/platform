@@ -190,7 +190,6 @@ export class BaseService extends KnexService implements bs {
     return builder
   }
   async init(mainApp?: Application) {
-    //
     //@ts-ignore
     this.app = mainApp
     let Model = this.Model
@@ -208,9 +207,8 @@ export class BaseService extends KnexService implements bs {
       this.routes = []
       routes = this.routes
     }
-
     //构建校验
-    await this.buildDbSchema()
+    await this.buildDbSchema() //
   }
   //@ts-ignore
   db(params?: ServiceParams): Knex {
@@ -299,11 +297,10 @@ export class BaseService extends KnexService implements bs {
 
     const whereClause = `(${keyColumns.map(col => `"${col}"`).join(', ')}) IN (${formattedValues})`
     let result = await knex(table).select('*').whereRaw(whereClause, flatValues).toSQL()
-    console.log(result, 'testResult') //
     let _res = await this.db().raw(result.sql, result.bindings)
     let _d = _res?.rows
     if (_d.length > 0) {
-      throw new errors.BadRequest('联合主键重复') //
+      throw new errors.BadRequest(`联合主键重复${keyColumns}`) //
     }
     return _d //
   }
@@ -1034,7 +1031,8 @@ WHERE table_name = '${schema}'
     let addData = _data['addData'] || []
     let patchData = _data['patchData'] || []
     let delData = _data['delData'] || []
-    if (addData?.length > 0) {//
+    if (addData?.length > 0) {
+      //
       await this.create(addData, params)
     }
     if (patchData?.length > 0) {

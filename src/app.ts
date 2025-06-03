@@ -77,7 +77,6 @@ export async function createApp() {
   // console.log(company, 'testCompany') //
   // console.log(allCompany,'testCompany')//
   for (const sApp of company) {
-    //
     //@ts-ignore
     await app.registerSubApp(sApp)
   }
@@ -97,16 +96,16 @@ export async function createApp() {
           await service.init(app) //
         }
         let subApp = app.subApp
-        // let allSubApp = Object.entries(subApp)
-        // for (const [key, sApp] of allSubApp) {
-        //   let services = sApp.services as serviceMap
-        //   let allServices = Object.values(services)
-        //   for (const service of allServices) {
-        //     if (typeof service.init !== 'function') continue
-        //     //@ts-ignore
-        //     await service.init(sApp) //
-        //   }
-        // }
+        let allSubApp = Object.entries(subApp)
+        for (const [key, sApp] of allSubApp) {
+          let services = sApp.services as serviceMap
+          let allServices = Object.values(services)
+          for (const service of allServices) {
+            if (typeof service.init !== 'function') continue
+            //@ts-ignore
+            await service.init(sApp) //
+          }
+        }
         await next() //
       }
     ],

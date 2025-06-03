@@ -11,18 +11,17 @@ import { createFeathers, myFeathers } from '../feather'
 
 export const createApp = async (mainApp: myFeathers, config: any) => {
   const app1 = createFeathers() //
-  let companyId = config.companyid || config.userid
-  let appName = 'erp' //
+  let companyId = config.userid //
   const app = app1
   //@ts-ignore
   app.mainApp = mainApp //
   app.set('appName', 'erp') //
-  app.set('companyid', companyId)
+  app.set('companyid', companyId) //公司ID就是用户ID
   app.configure(configuration(configurationValidator))
   app.configure(routing()) //设置路由和认证相关的//
   //前台需要知道用户的角色和ID才可以进行操作
   // app.configure(appPostgresql) //设置数据库
-  appPostgresql(app,config)
+  appPostgresql(app, config)
   await services(app, mainApp) //
   // app.configure(services) //设置服务
   app.configure(appAuthenticate) //设置认证

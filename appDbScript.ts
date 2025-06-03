@@ -22,7 +22,7 @@ function main() {
     port: 5432,
     username: 'postgres',
     password: '123456',
-    database: 'erp', //
+    database: 'erp', ////
     synchronize: true,
     entities: [
       FieldEntity,

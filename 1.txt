@@ -437,3 +437,60 @@ export default function hashPassword(field: string, options: HashPasswordOptions
     //   let _res = await s.batchUpdate(dRow, params) //
     //   arr1.push(_res) //
     // }
+
+
+     let app = this.app
+    let sql1 = `SELECT pg_terminate_backend(pid)
+FROM pg_stat_activity
+WHERE datname = '${appName}'
+  AND pid <> pg_backend_pid();` //
+    let pgClient = app.get('postgresqlClient') //
+    await pgClient.raw(sql1)
+    let _key = `${appName}_${userid}` //
+    let sql = `CREATE DATABASE ${_key}
+    WITH 
+    OWNER = postgres
+    TEMPLATE = ${appName};` //
+    await pgClient.raw(sql) //
+
+
+     let client: Knex = this.get('postgresqlClient')
+    let name = config.name //创建公司
+    let companies = await client('company').where('name', name).select() //
+    if (companies.length === 0) {
+      let connection = config.connection
+      let type = config.type
+      if (connection == null) {
+        return
+      }
+      let _client = knex({
+        client: type,
+        connection: connection
+      })
+      await client('company').insert(config) //
+    }
+
+    let app = this.app
+    await app.createCompany({
+      appName,
+      userId: userid //
+    })
+
+     // let allServices = arr //
+    // for (const obj of allServices) {
+    //   const p: string = obj.path //装饰
+    //   const service = obj.service
+    //   //@ts-ignore
+    //   service.initHooks(app) //
+    // }
+
+    // io.emit = function (...args) {
+            //   console.log(...args, 'sfsdfjsdfsd') //
+            //   oldEmit.call(io, ...args)
+            // }
+            // let oldSend = io.send
+            // //@ts-ignore
+            // io.send = function (...args) {
+            //   console.log(...args)
+            //   oldSend.call(io, ...args)
+            // }

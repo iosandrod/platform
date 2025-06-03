@@ -157,16 +157,7 @@ export function configureSocketio(port?: any, options?: any, config?: any) {
             const io = (this.io = new Server(port || server, options))
             let oldEmit = io.emit
             //@ts-ignore
-            // io.emit = function (...args) {
-            //   console.log(...args, 'sfsdfjsdfsd') //
-            //   oldEmit.call(io, ...args)
-            // }
-            // let oldSend = io.send
-            // //@ts-ignore
-            // io.send = function (...args) {
-            //   console.log(...args)
-            //   oldSend.call(io, ...args)
-            // }
+            
             io.use(disconnect(app, getParams, socketMap))
             io.use(params(app, socketMap))
             io.use(authentication(app, getParams))
@@ -178,14 +169,14 @@ export function configureSocketio(port?: any, options?: any, config?: any) {
 
           if (typeof config === 'function') {
             config.call(this, this.io)
-          } //
+          } ////
           resolve(this.io)
           return setup.call(this, server, ...rest)
         }
       })
     })
 
-    app.configure(
+    app.configure(//
       socket({
         done,
         socketMap,

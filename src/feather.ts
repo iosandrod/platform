@@ -10,12 +10,15 @@ import { errors } from '@feathersjs/errors'
 import { getDefaultEditPageLayout, getDefaultImportPageLayout, getDefaultPageLayout } from './layoutGetFn'
 import { BaseService } from './services/base.service'
 import { createMap, defaultServiceMethods } from './services'
+import { createNewApp } from './featherFn'
+import { channels } from './channels/channels'
 // const nanoid = () => 'xxxxx' //
 export const subAppCreateMap = {
   erp: createApp //
 }
 //构建自己的feather
 export class myFeathers extends Feathers<any, any> {
+  subAppCreateMap = subAppCreateMap
   captchaData: any = {}
   mainApp?: myFeathers
   cache: { [key: string]: any } = {}
@@ -28,30 +31,96 @@ export class myFeathers extends Feathers<any, any> {
     this.initCurrentHooks()
   }
   async getAllSubApp() {
-    const services = this.services //
-  } //
-  async getAllCompany() {
-    const companyService = this.service('company') //
-    const company = await companyService.find() ///
-    return company
-  }//
-  async createCompany(config: any) {
-    let client: Knex = this.get('postgresqlClient')
-    let name = config.name //创建公司
-    let companies = await client('company').where('name', name).select() //
-    if (companies.length === 0) {
-      let connection = config.connection
-      let type = config.type
-      if (connection == null) {
-        return
-      }
-      let _client = knex({
-        client: type,
-        connection: connection
-      })
-      await client('company').insert(config) //
-    }
+    const services = this.services
   }
+  async getAllCompany() {
+    let companyService = this.service('company') //
+    let company = await companyService.find({
+      query: {
+        userid: {
+          //大于0
+          $gt: 0
+        }
+      }
+    }) //
+    return company
+  } //
+  async createCompany(config: any) {
+    let s1 = await this.createService({ serviceName: 'company1' }) //
+
+    let appName = config.appName //
+    let userid = config.userid //
+    //创建数据库//
+    if (userid == null) {
+      throw new errors.BadRequest('用户不能为空') //
+    }
+    let companyS = this.service('company') //
+    let query = {
+      appName, //
+      userid
+    }
+    let hasRows = await companyS.find({
+      query
+    })
+    let tCompany = null
+    if (hasRows.length == 0) {
+      // throw new errors.BadRequest('公司已存在')
+      let companies = await companyS.create({
+        appName,
+        userid
+      })
+      // hasRows=[...companies]
+      tCompany = companies[0]
+    } else {
+      tCompany = hasRows[0]
+    }
+    let app = this
+    let sql1 = `SELECT pg_terminate_backend(pid)
+    FROM pg_stat_activity
+    WHERE datname = '${appName}'
+      AND pid <> pg_backend_pid();` //
+    let pgClient = app.get('postgresqlClient') //
+
+    await pgClient.raw(sql1)
+    let _key = `${appName}_${userid}` //
+    let sql = `CREATE DATABASE ${_key}
+        WITH
+        OWNER = postgres
+        TEMPLATE = ${appName};` //
+    //检查数据库是否存在
+    let sql2 = `SELECT EXISTS(SELECT FROM pg_database WHERE datname = '${_key}');`
+    let sql3 = `SELECT EXISTS(SELECT FROM pg_database WHERE datname = '${appName}');`
+    let data = await pgClient.raw(sql2) //
+    let data1 = await pgClient.raw(sql3) //
+    let isExist = data.rows[0].exists //
+    let isExist1 = data1.rows[0].exists //
+    if (isExist1 == false) {
+      throw new errors.BadRequest('不存在相关app')
+    } //
+    if (isExist == false) {
+      await pgClient.raw(sql)
+    }
+    //添加相关的数据库
+    let mainApp = this.getMainApp()
+    //添加相关数据源的app
+    let createMap = this.subAppCreateMap //
+    //@ts-ignore
+    let createFn = createMap[appName]
+    if (typeof createFn !== 'function') {
+      throw new errors.BadRequest('不存在相关app')
+    } //
+    //@ts-ignore
+    let _app: myFeathers = await this.registerSubApp({ ...tCompany, ...config }) //
+    let sers = _app.services //
+    let alls: any[] = Object.values(sers)
+    for (const s of alls) {
+      // console.log(s,'testS')////
+      let _s: BaseService = s
+      if (typeof s.init === 'function') {
+        await _s.init(_app as any) //
+      }
+    }
+  } //
   @cacheValue() //
   async getRoles(userid: string) {
     // let client = this.getPgClient()
@@ -239,21 +308,27 @@ ORDER BY
     return this.get('postgresqlClient')
   }
   async registerSubApp(config: any) {
-    const allEn = null
     let appName = config.appName //
     let companyId = config.userid || config.companyid //
-    // let c: Knex = this.get('postgresqlClient')
     //@ts-ignore
     const createFn = subAppCreateMap[appName] //
+    let company = config.company
     if (typeof createFn !== 'function') return // 不存在的服务不需要注册
     //@ts-ignore
     let subApp = await createFn(this, config) //
     let key = `${appName}_${companyId}` //
     let routePath = `/${key}` //
     this.use(routePath, subApp)
-    let subAppMap = this.subApp
+    let subAppMap = this.subApp //
     //@ts-ignore
     subAppMap[key] = subApp
+    let mainApp: any = this.getMainApp()
+    let server = mainApp.server
+    if (server) {
+      console.log('server 已经初始化') //
+      await subApp.setup(server)
+      subApp.configure(channels) //
+    }
     return subApp
   }
   getMainApp() {
@@ -363,7 +438,9 @@ ORDER BY
     let _names = await app.getCompanyTable()
     let allT = _names
     _names = Object.keys(_names) ////
-    names = [...names, ..._names] //
+    names = [...names, ..._names].filter((name, i) => {
+      return name != 'company1'
+    })
     names = names.filter((name, i) => names.indexOf(name) == i) //
     // let arr = []
     for (const name of names) {
@@ -386,22 +463,8 @@ ORDER BY
         id,
         ids
       }
-      //@ts-ignore
-      // let s = await this.createService(opt, app as any) //
-      // let obj = {
-      //   path: name,
-      //   service: s
-      // }
-      // arr.push(obj)
       await this.addService({ options: opt, serviceName: name }) //
     }
-    // let allServices = arr //
-    // for (const obj of allServices) {
-    //   const p: string = obj.path //装饰
-    //   const service = obj.service
-    //   //@ts-ignore
-    //   service.initHooks(app) //
-    // }
   }
   async addService(config: any) {
     let s = await this.createService(config)
@@ -429,6 +492,18 @@ ORDER BY
     let service = new createClass(_options) //
     service.serviceName = serviceName //服务名称
     return service
+  }
+  async initCurrentService() {
+    let services = this.services
+    let allS: any[] = Object.values(services)
+    for (const s of allS) {
+      await s.init(this) //
+    }
+    let subApp = this.subApp
+    let allSApp = Object.entries(subApp)
+    for (const [key, sApp] of allSApp) {
+      sApp.initCurrentService() //
+    }
   }
 }
 export const createFeathers = () => {

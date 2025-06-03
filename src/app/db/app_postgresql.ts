@@ -2,7 +2,6 @@ import { Application } from '@feathersjs/feathers'
 import knex from 'knex'
 
 export const appPostgresql = (app: Application, _config: any) => {
-  //
   let companyId = app.get('companyid') //获取公司ID
   companyId = companyId || 1
   const mainApp = app.mainApp //主应用
@@ -18,7 +17,7 @@ export const appPostgresql = (app: Application, _config: any) => {
     client,
     connection
   }
-//   console.log(_config, 'test_config') //
+  console.log(config,'testConfig123132')//
   const db = knex(config!)
   app.set('postgresqlClient', db) //
   mainApp?.set(`postgresqlClient_${companyId}_erp`, db) //
