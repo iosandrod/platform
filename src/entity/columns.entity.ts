@@ -72,4 +72,10 @@ export class ColumnEntity extends BaseEntity {
   baseinfoConfig: string
   @Column({ type: 'varchar', nullable: true })
   bgColor: string //
-} ////
+  @Column({ type: 'integer', nullable: true })
+  addDisabled: number //
+  @Column({ type: 'integer', nullable: true })
+  editDisabled: number
+  @Column({ type: 'integer', nullable: true })
+  required: number //
+}

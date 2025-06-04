@@ -504,6 +504,34 @@ ORDER BY
     for (const [key, sApp] of allSApp) {
       sApp.initCurrentService() //
     }
+  } //
+  async getOptionsFieldSelect(fields: string[]) {
+    if (!Array.isArray(fields) || fields.length == 0) {
+      return {}
+    }
+    let ds = this.service('DataDictionary')
+    // console.log(fields, 'testF') //
+    let data = await ds.find({
+      query: {
+        DictionaryName: {
+          //
+          $in: fields //
+        }
+      }
+    })
+    let obj: any = {}
+    for (const f of fields) {
+      obj[f] = data
+        .filter((item: any) => item.DictionaryName == f)
+        .map((item: any) => {
+          let value = item.DictionaryKey
+          let label = item.DictionaryValue
+          item.label = label
+          item.value = value
+          return item
+        })
+    } //
+    return obj //
   }
 }
 export const createFeathers = () => {

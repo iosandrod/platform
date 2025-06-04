@@ -9,4 +9,6 @@ export class Permission extends BaseEntity {
 
     @Column({ type: "varchar" })
     subject: string; // Article, Comment, User, all
+    @Column({ type: "integer", nullable: true })
+    roleid: number//
 }

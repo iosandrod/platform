@@ -1,5 +1,5 @@
 import { HookContext } from '@feathersjs/feathers'
-import { useHook, useMethodTransform } from '../decoration'
+import { useHook, useMethodTransform, useRoute } from '../decoration'
 import { BaseService } from './base.service'
 import { myFeathers } from '../feather'
 @useHook({
@@ -15,7 +15,8 @@ import { myFeathers } from '../feather'
       let data = context.data || {} //
       let _this = context.app.service('columns')
       let allD = await _this.find()
-      if (Array.isArray(data)) {//
+      if (Array.isArray(data)) {
+        //
         let _data = data
           .map(item => {
             let tableName = item.tableName
@@ -23,10 +24,10 @@ import { myFeathers } from '../feather'
             if (allD.findIndex((v: any) => v.tableName == tableName && v.field == field) != -1) {
               return null
             }
-            return item//
+            return item //
           })
           .filter(v => v != null)
-          // console.log(_data,allD)//
+        // console.log(_data,allD)//
         context.data = _data //
       }
       await next()
@@ -52,6 +53,15 @@ export class ColumnService extends BaseService {
     //@ts-ignore
     return await super.create(...args)
   }
+  @useRoute()
+  async getOptionsFieldSelect(data: any) {
+    if (!Array.isArray(data)) {
+      return {} //
+    }
+    let app = this.app //
+    let selectValue = await app.getOptionsFieldSelect(data)
+    return selectValue
+  } //
 }
 
 export default ColumnService

@@ -716,8 +716,8 @@ WHERE table_name = '${schema}'
     if (!filters.$sort && ['mssql', 'pg'].includes(builder.client.driverName)) {
       builder.orderBy(`${name}.${id}`, 'asc') //
     } //
-    let query = builder.toQuery()
-    console.log(query) //
+    let query = builder.toSQL() //
+    console.log(query.sql) ////
     let data = filters.$limit === 0 ? [] : await builder.catch(errorHandler)
 
     if (paginate && paginate.default) {
@@ -890,7 +890,7 @@ WHERE table_name = '${schema}'
         $or: _qArr
       }
     })
-    return allD //
+    return allD
   }
   //@ts-ignore
   async _get(id: any, params: ServiceParams = {} as ServiceParams): Promise<Result> {
