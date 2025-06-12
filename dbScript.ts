@@ -19,6 +19,7 @@ import { DataDictionary } from './src/entity/dictionary.entity'
 import { Selection } from './src/entity/selection.entity'
 import knex from 'knex'
 import { setCurrentDbType } from './src/entity/json/jsonColumnFactory'
+import { TableView } from './src/entity/tableview.entity'
 async function main() {
   // let _knex = knex({
   //   client: 'pg',
@@ -30,7 +31,7 @@ async function main() {
     type: 'postgres',
     host: 'localhost',
     username: 'postgres',
-    password: '123456',//
+    password: '123456', //
     database: 'platform', //
     // type: 'mssql',
     // host: 'localhost\\MSSQLSERVER2016',
@@ -47,8 +48,9 @@ async function main() {
       DataDictionary,
       Selection,
       FieldEntity,
-      Entity, //
-      User,
+      Entity,
+      TableView,
+      User, //
       Role,
       Permission,
       RolePermission,
@@ -59,7 +61,7 @@ async function main() {
       Upload
     ] //
   }
-  setCurrentDbType(dbConfig.type)////
+  setCurrentDbType(dbConfig.type) ////
   const dataSource = new DataSource(dbConfig)
   dataSource.initialize().then(() => {
     console.log('主数据库创建成功') //

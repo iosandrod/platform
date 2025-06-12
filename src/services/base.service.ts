@@ -61,11 +61,13 @@ const METHODS = {
 
 //@ts-ignore
 export class BaseService extends KnexService implements bs {
+  isInit = false
+  // isView: boolean = false //
   unionId: any[] = [] //
   _ajvInstance?: Ajv
   ids?: string[] //
   cache: { [key: string]: any } = {}
-  serviceName?: string //
+  serviceName: string //
   transformMetaData?: any
   vSchema?: ValidateFunction
   totalSchema?: TObject
@@ -158,8 +160,12 @@ export class BaseService extends KnexService implements bs {
   }
   getCompanyName() {}
   //@ts-ignore
-  createQuery(params: ServiceParams = {} as ServiceParams) {
+  createQuery(params: any = {} as ServiceParams) {
     let { name, id } = this.getOptions(params)
+    let viewTable = params.viewTable
+    if (typeof viewTable == 'string') {
+      name = viewTable
+    }
     //@ts-ignore
     let { filters, query } = this.filterQuery(params) //
     //@ts-ignore
@@ -190,6 +196,11 @@ export class BaseService extends KnexService implements bs {
     return builder
   }
   async init(mainApp?: Application) {
+    if (this.isInit == true) {
+      return
+    }
+    //@ts-ignore
+
     //@ts-ignore
     this.app = mainApp
     let Model = this.Model
@@ -202,13 +213,17 @@ export class BaseService extends KnexService implements bs {
     let allColumnName = columns.map((col: any) => col.field) //
     this.columns = allColumnName //
     this.columnInfo = columns ////
+    let id = this.getId()
+    if (this.columnInfo.map((col: any) => col.field).includes(id) == false) {
+    } //
     let routes = this.routes
     if (!routes) {
       this.routes = []
       routes = this.routes
     }
     //构建校验
-    await this.buildDbSchema() //
+    await this.buildDbSchema()
+    this.isInit = true
   }
   //@ts-ignore
   db(params?: ServiceParams): Knex {
@@ -295,17 +310,24 @@ export class BaseService extends KnexService implements bs {
 
     const flatValues = valuePairs.flat()
 
-    const whereClause = `(${keyColumns.map(col => `"${col}"`).join(', ')}) IN (${formattedValues})`
+    const whereClause = `(${keyColumns.map(col => `"${col}"`).join(', ')}) IN (${formattedValues})` //
     let result = await knex(table).select('*').whereRaw(whereClause, flatValues).toSQL()
     let _res = await this.db().raw(result.sql, result.bindings)
-    let _d = _res?.rows
+    let _d = _res?.rows //
     if (_d.length > 0) {
       throw new errors.BadRequest(`联合主键重复${keyColumns}`) //
     }
     return _d //
   }
   async create(data: any, params?: any): Promise<any> {
-    let route = params['route']
+    if (this.getIsView() == true) {
+      let realTableName = await this.app.getRealServiceName(this.serviceName)
+      if (realTableName == null) {
+        throw new errors.BadRequest(`无法新增`)
+      }
+      let realService = this.app.service(realTableName)
+      return realService.create(data, params) //
+    }
     if (typeof params?.getMainParam == 'function') {
       params = params.getMainParam()
     } //
@@ -479,6 +501,7 @@ WHERE table_name = '${schema}'
       //@ts-ignore
       .insert(data, ['*'], { includeTriggerModifications: true }) //
       .toQuery()
+    console.log(query, 'testInsertQuery') //
     let _rows = null
     try {
       //
@@ -558,7 +581,7 @@ WHERE table_name = '${schema}'
 
   async multiCreate(data: any, params?: any) {}
   async buildDbSchema() {
-    let columnInfo = this.columnInfo
+    let columnInfo = this.columnInfo //
     let schema = columnInfo.reduce((result: any, item) => {
       let field = item.field!
       let type = item.type as keyof typeof typeMap
@@ -580,11 +603,19 @@ WHERE table_name = '${schema}'
         } //
         _obj = _obj1()
       }
+      if (_obj == null) {
+        //@ts-ignore
+        return result
+      }
       result[field] = _obj //
       return result
     }, {})
-    // console.log(schema)
-    this.totalSchema = Type.Object(schema) //
+    try {
+      // console.log(schema)
+      this.totalSchema = Type.Object(schema) //
+    } catch (error) {
+      console.log('字段类型没有映射', schema, columnInfo) //
+    }
     let aj = new Ajv()
     let formatArr = [
       'date-time',
@@ -603,7 +634,7 @@ WHERE table_name = '${schema}'
       'regex'
     ]
     let validate = addFormats(aj, formatArr as any)
-    let vSchema = validate.compile(this.totalSchema) //
+    let vSchema = validate.compile(this.totalSchema || {}) //
     this.vSchema = vSchema
     //@ts-ignore
   }
@@ -612,17 +643,25 @@ WHERE table_name = '${schema}'
     return this.id
   }
   getModel(params: any = {}) {
+    //
     let { Model } = this.getOptions(params)
     return Model
   }
   //@ts-ignore
   getOptions(params: any = {}): KnexAdapterOptions {
     let paginate = params.paginate !== undefined ? params.paginate : this.options.paginate
-    return {
+    // let name = params.viewTable
+    let obj = {
+      //
       ...this.options,
       paginate,
       ...params.adapter
     }
+    // if (typeof name == 'string') {
+    //   obj.viewTable = name
+    //   obj.name = name
+    // }
+    return obj //
   }
   //@ts-ignore
 
@@ -679,17 +718,16 @@ WHERE table_name = '${schema}'
   }
   //@ts-ignore
   async find(params?: any): Promise<any[]> {
-    let q = await this.sanitizeQuery(params)
-    // console.log(q, params)
+    let q = await this.sanitizeQuery(params) //
     //@ts-ignore
     return this._find({
       ...params,
       //@ts-ignore//
       query: q //
     })
-  }
+  } //
   //@ts-ignore
-  async _find(params: ServiceParams = {} as ServiceParams): Promise<Paginated<any> | any[]> {
+  async _find(params: any = {} as any): Promise<Paginated<any> | any[]> {
     // console.log(params, 'sfjkdslfjslfsd')//
     //@ts-ignore
     let { filters, paginate } = this.filterQuery(params)
@@ -698,6 +736,11 @@ WHERE table_name = '${schema}'
     let { name, id } = this.getOptions(params)
     //@ts-ignore
     let builder = params.knex ? params.knex.clone() : this.createQuery(params)
+    let viewTable = params.viewTable
+    if (typeof viewTable == 'string') {
+      builder = builder.table(viewTable) //
+      name = viewTable //
+    }
     let countBuilder = builder.clone().clearSelect().clearOrder().count(`${name}.${id} as total`)
     let _limit = filters.$limit
     if (_limit == null) {
@@ -714,10 +757,15 @@ WHERE table_name = '${schema}'
     // provide default sorting if its not set
     // if (!filters.$sort && builder.client.driverName === 'mssql') {
     if (!filters.$sort && ['mssql', 'pg'].includes(builder.client.driverName)) {
-      builder.orderBy(`${name}.${id}`, 'asc') //
+      let isView = this.getIsView()
+      if (isView == false) {
+        builder.orderBy(`${name}.${id}`, 'desc')
+      } else {
+        //
+      } //
     } //
     let query = builder.toSQL() //
-    console.log(query.sql) ////
+    console.log(query.sql, query.bindings) ////
     let data = filters.$limit === 0 ? [] : await builder.catch(errorHandler)
 
     if (paginate && paginate.default) {
@@ -735,6 +783,15 @@ WHERE table_name = '${schema}'
   }
   //@ts-ignore
   async patch(id: NullableId, data: any, params?: any): Promise<any> {
+    let isView = this.getIsView()
+    if (isView == true) {
+      let realTableName = await this.app.getRealServiceName(this.serviceName)
+      if (realTableName == null) {
+        throw new errors.BadRequest(`无法更新`)
+      }
+      let realService = this.app.service(realTableName)
+      return realService.patch(id, data, params) //
+    }
     //@ts-ignore
     let { $limit, ...query } = await this.sanitizeQuery(params)
     if (Array.isArray(id) || (typeof id == 'object' && id != null)) {
@@ -813,7 +870,7 @@ WHERE table_name = '${schema}'
         let builder = this.createQuery(updateParams)
         let res = builder
           .table(this.serviceName!)
-          .update(d, [], { includeTriggerModifications: true })
+          .update(d, ['*'], { includeTriggerModifications: true })
           .toSQL()
         sqlArr.push(res.sql)
         buildArr.push(res.bindings)
@@ -853,9 +910,12 @@ WHERE table_name = '${schema}'
 
     resArr = await Promise.all(
       sqlArr.map(async (s, i) => {
-        return await this.db(params).raw(s, buildArr[i]) //
+        let _res = await this.db(params).raw(s, buildArr[i]) //
+        let rows = _res?.rows //
+        return rows //
       })
     )
+    resArr = resArr.flat() //
     if (resArr.length == 1) {
       let _data = originData
       for (const row of _data) {
@@ -885,12 +945,8 @@ WHERE table_name = '${schema}'
         }
       }
     }
-    let allD = await this.find({
-      query: {
-        $or: _qArr
-      }
-    })
-    return allD
+
+    return resArr
   }
   //@ts-ignore
   async _get(id: any, params: ServiceParams = {} as ServiceParams): Promise<Result> {
@@ -1046,6 +1102,15 @@ WHERE table_name = '${schema}'
   }
   //@ts-ignorex
   async remove(id: any, params?: any, data?: any): Promise<Result | Result[]> {
+    let isView = this.getIsView()
+    if (isView == true) {
+      let realTableName = await this.app.getRealServiceName(this.serviceName)
+      if (realTableName == null) {
+        throw new errors.BadRequest(`无法删除`)
+      }
+      let realService = this.app.service(realTableName)
+      return realService.remove(id, params, data) //
+    }
     // console.log(id, params?.query, data, 'remove') //
     const { $limit, ...query } = await this.sanitizeQuery(params)
     return this._remove(id, {
@@ -1097,22 +1162,22 @@ WHERE table_name = '${schema}'
     q = this.knexify(q, query)
     q = this.knexify(q, q1) //
     // let s= q.delete([], { includeTriggerModifications: true }).catch(errorHandler)
-    let s = q.delete([], { includeTriggerModifications: true }).toSQL()
-    // if (1 == 1) {
-    //   return s //
-    // }
+    let s = q.delete([], { includeTriggerModifications: true }).toSQL() //
     let sql = s.sql
     let bindings = s.bindings
-    // console.log(sql, 'sql') //
-    let _res = await this.db().raw(sql, bindings)
-    // if (id !== null) {
-    //   if (items.length === 1) {
-    //     return items[0]
-    //   }
-    //   throw new errors.NotFound(`No record found for id '${id}'`)
-    // }
-    // return items
+    let _res = await this.db().raw(sql, bindings) //
     return '删除单据成功' //
   }
-}
-//
+  @useGlobalRoute()
+  async getTableData(params: any, context: any) {
+    let _data = await this.find(params)
+    return _data //
+  }
+  getIsView() {
+    let opt = this.getOptions()
+    //@ts-ignore
+    // console.log(opt.isView,opt, 'isView')
+    //@ts-ignore
+    return Boolean(opt.isView)
+  }//
+} //

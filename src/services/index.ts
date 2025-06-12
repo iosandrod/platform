@@ -21,6 +21,7 @@ import TableService from './table.service'
 import CaptchaService from './captcha.service'
 import { myAuth } from '../auth'
 import { UploadService } from './upload.service'
+import PermissionService from '../app/app_service/permissions.service'
 export const defaultServiceMethods = ['find', 'get', 'create', 'update', 'patch', 'remove']
 export const services = async (app: myFeathers) => {
   let names = Object.keys(createMap) //
@@ -91,15 +92,16 @@ export const createServices = async (serverName: keyof typeof createMap, options
 }
 
 export const createMap = {
-  columns: ColumnService, //
-  tables: TableService,
+  columns: ColumnService, 
   navs: NavService, //
   company: CompanyService,
   users: UsersService,
   entity: EntityService, //
   captcha: CaptchaService, //
-  uploads: UploadService //
-}
+  uploads: UploadService,
+  permissions: PermissionService,
+  tableview: TableService
+} //
 export async function importModulesFromFolder(directory: string) {
   const files = await fs.readdirSync(directory)
   const modules = [] as any

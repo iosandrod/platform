@@ -1,7 +1,7 @@
 import { Application, defaultServiceMethods, HookContext, NextFunction } from '@feathersjs/feathers'
 import { UsersService } from './users.service'
 import { RolePermission } from '../../entity/role_permission.entity'
-import { PermissinoService } from './permissions.service'
+import { PermissionService } from './permissions.service'
 import { RoleService } from './roles.service'
 import { KnexAdapterOptions } from '@feathersjs/knex'
 import _ from 'lodash' //
@@ -39,7 +39,7 @@ export async function importModulesFromFolder(directory: string = __dirname, mai
 const createMap = {
   users: UsersService,
   roles: RoleService,
-  permissions: PermissinoService,
+  permissions: PermissionService,//
   entity: EntityService,
   captcha: CaptchaService//
 }

@@ -10,7 +10,7 @@ import { errors } from '@feathersjs/errors'
 import { getDefaultEditPageLayout, getDefaultImportPageLayout, getDefaultPageLayout } from './layoutGetFn'
 import { BaseService } from './services/base.service'
 import { createMap, defaultServiceMethods } from './services'
-import { createNewApp } from './featherFn'
+import { columnToTable, createNewApp } from './featherFn'
 import { channels } from './channels/channels'
 // const nanoid = () => 'xxxxx' //
 export const subAppCreateMap = {
@@ -18,6 +18,9 @@ export const subAppCreateMap = {
 }
 //构建自己的feather
 export class myFeathers extends Feathers<any, any> {
+  publish(arg0: string, arg1: {}) {
+    throw new Error('Method not implemented.')
+  }
   subAppCreateMap = subAppCreateMap
   captchaData: any = {}
   mainApp?: myFeathers
@@ -25,7 +28,7 @@ export class myFeathers extends Feathers<any, any> {
   cacheKnex: { [key: string]: Knex } = {}
   subApp: {
     [key: string]: Application
-  } = {}
+  } = {}  
   constructor() {
     super()
     this.initCurrentHooks()
@@ -135,7 +138,9 @@ export class myFeathers extends Feathers<any, any> {
     return [] //
   }
   getPgClient(): Knex {
-    return this.get('postgresqlClient')
+    let c= this.get('postgresqlClient')
+    console.log(c,'dsjkfsjlkfsdjlfsl')//
+    return c
   }
   @cacheValue((id: any) => {
     if (Array.isArray(id)) {
@@ -163,10 +168,9 @@ export class myFeathers extends Feathers<any, any> {
   async getAllApp() {} //
   async getCurrentTable() {}
   //@ts-ignore
-  async getCompanyConnection(company: any, appName?: string): Promise<Knex> {
+  async getCompanyConnection(company?: any, appName?: string): Promise<Knex> {
     let client = this.getClient()
     if (typeof company === 'number') {
-      //
       let cacheKnex = this.cacheKnex
       let _key = `${appName}--${company}`
       let _knex = cacheKnex[_key]
@@ -174,7 +178,6 @@ export class myFeathers extends Feathers<any, any> {
         return _knex //
       }
       if (appName == null || company == null) {
-        //
         return this.getPgClient() //
       } //
       let companyInfo = await client('company')
@@ -217,7 +220,8 @@ export class myFeathers extends Feathers<any, any> {
       appName = ''
     }
     return `${companyid}--${appName}`
-  }) //
+  })
+  //获取所有的表结构
   async getCompanyTable(companyid?: string, appName?: string) {
     //@ts-ignore
     let _this: myFeathers = this.getMainApp()
@@ -234,6 +238,7 @@ export class myFeathers extends Feathers<any, any> {
     let sql = `SELECT 
     cols.attname AS column_name,
     tbl.relname AS table_name,
+    tbl.relkind AS table_type,
     ns.nspname AS table_schema,
     cols.attnum AS ordinal_position,
     pg_catalog.format_type(cols.atttypid, cols.atttypmod) AS data_type,
@@ -255,42 +260,17 @@ LEFT JOIN
 WHERE 
     cols.attnum > 0 
     AND NOT cols.attisdropped
-    AND tbl.relkind = 'r'  -- 只查真正的表，排除视图（'v'）和其他类型
+    AND tbl.relkind IN ('r', 'v')  -- 只查真正的表，排除视图（'v'）和其他类型
     AND ns.nspname = 'public'
 ORDER BY 
     tbl.relname, cols.attnum;
 `
     let allColumns = await _connect.raw(sql) //////
     allColumns = allColumns.rows //
-    allColumns.forEach((col: any) => {
-      col.tableName = col.table_name //
-      let field = col.column_name
-      col.field = field
-      let nullable = col.is_not_null
-      nullable = !nullable //
-      col.nullable = nullable
-      let defaultValue = col.column_default
-      col.defaultValue = defaultValue
-      let maxLength = col.character_maximum_length
-      col.maxLength = maxLength //
-      col.type = col.data_type //
-    })
-    let tables = allColumns.reduce((p: any, column: any) => {
-      let table_name = column.table_name //
-      let tableObj = p[table_name]
-      if (tableObj == null) {
-        p[table_name] = {
-          columns: [],
-          tableName: table_name //
-        }
-        tableObj = p[table_name]
-      }
-      tableObj.columns.push(column) ////
-      return p //
-    }, {})
+    let tables = columnToTable(allColumns) //
     return tables //
   } //
-  clearCache(fnName: string, key: string) {
+  clearCache(fnName: string, key?: string) {
     //
     if (fnName == null) {
       return
@@ -369,6 +349,7 @@ ORDER BY
   } //
   createFieldKey() {}
   async getDefaultPageLayout(tableName: string) {
+    //
     let obj = await getDefaultPageLayout(this, tableName)
     return obj
   }
@@ -436,18 +417,24 @@ ORDER BY
     let names: any[] = Object.keys(createMap) //
     let app = this
     let _names = await app.getCompanyTable()
+  
     let allT = _names
     _names = Object.keys(_names) ////
     names = [...names, ..._names].filter((name, i) => {
-      return name != 'company1'
+      return name != null
     })
     names = names.filter((name, i) => names.indexOf(name) == i) //
     // let arr = []
     for (const name of names) {
+      let isView = false
       let id = 'id'
       let ids = [] //
       let _t = allT[name]
       if (_t) {
+        let _isView = _t.isView
+        if (_isView == true) {
+          isView = true
+        }
         let primaryKey = _t.columns.filter((col: any) => col['is_primary_key'] == true)
         ids = primaryKey.map((col: any) => col['column_name'])
         // console.log(name, ids)//
@@ -461,15 +448,31 @@ ORDER BY
       let opt = {
         serviceName: name,
         id,
-        ids
+        ids,
+        isView
       }
       await this.addService({ options: opt, serviceName: name }) //
     }
   }
-  async addService(config: any) {
+  async addService(
+    config: {
+      options: {
+        id: string
+        ids: string[]
+        serviceName: string
+      }
+      serviceName: string
+    } & any
+  ) {
+    let _service = this.services[config.serviceName] //
+    if (_service) {
+      return //
+    }
     let s = await this.createService(config)
     await s.initHooks(this) //
-  }
+    //@ts-ignore
+    s.init(this)
+  } //
   async createService(config: any) {
     let serviceName = config.serviceName //
     let app = this
@@ -487,6 +490,7 @@ ORDER BY
     //@ts-ignore
     let _sClass = createMap[serviceName]
     if (_sClass) {
+      //
       createClass = _sClass
     }
     let service = new createClass(_options) //
@@ -532,6 +536,13 @@ ORDER BY
         })
     } //
     return obj //
+  }
+  @cacheValue()
+  async getRealServiceName(serviceName: string) {
+    let sql = `select "realTableName" from  entity where "tableName"='${serviceName}'`
+    let data = await this.getPgClient().raw(sql)
+    let realTableName = data.rows?.[0]?.['realTableName']
+    return realTableName
   }
 }
 export const createFeathers = () => {

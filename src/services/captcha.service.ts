@@ -9,11 +9,11 @@ import { myFeathers } from '../feather'
 import { BaseService } from './base.service'
 import createSvg from 'svg-captcha'
 export class CaptchaService extends BaseService {
-  serviceName?: string | undefined = 'captcha' //
+  serviceName: string = 'captcha' //
   constructor(options: any) {
     super(options) //
   }
-  //@ts-ignore
+  //@ts-ignore 
   @useUnAuthenticate()
   async create(data: any, params: any) {
     let headers = params.headers //

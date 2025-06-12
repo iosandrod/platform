@@ -22,7 +22,8 @@ export let appArr = [
   {
     companyid: '1',
     name: 'erp',
-    companyId: 1, //
+    companyId: 1,
+
     appName: 'erp',
     userid: 1
   }

@@ -26,7 +26,7 @@ export class DataDictionary {
   @Column({ type: 'varchar', name: 'cType', nullable: true })
   cType?: string
 
-  @Column({ ...dateColumn({ name: "dOpeDate" }), })//
+  @Column({ ...dateColumn({ name: "dOpeDate" , nullable: true}), })//
   dOpeDate?: Date
 
   @Column({ type: 'varchar', name: 'cDetailNote', nullable: true })
@@ -80,6 +80,6 @@ export class DataDictionary {
   @Column({ type: 'timestamp', name: 'cDefine16', nullable: true })
   cDefine16?: Date
 
-  @Column({ type: 'char', length: 1, name: 'bVisible', default: () => `'1'` })
+  @Column({ type: 'char', length: 1, name: 'bVisible', nullable: true, default: () => `'1'` })
   bVisible?: string
-} 
+}  

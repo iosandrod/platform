@@ -142,11 +142,13 @@ export const mergeCols = (cols1: any, cols2: any, isMain: boolean = false) => {
         }
         Object.entries(tCol).forEach(([k, v]) => {
           let ov = col1[k] //
-          if (ov == null || ['type', 'fieldFormat'].includes(k)) {
-            col1[k] = v
-          } //
-          if (isMain) {
-            col1[k] = v //
+          if(isMain==true){
+            if (ov == null || ['type', 'fieldFormat'].includes(k)) {
+              col1[k] = v
+            } //
+            if (isMain) {
+              col1[k] = v //
+            }
           }
         })
         col1['id'] = tCol['id']

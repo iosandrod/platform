@@ -47,7 +47,7 @@ export class UploadService extends BaseService {
   returnUri = true
   fileModel: any
   fileId = 'id'
-  serviceName?: string | undefined = 'uploads' //
+  serviceName: string = 'uploads' //
   constructor(options: any) {
     super(options) //
     this.returnBuffer = options.returnBuffer || false

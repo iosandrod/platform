@@ -15,10 +15,10 @@ import { debug } from 'feathers-hooks-common'
 import { createPasswordTransform } from '../generateHooks'
 import { myFeathers } from '../feather'
 export class UsersService extends BaseService {
-  serviceName?: string | undefined = 'users' //
+  serviceName: string = 'users' //
   constructor(options: any) {
     super(options) //
-  }
+  } 
   //@ts-ignore
   async find(...args) {
     return super.find(...args)

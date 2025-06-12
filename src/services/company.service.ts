@@ -65,7 +65,7 @@ import { errors } from '@feathersjs/errors'
 })
 export class CompanyService extends BaseService {
   //联合
-  serviceName?: string | undefined = 'company' //
+  serviceName: string  = 'company' //
   unionId = ['appName', 'userid'] //
   async create(...args: any[]) {
     //@ts-ignore

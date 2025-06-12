@@ -494,3 +494,119 @@ WHERE datname = '${appName}'
             //   console.log(...args)
             //   oldSend.call(io, ...args)
             // }
+
+            // if (id !== null) {
+    //   if (items.length === 1) {
+    //     return items[0]
+    //   }
+    //   throw new errors.NotFound(`No record found for id '${id}'`)
+    // }
+    // return items
+
+    //   let res: any = context.result
+      //   let rows = res
+      //   for (const item of rows) {
+      //     //
+      //     let tableName = item.tableName
+      //     let app: myFeathers = context.app
+      //     let colS: TableService = app.service('columns') as any
+      //     let _this = colS
+      //     let allTable = await app.getCompanyTable(_this.getCompanyId(), _this.getAppName())
+      //     let tTable = allTable[tableName]
+      //     if (tTable != null) {
+      //       let columns = JSON.parse(JSON.stringify(tTable.columns || [])) //
+      //       columns.forEach((col: any) => {
+      //         let nullable = col.nullable
+      //         if (nullable == false) {
+      //           col.nullable = '0'
+      //         } else {
+      //           col.nullable = '1' //
+      //         }
+      //       })
+      //       await colS.create(columns, {}) //
+      //     }
+      //   } //
+
+       //添加列
+          /* 
+            {
+    name: 'iNstructionsCode',
+    tableID: 180522,
+    columnID: 62,
+    dataTypeID: 1043,
+    dataTypeSize: -1,
+    dataTypeModifier: -1,
+    format: 'text'
+  }
+          */
+          //   console.log(data.fields)
+
+          // "authentication": {
+    //   "strategy": "local",
+    //   "payload": {
+    //     "iat": 1745995936,//
+    //     "exp": 1746082336,
+    //     "aud": "https://yourdomain.com",
+    //     "sub": "1",
+    //     "jti": "6ecb02bd-a0de-428e-9688-afe391abe1e1"
+    //   }
+    // },
+    // "user": {
+    //   "id": 1,
+    //   "createdAt": "2025-04-30T06:52:03.149Z",
+    //   "updatedAt": "2025-04-30T06:52:03.149Z",
+    //   "username": "1",
+    //   "email": "1",
+    //   "password": "$2b$10$gVfIaJyDH.Fqbn5.fnOKSuNpfKSfjV.61ER/Top/kVqyByh/kmqFy",
+    //   "companyid": null,
+    //   "appName": null
+    // }
+
+
+      // let columnInfo = this.columnInfo.map(item => item.field)
+      // if (columnInfo.includes(id)) {
+      // } else {
+      //   this.isView = true
+      // }
+
+      // let allTableName = result.map(row => {
+        //   return row.viewName
+        // })
+        // let reColumns: any[] = await colService.find({
+        //   query: {
+        //     tableName: {
+        //       $in: allTableName
+        //     }
+        //   }
+        // })
+        // let tableObj = reColumns.reduce((res: any, item: any) => {
+        //   let tableName = item.tableName
+        //   let t = res[tableName]
+        //   if (t == null) {
+        //     res[tableName] = []
+        //     t = res[tableName]
+        //   }
+        //   t.push(item)
+        //   return res
+        // }, {})
+        // result.forEach(res => {
+        //   let tableName = res.tableName
+        //   res['columns'] = tableObj[tableName] //
+        // })
+
+
+        //@ts-ignore
+        // let service: TableService = app.service('tables')
+        // let tableName = query.tableName
+        // if (tableName != null) {
+        //   let res = await service.saveDefaultTableInfo(tableName) //
+        //   context.result = res //
+        // }
+
+        // let allD = await this.find({
+    //   query: {
+    //     $or: _qArr
+    //   }
+    // })
+    // console.log(allD, 'testArr') //
+    // return allD 

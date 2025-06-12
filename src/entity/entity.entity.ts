@@ -89,4 +89,13 @@ export class Entity extends BaseEntity {
     })
   )
   events: string //
+  @Column({
+    type: 'varchar',
+    nullable: true
+  }) //
+  viewTableName: string
+  @Column({ type: 'jsonb', nullable: true })
+  dragConfig: string //
+  @Column({ type: 'varchar', nullable: true })
+  platform: string //
 } //

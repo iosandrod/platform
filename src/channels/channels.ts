@@ -1,9 +1,19 @@
 // For more information about this file see https://dove.feathersjs.com/guides/cli/channels.html
 import type { RealTimeConnection, Params } from '@feathersjs/feathers'
 import type { AuthenticationResult } from '@feathersjs/authentication'
-import '@feathersjs/transport-commons'
+// import { keys } from '@feathersjs/transport-commons/src/channels/mixins'
 import type { Application, HookContext } from '../declarations'
 import { logger } from '../utils/logger'
+// const PUBLISHERS = Symbol.for('@feathersjs/transport-commons/publishers')
+// const CHANNELS = Symbol.for('@feathersjs/transport-commons/channels')
+// const ALL_EVENTS = Symbol.for('@feathersjs/transport-commons/all-events')
+
+// export const keys = {
+//   PUBLISHERS: PUBLISHERS as typeof PUBLISHERS,
+//   CHANNELS: CHANNELS as typeof CHANNELS,
+//   ALL_EVENTS: ALL_EVENTS as typeof ALL_EVENTS
+// }
+// console.log(keys,'sfsfsfs')//
 export const channels = (app: Application) => {
   logger.warn(
     'Publishing all events to all authenticated users. See `channels.ts` and https://dove.feathersjs.com/api/channels.html for more information.'
