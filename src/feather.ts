@@ -28,7 +28,7 @@ export class myFeathers extends Feathers<any, any> {
   cacheKnex: { [key: string]: Knex } = {}
   subApp: {
     [key: string]: Application
-  } = {}  
+  } = {}
   constructor() {
     super()
     this.initCurrentHooks()
@@ -138,8 +138,7 @@ export class myFeathers extends Feathers<any, any> {
     return [] //
   }
   getPgClient(): Knex {
-    let c= this.get('postgresqlClient')
-    console.log(c,'dsjkfsjlkfsdjlfsl')//
+    let c = this.get('postgresqlClient')
     return c
   }
   @cacheValue((id: any) => {
@@ -417,7 +416,7 @@ ORDER BY
     let names: any[] = Object.keys(createMap) //
     let app = this
     let _names = await app.getCompanyTable()
-  
+
     let allT = _names
     _names = Object.keys(_names) ////
     names = [...names, ..._names].filter((name, i) => {
@@ -523,10 +522,42 @@ ORDER BY
         }
       }
     })
+    let _arr: any[] = []
+    data = data.filter((item: any) => {
+      let sql = item.cDefine1
+      if (sql?.length > 0) {
+        _arr.push(item)
+        return false
+      }
+      return true
+    }) //
+    let _arr1 = _arr.map((item: any) => {
+      return item.DictionaryName
+    })
     let obj: any = {}
+    for (const item of _arr) {
+      let sql = item.cDefine1 //
+      let client = this.getPgClient()
+      let data = await client.raw(sql)
+      let rows = data.rows //
+      let r0 = rows[0] || {}
+      if (Object.keys(r0).includes('key')) {
+        rows = rows.map((item: any) => {
+          return {
+            value: item.key,
+            label: item.value //
+          }
+        })
+      }
+      let DictionaryName = item.DictionaryName
+      obj[DictionaryName] = rows //
+    }
     for (const f of fields) {
+      if (_arr1.includes(f)) {
+        continue //
+      }
       obj[f] = data
-        .filter((item: any) => item.DictionaryName == f)
+        .filter((item: any) => item.DictionaryName == f) //
         .map((item: any) => {
           let value = item.DictionaryKey
           let label = item.DictionaryValue

@@ -48,7 +48,8 @@ export async function createApp() {
       }
     })
   )
-  await app.configure(postgresql) ////
+  // await app.configure(postgresql) ////
+  await postgresql(app) //
   // await services(app) //
   await app.initTableService() //
   app.configure(channels)

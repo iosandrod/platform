@@ -868,9 +868,13 @@ WHERE table_name = '${schema}'
         }
         delete d[idField]
         let builder = this.createQuery(updateParams)
+        // console.log(typeof d.dDate, 'sdkfslfjsdlfsdsfd') //
+        // d['dDate']='2022-01-01'//
         let res = builder
           .table(this.serviceName!)
-          .update(d, ['*'], { includeTriggerModifications: true })
+          .update(d, ['*'], {
+            // includeTriggerModifications: true
+          })
           .toSQL()
         sqlArr.push(res.sql)
         buildArr.push(res.bindings)
@@ -910,7 +914,16 @@ WHERE table_name = '${schema}'
 
     resArr = await Promise.all(
       sqlArr.map(async (s, i) => {
-        let _res = await this.db(params).raw(s, buildArr[i]) //
+        // console.log(s,buildArr[i], 's')//
+        for (const value of buildArr[i]) {
+          //判断是否Date类型
+          if (value instanceof Date) {
+            console.log('是的刷卡机分类算法几十块龙卷风老师会计法老师') //
+          }
+        }
+        let client=this.app.getPgClient()
+        // let _res = await this.db(params).raw(s, buildArr[i]) //
+        let _res = await client.raw(s, buildArr[i])//
         let rows = _res?.rows //
         return rows //
       })
@@ -1179,5 +1192,5 @@ WHERE table_name = '${schema}'
     // console.log(opt.isView,opt, 'isView')
     //@ts-ignore
     return Boolean(opt.isView)
-  }//
+  } //
 } //
