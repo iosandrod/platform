@@ -1,8 +1,8 @@
 import { HookContext } from '@feathersjs/feathers'
 // import { useHook, useMethodTransform, useRoute } from '../decoration'
-import { useMethodTransform, useRoute } from '@/decoration'
-import { BaseService } from '@/services/base.service'
+import { BaseService } from '../base.service'
 import { myFeathers } from '@/feather'
+import { useRoute } from '../../decoration'
 
 export class GroupService extends BaseService {
   //@ts-ignore

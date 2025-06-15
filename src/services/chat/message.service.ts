@@ -1,11 +1,11 @@
 import { HookContext } from '@feathersjs/feathers'
 // import { useHook, useMethodTransform, useRoute } from '../decoration'
-import { useHook, useMethodTransform, useRoute } from '@/decoration'
-import { BaseService } from '@/services/base.service'
-import { myFeathers } from '@/feather' //
+import { BaseService } from '../base.service'
+import { myFeathers } from '@/feather'
+import { useRoute, useHook } from '../../decoration'
 @useHook({
-  created: [
-    async (context: HookContext, next) => {
+  create: [
+    async (context: HookContext, next: any) => {
       await next() //
     }
   ]
