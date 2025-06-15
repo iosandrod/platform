@@ -10,7 +10,8 @@ export class GroupService extends BaseService {
     //@ts-ignore
     return await super.create(...args)
   }
-  async getMessages(data: any) {
+  @useRoute() //
+  async getMessages(data: any, params: any) {
     let app = this.app
     let groupid = data.groupid
     let mService = app.service('messages')
@@ -18,7 +19,7 @@ export class GroupService extends BaseService {
       query: {
         groupid
       }
-    })
+    }) //
     return d
   } //
 }

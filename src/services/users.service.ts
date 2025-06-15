@@ -81,8 +81,9 @@ export class UsersService extends BaseService {
     let userid = data.userid //
     let friendid = data.friendid //
     let fService = app.service('friends')
-    await fService.create({ userid, friendid })
+    let _res = await fService.create({ userid, friendid }) //
     return '添加好友成功' //
   }
+  async confirmFriend(data: any) {}
 }
 export default UsersService

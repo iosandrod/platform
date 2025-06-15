@@ -63,6 +63,10 @@ export class Friend extends BaseEntity {
   userid: number
   @Column({ nullable: true, type: 'integer' })
   friendid: number //
+  @Column({ nullable: true, type: 'integer' })
+  fromid: number
+  @Column({ nullable: true, type: 'integer', default: 0 }) //
+  confirm: number //
 }
 //群中间表
 @Entity('group_users')
