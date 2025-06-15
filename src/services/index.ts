@@ -22,6 +22,9 @@ import CaptchaService from './captcha.service'
 import { myAuth } from '../auth'
 import { UploadService } from './upload.service'
 import PermissionService from '../app/app_service/permissions.service'
+import GroupService from './chat/group.service'
+import MessageService from './chat/message.service'
+import FriendShipService from './chat/friendship.service'
 export const defaultServiceMethods = ['find', 'get', 'create', 'update', 'patch', 'remove']
 export const services = async (app: myFeathers) => {
   let names = Object.keys(createMap) //
@@ -92,12 +95,15 @@ export const createServices = async (serverName: keyof typeof createMap, options
 }
 
 export const createMap = {
-  columns: ColumnService, 
+  columns: ColumnService,
   navs: NavService, //
   company: CompanyService,
   users: UsersService,
   entity: EntityService, //
+  groups: GroupService,
+  messages: MessageService, //
   captcha: CaptchaService, //
+  friends: FriendShipService,
   uploads: UploadService,
   permissions: PermissionService,
   tableview: TableService

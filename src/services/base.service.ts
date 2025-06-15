@@ -921,9 +921,9 @@ WHERE table_name = '${schema}'
             console.log('是的刷卡机分类算法几十块龙卷风老师会计法老师') //
           }
         }
-        let client=this.app.getPgClient()
+        let client = this.app.getPgClient()
         // let _res = await this.db(params).raw(s, buildArr[i]) //
-        let _res = await client.raw(s, buildArr[i])//
+        let _res = await client.raw(s, buildArr[i]) //
         let rows = _res?.rows //
         return rows //
       })
@@ -1192,5 +1192,5 @@ WHERE table_name = '${schema}'
     // console.log(opt.isView,opt, 'isView')
     //@ts-ignore
     return Boolean(opt.isView)
-  } //
-} //
+  }
+}

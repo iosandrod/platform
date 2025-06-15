@@ -7,6 +7,10 @@
     "module": "commonjs",
     "outDir": "./lib",
     "rootDir": "./src",
+    "baseUrl": ".",              // 基础路径，通常设为项目根目录
+    "paths": {
+      "@/*": ["src/*"]           // 设置 @ 指向 src 目录
+    },
     "declaration": true,
     "strict": true,
     "esModuleInterop": true,

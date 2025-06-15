@@ -14,66 +14,77 @@ import { BaseEntity } from './base.entity'
  */
 
 /**
- * 用户
  */
-
-/**
- * 会话（私聊/群聊）
- */
-@Entity('conversations')
+@Entity('groups')
 export class Conversation extends BaseEntity {
   @Column({ type: 'varchar', length: 255, nullable: true })
   title?: string
+  @Column({ type: 'integer', nullable: true })
+  createrId: number //
+} //
 
-  @Column({ type: 'boolean', default: false })
-  isGroup: boolean
-
-  /** 成员列表：存储用户ID数组 */
-  @Column({ type: 'simple-array' })
-  memberIds: number[]
-
-  @OneToMany(() => Message, message => message.conversation, { cascade: true })
-  messages: Message[]
+/* 
+  export interface Message {
+  id: string
+  content: string 
+  type: ContentType 
+  toContactId: number
+  fromUser: FromUser
+  sendTime: number
+  status: SendMessageStatus
+  fileName?: string
+  fileSize?: number
 }
-
-/**
- * 消息类型
- */
-export enum MessageType {
-  TEXT = 'text',
-  IMAGE = 'image',
-  FILE = 'file'
-}
-
-/**
- * 消息
- */
+*/
 @Entity('messages')
 export class Message extends BaseEntity {
-  @ManyToOne(() => Conversation, conv => conv.messages, { nullable: false })
-  conversation: Conversation
-  @Column()
-  conversationId: number
-
-  @Column({ nullable: true, type: 'integer' })
-  userId: number
-  @Column()
-  senderId: number
   @Column({ type: 'varchar', nullable: true })
-  type: string
-  @Column({ type: 'text' })
   content: string
+  @Column({ nullable: true, type: 'varchar' })
+  type: string
+  @Column({ nullable: true, type: 'integer' })
+  toContactId: number
+  @Column({ nullable: true, type: 'integer' })
+  fromUserId: number
+  @Column({ nullable: true, type: 'integer' })
+  groupId: number
+  @Column({ nullable: true, type: 'integer' })
+  status: number //
+  @Column({ nullable: true, type: 'varchar' })
+  fileName: string
+  @Column({ nullable: true, type: 'integer' })
+  fileSize: number
+}
+
+//好友中间表
+@Entity('friends')
+export class Friend extends BaseEntity {
+  @Column({ nullable: true, type: 'integer' })
+  userid: number
+  @Column({ nullable: true, type: 'integer' })
+  friendid: number //
+}
+//群中间表
+@Entity('group_users')
+export class GroupUser extends BaseEntity {
+  @Column({ nullable: true, type: 'integer' })
+  userid: number
+  @Column({ nullable: true, type: 'integer' })
+  groupid: number //
 }
 
 /**
  * 附件
+
  */
-@Entity('attachments')
+@Entity('attachments') //
 export class Attachment extends BaseEntity {
   @Column({ type: 'integer', nullable: true })
-  messageId: number
+  messageid: number
   @Column({ type: 'varchar', nullable: true })
   url: string
   @Column({ type: 'varchar', nullable: true })
-  mimeType?: string
+  mimetype?: string
 }
+//
+export const charArr = [Conversation, Message, Attachment, GroupUser] //

@@ -20,6 +20,7 @@ import { Selection } from './src/entity/selection.entity'
 import knex from 'knex'
 import { setCurrentDbType } from './src/entity/json/jsonColumnFactory'
 import { TableView } from './src/entity/tableview.entity'
+import { charArr } from './src/entity/chat.entity' //
 async function main() {
   // let _knex = knex({
   //   client: 'pg',
@@ -58,7 +59,8 @@ async function main() {
       Navs,
       ColumnEntity,
       Company,
-      Upload
+      Upload,
+      ...charArr
     ] //
   }
   setCurrentDbType(dbConfig.type) ////
