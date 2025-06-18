@@ -10,6 +10,7 @@ declare module '@feathersjs/feathers/lib/declarations' {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface Application<Services, Settings> {
     // eslint-disable-line
+    //@ts-ignore
     routes: Router<{
       service: Service
       params?: { [key: string]: any }
@@ -26,9 +27,10 @@ const lookup = function (this: Application, path: string) {
   if (result === null) {
     return null
   }
-
+//
   const {
     params: colonParams,
+    //@ts-ignore
     data: { service, params: dataParams }
   } = result
 
@@ -43,8 +45,9 @@ export const routing = () => (app: Application) => {
   }
 
   const { unuse } = app
-
+  //@ts-ignore
   app.routes = new Router()
+  //@ts-ignore
   app.lookup = lookup
   app.unuse = function (path: string) {
     app.routes.remove(path)

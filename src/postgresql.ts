@@ -20,7 +20,7 @@ export const postgresql = async (app: Application) => {
   if (pool == null) {
     pool = {
       min: 2,
-      max: 10 //
+      max: 50 //
     }
     config.pool = pool
   }

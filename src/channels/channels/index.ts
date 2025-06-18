@@ -55,7 +55,7 @@ export function channels() {
     })
 
     app.mixins.push((service: FeathersService, path: string) => {
-      const { serviceEvents } = getServiceOptions(service)
+      const { serviceEvents } = getServiceOptions(service) as any
 
       if (typeof service.publish === 'function') {
         return

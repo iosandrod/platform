@@ -21,7 +21,7 @@ export function socket({ done, emit, socketMap, socketKey, getParams }: SocketOp
       }
     }
 
-    app.configure(channels())
+    app.configure(channels)//
     app.configure(routing())
 
     app.on('publish', getDispatcher(emit, socketMap, socketKey))
@@ -35,17 +35,17 @@ export function socket({ done, emit, socketMap, socketKey, getParams }: SocketOp
     })
 
     // `connection` event
-    done.then((provider) =>
+    done.then(provider =>
       provider.on('connection', (connection: any) => app.emit('connection', getParams(connection)))
     )
 
     // `socket.emit('methodName', 'serviceName', ...args)` handlers
-    done.then((provider) =>
+    done.then(provider =>
       provider.on('connection', (connection: any) => {
         const methodHandlers = Object.keys(app.services).reduce((result, name) => {
-          const { methods } = getServiceOptions(app.service(name))
+          const { methods } = getServiceOptions(app.service(name)) as any
 
-          methods.forEach((method) => {
+          methods.forEach((method: any) => {
             if (!result[method]) {
               result[method] = (...args: any[]) => {
                 const [path, ...rest] = args
@@ -58,7 +58,7 @@ export function socket({ done, emit, socketMap, socketKey, getParams }: SocketOp
           return result
         }, {} as any)
 
-        Object.keys(methodHandlers).forEach((key) => connection.on(key, methodHandlers[key]))
+        Object.keys(methodHandlers).forEach(key => connection.on(key, methodHandlers[key]))
       })
     )
   }

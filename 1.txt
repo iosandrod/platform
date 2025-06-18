@@ -621,3 +621,22 @@ WHERE datname = '${appName}'
 //   ALL_EVENTS: ALL_EVENTS as typeof ALL_EVENTS
 // }
 // console.log(keys,'sfsfsfs')//
+
+ // console.log(Object.keys(params), 'testP') //
+    // console.log(params.authentication, 'testA') //
+
+    // let auth = {
+  //   accessToken:
+  //     'eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJpYXQiOjE3NDU5OTU5MzYsImV4cCI6MTc0NjA4MjMzNiwiYXVkIjoiaHR0cHM6Ly95b3VyZG9tYWluLmNvbSIsInN1YiI6IjEiLCJqdGkiOiI2ZWNiMDJiZC1hMGRlLTQyOGUtOTY4OC1hZmUzOTFhYmUxZTEifQ.Cs7Xv7nlY_DdGEN-adgUhPouwzImGH10jRg5K4clars',
+  //   strategy: 'jwt'
+  // }
+  // socket.feathers = {
+  //   provider: 'socketio',
+  //   headers: socket.handshake.headers,
+  //   authentication: {
+  //     strategy: 'jwt',
+  //     accessToken:
+  //       'eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJpYXQiOjE3NDYyNjM0MjAsImV4cCI6MTc0NjM0OTgyMCwiYXVkIjoiaHR0cHM6Ly95b3VyZG9tYWluLmNvbSIsInN1YiI6IjEiLCJqdGkiOiIxZjEzOTRhZi1hODA4LTQzMTAtYTM1OS1jNmJlNmJkYTU3Y2QifQ.QydhEx5Q3TX0rauXbb_QEB8puf0Tkse4W0Jopr81McE'
+  //   }
+  // }
+  // console.log(socket.handshake.auth,'sjfksfjslkfs')//

@@ -4,7 +4,7 @@ import { Socket } from 'socket.io'
 import { Server, ServerOptions } from 'socket.io'
 import http from 'http'
 import { SocketOptions } from '@feathersjs/transport-commons/lib/socket'
-import {  routing } from '@feathersjs/transport-commons'
+import { routing } from '@feathersjs/transport-commons'
 import { createContext, HookContext } from '@feathersjs/feathers'
 import { CombinedChannel } from '@feathersjs/transport-commons'
 // import { DEFAULT_PARAMS_POSITION, normalizeError, paramsPositions, } from '@feathersjs/transport-commons/src/socket/utils'
@@ -40,60 +40,54 @@ export const params = (_app: Application, socketMap: WeakMap<RealTimeConnection,
   socket: FeathersSocket,
   next: NextFunction
 ) => {
-  let auth = {
-    accessToken:
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJpYXQiOjE3NDU5OTU5MzYsImV4cCI6MTc0NjA4MjMzNiwiYXVkIjoiaHR0cHM6Ly95b3VyZG9tYWluLmNvbSIsInN1YiI6IjEiLCJqdGkiOiI2ZWNiMDJiZC1hMGRlLTQyOGUtOTY4OC1hZmUzOTFhYmUxZTEifQ.Cs7Xv7nlY_DdGEN-adgUhPouwzImGH10jRg5K4clars',
-    strategy: 'jwt'
+  if (socket?.handshake?.auth?.authorization) {
+    socket.handshake.headers['authorization'] = socket?.handshake?.auth?.authorization //
   }
   socket.feathers = {
     provider: 'socketio',
-    headers: socket.handshake.headers,
-    authentication: {
-      strategy: 'jwt',
-      accessToken:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJpYXQiOjE3NDYyNjM0MjAsImV4cCI6MTc0NjM0OTgyMCwiYXVkIjoiaHR0cHM6Ly95b3VyZG9tYWluLmNvbSIsInN1YiI6IjEiLCJqdGkiOiIxZjEzOTRhZi1hODA4LTQzMTAtYTM1OS1jNmJlNmJkYTU3Y2QifQ.QydhEx5Q3TX0rauXbb_QEB8puf0Tkse4W0Jopr81McE'
-    }
+    headers: socket.handshake.headers
   }
+  //@ts-ignore
   socketMap.set(socket.feathers, socket)
   next()
 }
 
-export const authentication = (app: Application, getParams: ParamsGetter, settings: any = {}) => (
-  socket: FeathersSocket,
-  next: NextFunction
-) => {
-  const service = (app as any).defaultAuthentication
-    ? (app as any).defaultAuthentication(settings.service)
-    : null
+export const authentication = (app: Application, getParams: ParamsGetter, settings: any = {}) => {
+  return async (socket: FeathersSocket, next: NextFunction) => {
+    const service = (app as any).defaultAuthentication
+      ? (app as any).defaultAuthentication(settings.service)
+      : null
+    // console.log('几十块雷锋精神到了咖啡机双打卡理发手打啦',service)
+    if (service === null) {
+      return next()
+    }
+    const config = service.configuration
+    const authStrategies = config.parseStrategies || config.authStrategies || []
 
-  if (service === null) {
-    return next()
+    if (authStrategies.length === 0) {
+      return next()
+    } //
+    service
+      .parse(socket.handshake, null, ...authStrategies)
+      .then(async (authentication: any) => {
+        // console.log(authentication, 'sklslkfsfsfs') //
+        if (authentication) {
+          //@ts-ignore
+          socket.feathers.authentication = authentication
+          // console.log(authentication, 'testEn2131231') //
+          await service.create(authentication, {
+            provider: 'socketio',
+            connection: getParams(socket)
+          })
+        }
+
+        next()
+      })
+      .catch((err: any) => {
+        console.log(err?.message, '登录出错了') //
+        next()
+      })
   }
-  const config = service.configuration
-  const authStrategies = config.parseStrategies || config.authStrategies || []
-
-  if (authStrategies.length === 0) {
-    return next()
-  }
-  //   console.log(
-  //     // socket.feathers,
-  //     authStrategies
-  //   ) // //
-  service
-    .parse(socket.handshake, null, ...authStrategies)
-    .then(async (authentication: any) => {
-      if (authentication) {
-        //@ts-ignore
-        socket.feathers.authentication = authentication
-        await service.create(authentication, {
-          provider: 'socketio',
-          connection: getParams(socket)
-        })
-      }
-
-      next()
-    })
-    .catch(next)
 }
 
 export function configureSocketio(port?: any, options?: any, config?: any) {
@@ -110,9 +104,11 @@ export function configureSocketio(port?: any, options?: any, config?: any) {
 
   return (app: Application) => {
     // Function that gets the connection
-    const getParams: any = (socket: FeathersSocket) => socket.feathers
+    const getParams: any = (socket: FeathersSocket) => {
+      return socket.feathers
+    }
     // A mapping from connection to socket instance
-    const socketMap = new WeakMap<RealTimeConnection, FeathersSocket>()
+    let socketMap = new WeakMap<RealTimeConnection, FeathersSocket>()
     // Promise that resolves with the Socket.io `io` instance
     // when `setup` has been called (with a server)
     const done = new Promise(resolve => {
@@ -139,7 +135,7 @@ export function configureSocketio(port?: any, options?: any, config?: any) {
             const io = (this.io = new Server(port || server, options))
             let oldEmit = io.emit
             //@ts-ignore
-
+            // console.log('运行到这里放松放松电风扇收到')
             io.use(disconnect(app, getParams, socketMap))
             io.use(params(app, socketMap))
             io.use(authentication(app, getParams))
@@ -157,7 +153,7 @@ export function configureSocketio(port?: any, options?: any, config?: any) {
         }
       })
     })
-
+    app.set('socketMap', socketMap)//
     app.configure(
       //
       socket({
@@ -300,9 +296,9 @@ export function getDispatcher(emit: string, socketMap: WeakMap<RealTimeConnectio
     const basePath = context.path || ''
     const rawEventName = `${basePath} ${event}`.trim()
     const changedEventName = `${basePath} changed`
-    console.log(rawEventName,basePath,'testEventName')//
+    console.log(rawEventName, basePath, 'testEventName') //
     const connections = channel.connections
-////
+    ////
     connections.forEach(connection => {
       const socket = socketKey ? connection[socketKey] : socketMap.get(connection)
       if (!socket) return
@@ -322,8 +318,7 @@ export function getDispatcher(emit: string, socketMap: WeakMap<RealTimeConnectio
       throttleEmit(changedEventName, result, connections)
     }
   }
-}//
-
+} //
 
 export function normalizeError(e: any) {
   const hasToJSON = typeof e.toJSON === 'function'

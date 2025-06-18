@@ -66,7 +66,9 @@ export class Friend extends BaseEntity {
   @Column({ nullable: true, type: 'integer' })
   fromid: number
   @Column({ nullable: true, type: 'integer', default: 0 }) //
-  confirm: number //
+  confirmfriendid: number //
+  @Column({ nullable: true, type: 'varchar' })
+  status: string //
 }
 //群中间表
 @Entity('group_users')
@@ -91,4 +93,4 @@ export class Attachment extends BaseEntity {
   mimetype?: string
 }
 //
-export const charArr = [Conversation, Message, Attachment, GroupUser] //
+export const charArr = [Conversation, Message, Attachment, GroupUser, Friend] //

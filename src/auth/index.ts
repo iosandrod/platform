@@ -17,6 +17,7 @@ import bcrypt from 'bcryptjs'
 import { AuthenticateHookSettings } from '@feathersjs/authentication/lib/hooks/authenticate'
 import { useCaptCha } from '../decoration'
 import { hooks } from '@feathersjs/hooks'
+import { myJwtStrategy } from './jwt'
 export class myLocalStrategy extends LocalStrategy {
   //@ts-ignore
   async authenticate(data: AuthenticationRequest, params: Params) {
@@ -112,17 +113,11 @@ export class myLocalStrategy extends LocalStrategy {
     return entity
   }
 }
-export class myJwtStrategy extends JWTStrategy {
-  //@ts-ignore
-  async parse(...args) {
-    //@ts-ignore
-    return super.parse(...args)
-  }
-} 
+
 export class myAuth extends AuthenticationService {
   constructor(app: any, key?: any, options?: any) {
     super(app, key, options) //
-    this.register('jwt', new myJwtStrategy())
+    this.register('jwt', new myJwtStrategy()) //
     this.register('local', new myLocalStrategy()) //
     //@ts-ignore
     let hooksMetaData = this.hooksMetaData
@@ -187,6 +182,7 @@ export class myAuth extends AuthenticationService {
     for (const authStrategy of strategies) {
       //@ts-ignore
       const value = await authStrategy.parse(req, res)
+      // console.log(value,'dskfjlksjflsdfsd')//
       if (value !== null) {
         return value
       }
@@ -264,5 +260,55 @@ export const _auth = (
       // throw new NotAuthenticated('Not authenticated')
     }
     return next()
+  }
+}
+
+let obj = {
+  provider: 'socketio',
+  headers: {
+    host: 'localhost:3031',
+    connection: 'Upgrade',
+    pragma: 'no-cache',
+    'cache-control': 'no-cache',
+    'user-agent':
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
+    upgrade: 'websocket',
+    origin: 'http://localhost:3003',
+    'sec-websocket-version': '13',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6,fr;q=0.5',
+    cookie:
+      'session=U2FsdGVkX1/8m7tAhv2rq4Pbjsd8DSbsri1CXZ3/DrkZ6xv/YGE1bbXA5gosoyewwOyoHKvqmvgKOrhcWetEn8hw7P8nOxCE1QuIIdo6bY07MOCnERli9o5lpoOGozUB/x4XbJmg3UApx5guO+cX/g==; Hm_lvt_52eb07460b7dc3e27bb80c78c0988671=1743073927',
+    'sec-websocket-key': 'nNcGSegcHH6Xz4eFSp4D0A==',
+    'sec-websocket-extensions': 'permessage-deflate; client_max_window_bits',
+    authorization:
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJpYXQiOjE3NTAwNDc3MjQsImV4cCI6MTc1MDEzNDEyNCwiYXVkIjoiaHR0cHM6Ly95b3VyZG9tYWluLmNvbSIsInN1YiI6IjEiLCJqdGkiOiJiM2Q3ODZhOC0wNTQ4LTRkZGMtYTIyYS00NTc4Y2RjZGUxN2YifQ.f0nLDh680HhW0MyK-Nrz_aEgmTG1QovFqx_1GvUgh0Q'
+  },
+  authentication: {
+    strategy: 'jwt',
+    accessToken:
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJpYXQiOjE3NTAwNDc3MjQsImV4cCI6MTc1MDEzNDEyNCwiYXVkIjoiaHR0cHM6Ly95b3VyZG9tYWluLmNvbSIsInN1YiI6IjEiLCJqdGkiOiJiM2Q3ODZhOC0wNTQ4LTRkZGMtYTIyYS00NTc4Y2RjZGUxN2YifQ.f0nLDh680HhW0MyK-Nrz_aEgmTG1QovFqx_1GvUgh0Q',
+    authentication: {
+      strategy: 'jwt',
+      accessToken:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJpYXQiOjE3NTAwNDc3MjQsImV4cCI6MTc1MDEzNDEyNCwiYXVkIjoiaHR0cHM6Ly95b3VyZG9tYWluLmNvbSIsInN1YiI6IjEiLCJqdGkiOiJiM2Q3ODZhOC0wNTQ4LTRkZGMtYTIyYS00NTc4Y2RjZGUxN2YifQ.f0nLDh680HhW0MyK-Nrz_aEgmTG1QovFqx_1GvUgh0Q',
+      payload: [Object]
+    },
+    user: {
+      id: 1,
+      createdAt: '2025-05-24 09:13:24',
+      updatedAt: '2025-05-24 09:13:24',
+      username: 'dxf',
+      email: '1151685410@qq.com',
+      password: '$2b$10$mtmxQd1lFzh6ORBsVOsfvOzH2XN107xINOtc3AmggeDO9.CfXztXm',
+      appName: null,
+      companyName: 'newC',
+      companyCnName: '新公司',
+      companyType: null,
+      companyId: null,
+      phone: null,
+      avatar: '/images/7332066ce14ee350ac57f9d74393a604d7c7ba4fdd3e15f3a47daa59bbc647f9.jpg',
+      companyLogo: '/images/7332066ce14ee350ac57f9d74393a604d7c7ba4fdd3e15f3a47daa59bbc647f9.jpg'
+    }
   }
 }

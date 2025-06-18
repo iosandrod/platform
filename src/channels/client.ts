@@ -22,7 +22,7 @@ const namespacedEmitterMethods = [
 const otherEmitterMethods = ['eventNames', 'getMaxListeners', 'setMaxListeners']
 
 const addEmitterMethods = (service: any) => {
-  otherEmitterMethods.forEach((method) => {
+  otherEmitterMethods.forEach(method => {
     service[method] = function (...args: any[]) {
       if (typeof this.connection[method] !== 'function') {
         throw new Error(`Can not call '${method}' on the client service connection`)
@@ -33,7 +33,7 @@ const addEmitterMethods = (service: any) => {
   })
 
   // Methods that should add the namespace (service path)
-  namespacedEmitterMethods.forEach((method) => {
+  namespacedEmitterMethods.forEach(method => {
     service[method] = function (name: string, ...args: any[]) {
       if (typeof this.connection[method] !== 'function') {
         throw new Error(`Can not call '${method}' on the client service connection`)
@@ -60,14 +60,14 @@ interface ServiceOptions {
 export type SocketService<T = any, D = Partial<any>, P extends Params = Params> = Service<T, D, P>
 
 export class Service<T = any, D = Partial<T>, P extends Params = Params>
-  implements ServiceInterface<T, D, P>
-{
+  implements ServiceInterface<T, D, P> {
   events: string[]
   path: string
   connection: any
   method: string
 
-  constructor(options: ServiceOptions) {
+  // constructor(options: ServiceOptions) {
+  constructor(options: any) {
     this.events = options.events
     this.path = options.name
     this.connection = options.connection
@@ -81,7 +81,7 @@ export class Service<T = any, D = Partial<T>, P extends Params = Params>
       const route: Record<string, any> = args.pop()
       let path = this.path
       if (route) {
-        Object.keys(route).forEach((key) => {
+        Object.keys(route).forEach(key => {
           path = path.replace(`:${key}`, route[key])
         })
       }
@@ -105,7 +105,7 @@ export class Service<T = any, D = Partial<T>, P extends Params = Params>
   }
 
   methods(this: any, ...names: string[]) {
-    names.forEach((method) => {
+    names.forEach(method => {
       const _method = `_${method}`
       this[_method] = function (data: any, params: Params = {}) {
         return this.send(method, data, params.query || {}, params.route || {})

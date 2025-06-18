@@ -167,7 +167,9 @@ export class myFeathers extends Feathers<any, any> {
   async getAllApp() {} //
   async getCurrentTable() {}
   //@ts-ignore
-  async getCompanyConnection(company?: any, appName?: string): Promise<Knex> {
+  // async getCompanyConnection(company?: any, appName?: string): Promise<Knex> {
+  async getCompanyConnection(config): Promise<Knex> {
+    let { company, appName } = config
     let client = this.getClient()
     if (typeof company === 'number') {
       let cacheKnex = this.cacheKnex
@@ -211,9 +213,18 @@ export class myFeathers extends Feathers<any, any> {
       return _client
     }
   }
-  @cacheValue((companyid?: string, appName?: string) => {
+  @cacheValue((config: any) => {
+    // if (companyid == null) {
+    //   companyid = '' //
+    // }
+    // if (appName == null) {
+    //   appName = ''
+    // }
+    // return `${companyid}--${appName}`
+    config = config || {}
+    let { companyid, appName } = config //
     if (companyid == null) {
-      companyid = ''
+      companyid = '' // 
     }
     if (appName == null) {
       appName = ''
@@ -221,7 +232,9 @@ export class myFeathers extends Feathers<any, any> {
     return `${companyid}--${appName}`
   })
   //获取所有的表结构
-  async getCompanyTable(companyid?: string, appName?: string) {
+  // async getCompanyTable(companyid?: string, appName?: string) {
+  async getCompanyTable(config?: any) {
+    let { companyid, appName } = config || {}
     //@ts-ignore
     let _this: myFeathers = this.getMainApp()
     //@ts-ignore
@@ -229,7 +242,8 @@ export class myFeathers extends Feathers<any, any> {
     if (companyid == null) {
       _connect = this.get('postgresqlClient')
     } else {
-      _connect = await _this.getCompanyConnection(companyid, appName) //
+      // _connect = await _this.getCompanyConnection(companyid, appName) //
+      _connect = await _this.getCompanyConnection({ company: companyid, appName }) //
     }
     if (_connect == null) {
       _connect = this.getPgClient() //
@@ -311,6 +325,7 @@ ORDER BY
     return subApp
   }
   getMainApp() {
+    //
     let mainApp = this.mainApp
     if (mainApp == null) {
       return this

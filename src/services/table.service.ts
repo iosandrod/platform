@@ -87,7 +87,11 @@ export class TableService extends BaseService {
   async saveDefaultTableInfo(tableName: string) {
     console.log('我正在执行新增') //
     let app = this.app
-    let allTable = await app.getCompanyTable(this.getCompanyId(), this.getAppName())
+    // let allTable = await app.getCompanyTable(this.getCompanyId(), this.getAppName())
+    let allTable = await app.getCompanyTable({
+      companyid: this.getCompanyId(),
+      appName: this.getAppName()
+    })
     let targetTable = allTable[tableName]
     if (targetTable == null) {
       throw new errors.BadGateway('没有找到相关表格') //

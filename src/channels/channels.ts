@@ -4,11 +4,24 @@ import type { AuthenticationResult } from '@feathersjs/authentication'
 // import { keys } from '@feathersjs/transport-commons/src/channels/mixins'
 import type { Application, HookContext } from '../declarations'
 import { logger } from '../utils/logger'
-export const channels = (app: Application) => {
+export const channels = (app: any) => {
   logger.warn(
     'Publishing all events to all authenticated users. See `channels.ts` and https://dove.feathersjs.com/api/channels.html for more information.'
   )
   app.on('connection', (connection: RealTimeConnection) => {
+    // console.log('some one is join', connection) //
+    const socketMap = app.get('socketMap')
+    if (socketMap) {
+      let client = socketMap.get(connection)
+      // console.log(client, 'testClient') //
+      let user = client?.feathers?.user
+      if (user) {
+        if (client) {
+          client.emit('connected login', user) //
+        }
+      }
+      // console.log(Object.keys(client), 'testAuth') //
+    }
     app.channel('anonymous').join(connection)
     app.channel('all').join(connection)
   })

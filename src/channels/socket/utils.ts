@@ -25,7 +25,7 @@ export function normalizeError(e: any) {
   const result = hasToJSON ? e.toJSON() : {}
 
   if (!hasToJSON) {
-    Object.getOwnPropertyNames(e).forEach((key) => {
+    Object.getOwnPropertyNames(e).forEach(key => {
       result[key] = e[key]
     })
   }
@@ -43,7 +43,7 @@ export function getDispatcher(emit: string, socketMap: WeakMap<RealTimeConnectio
   return function (event: string, channel: CombinedChannel, context: HookContext, data?: any) {
     debug(`Dispatching '${event}' to ${channel.length} connections`)
 
-    channel.connections.forEach((connection) => {
+    channel.connections.forEach(connection => {
       // The reference between connection and socket is set in `app.setup`
       const socket = socketKey ? connection[socketKey] : socketMap.get(connection)
 
@@ -55,7 +55,7 @@ export function getDispatcher(emit: string, socketMap: WeakMap<RealTimeConnectio
         // If we are getting events from an array but try to dispatch individual data
         // try to get the individual item to dispatch from the correct index.
         if (!Array.isArray(data) && Array.isArray(context.result) && Array.isArray(result)) {
-          result = result.find((resultData) => isEqual(resultData, data))
+          result = result.find(resultData => isEqual(resultData, data))
         }
 
         debug(`Dispatching '${eventName}' to Socket ${socket.id} with`, result)
@@ -73,8 +73,8 @@ export async function runMethod(
   _method: string,
   args: any[]
 ) {
-  const path = typeof _path === 'string' ? _path : null
-  const method = typeof _method === 'string' ? _method : null
+  const path: any = typeof _path === 'string' ? _path : null
+  const method: any = typeof _method === 'string' ? _method : null
   const trace = `method '${method}' on service '${path}'`
   const methodArgs = args.slice(0)
   const callback =
@@ -87,7 +87,6 @@ export async function runMethod(
     debug(`Error in ${trace}`, error)
     callback(normalizeError(error))
   }
-
   try {
     const lookup = app.lookup(path)
 
@@ -97,7 +96,7 @@ export async function runMethod(
     }
 
     const { service, params: route = {} } = lookup
-    const { methods } = getServiceOptions(service)
+    const { methods } = getServiceOptions(service) as any
 
     // Only service methods are allowed
     if (!methods.includes(method)) {
@@ -122,7 +121,7 @@ export async function runMethod(
 
     debug(`Returned successfully ${trace}`, result)
     callback(null, result)
-  } catch (error: any) {
+  } catch (error) {
     handleError(error)
   }
 }

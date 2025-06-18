@@ -15,6 +15,7 @@ import { errors, NotAuthenticated } from '@feathersjs/errors'
 import { myAuth } from './auth'
 import { BaseService } from './services/base.service'
 import { myFeathers } from './feather'
+import { params } from './socketio'
 function getData(obj: any, key: string, defaultValue?: any) {
   let _value = obj[key]
   if (_value == null) {
@@ -363,6 +364,16 @@ export function useCaptCha(config: any) {
       [propertyKey]: [
         //@ts-ignore
         async function (context, next) {
+          // console.log(
+          //   Object.keys(context),
+          //   Object.keys(context.params),
+          //   context.params.provider,
+          //   context.params,
+          //   'test验证码'
+          // ) //
+          if (context?.params?.provider == null) {
+            await next() //
+          }
           let data = context.data
           let _captcha: string = data['_captcha'] //
           let _unUse = data['_unUseCaptcha']
@@ -378,10 +389,16 @@ export function useCaptCha(config: any) {
             let service = context.service
             let app: myFeathers = service.app //
             let host = headers.host //
-            let sName = service.serviceName //
+            let sName = service.serviceName ////
             let _key = `${sName}_${propertyKey}` //
             let cText: string = app.getApiCaptcha(host, _key, true) //
+            if (data?.strategy == 'jwt') {
+              await next() //
+              return
+            }
+            console.log(data, 'testData') ////
             if (cText == null || _captcha == null) {
+              // console.log(data, 'fsdkfsldfjsdlkfjsdlfjsdlfds') //
               throw new errors.BadRequest('验证码校验失败')
             } //
             cText = cText.toLocaleLowerCase()

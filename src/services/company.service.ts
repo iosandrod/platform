@@ -27,7 +27,7 @@ import { errors } from '@feathersjs/errors'
 @useHook({
   create: [
     async function (context: any, next: any) {
-      let data = context.data
+      let data = context.data //
       let uid = context?.params?.user?.id || data.userid //
       let _data = null
       if (!Array.isArray(data)) {
@@ -44,14 +44,16 @@ import { errors } from '@feathersjs/errors'
         let key = `${data.appName}_${data.userid}`
         data.connection = `${defaultConnection.connection}/${key}`
       } //
-      await next() //
-      //创建数据库//
-      // let app: myFeathers = context.app //
-      // let _this: CompanyService = app.service('company') as any //
-      // let res = context.result
-      // for (const item of res) {
-      //   await _this.createCompany(item.appName, item.userid) //
-      // }
+      await next()
+      console.log('创建数据库')
+      let app: myFeathers = context.app //
+      let _this: CompanyService = app.service('company') as any //
+      let res = context.result
+      console.log(res, 'res')
+      for (const item of res) {
+        // await _this.createCompany(item.appName, item.userid) //
+        await _this.createCompany(item) //
+      } //
     }
   ] //
 })
@@ -65,7 +67,7 @@ import { errors } from '@feathersjs/errors'
 })
 export class CompanyService extends BaseService {
   //联合
-  serviceName: string  = 'company' //
+  serviceName: string = 'company' //
   unionId = ['appName', 'userid'] //
   async create(...args: any[]) {
     //@ts-ignore
@@ -73,12 +75,9 @@ export class CompanyService extends BaseService {
     return _res //
   }
   //生成公司数据库
-  async createCompany(appName: any, userid: any) {
+  async createCompany(config: any) {
     let app = this.app
-    await app.createCompany({
-      appName,
-      userid: userid //
-    })
+    await app.createCompany(config)
   }
   @useRoute()
   async getAllApp() {

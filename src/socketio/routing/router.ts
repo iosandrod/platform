@@ -65,7 +65,7 @@ export class RouteNode<T = any> {
 
     if (current.startsWith(':')) {
       const placeholderName = current.substring(1)
-      const placeholder = this.placeholders.find((p) => p.name === placeholderName)
+      const placeholder :any= this.placeholders.find((p) => p.name === placeholderName)
 
       placeholder.remove(path)
       this.placeholders = this.placeholders.filter((p) => p !== placeholder)

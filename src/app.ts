@@ -41,13 +41,15 @@ export async function createApp() {
   app.configure(rest())
   await redis(app) //
   //处理用户认证的事情//
-  app.configure(
-    configureSocketio({
-      cors: {
-        origin: app.get('origins')
-      }
-    })
-  )
+  // app.configure(
+  //   configureSocketio({
+  //     cors: {
+  //       origin: app.get('origins')
+  //     }
+  //   })
+  // )
+  let fn = configureSocketio({ cors: { origin: app.get('origins') } })
+  await fn(app) //
   // await app.configure(postgresql) ////
   await postgresql(app) //
   // await services(app) //

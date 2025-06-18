@@ -81,6 +81,7 @@
     "ioredis": "^5.6.1",
     "knex": "3.1.0",
     "lodash": "^4.17.21",
+    "long-timeout": "^0.1.1",
     "mime-types": "^3.0.1",
     "moment-timezone": "^0.6.0",
     "mssql": "^11.0.1",

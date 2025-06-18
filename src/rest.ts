@@ -21,7 +21,9 @@ export function parseAuthentication(settings: any = {}): Middleware {
             debug('No `authStrategies` or `parseStrategies` found in authentication configuration')
             return next()
         }
+        
         const authentication = await service.parse(ctx.req, ctx.res, ...authStrategies)
+        // console.log(authentication,'testAuth')//
         if (authentication) {
             debug('Parsed authentication from HTTP header', authentication)
             ctx.feathers = { ...ctx.feathers, authentication }

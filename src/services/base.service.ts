@@ -206,7 +206,11 @@ export class BaseService extends KnexService implements bs {
     let Model = this.Model
     let appName = this.getAppName()
     let companyid = this.getCompanyId()
-    let allT = await this.app.getCompanyTable(companyid, appName) //
+    // let allT = await this.app.getCompanyTable(companyid, appName) //
+    let allT = await this.app.getCompanyTable({
+      companyid,
+      appName
+    }) //
     let columns = allT[this.serviceName!]?.columns || []
     if (columns.length == 0) {
     }
@@ -501,7 +505,7 @@ WHERE table_name = '${schema}'
       //@ts-ignore
       .insert(data, ['*'], { includeTriggerModifications: true }) //
       .toQuery()
-    console.log(query, 'testInsertQuery') //
+    // console.log(query, 'testInsertQuery') //
     let _rows = null
     try {
       //
@@ -1192,5 +1196,9 @@ WHERE table_name = '${schema}'
     // console.log(opt.isView,opt, 'isView')
     //@ts-ignore
     return Boolean(opt.isView)
+  }
+  getUserInfo(params: any) {
+    let user = params?.authentication?.user || params.user
+    return user //
   }
 }
