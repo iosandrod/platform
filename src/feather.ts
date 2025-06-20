@@ -19,7 +19,7 @@ import { errors } from '@feathersjs/errors'
 import { getDefaultEditPageLayout, getDefaultImportPageLayout, getDefaultPageLayout } from './layoutGetFn'
 import { BaseService } from './services/base.service'
 import { createMap, defaultServiceMethods } from './services'
-import { columnToTable, createNewApp } from './featherFn'
+import { columnToTable } from './featherFn'
 import { channels } from './channels/channels'
 import { options } from 'svg-captcha'
 // const nanoid = () => 'xxxxx' //
@@ -758,7 +758,8 @@ ORDER BY
     if (pool == null) {
       pool = {
         min: 2,
-        max: 50
+        max: 50,
+        idleTimeoutMillis: 30000
       }
       config.pool = pool
     }
@@ -776,9 +777,9 @@ ORDER BY
     } //
     let db = this.get('postgresqlClient')
     if (db) {
-      this.knexInt = setInterval(() => {
-        db.raw('SELECT 1') //
-      }, 3000)
+      // this.knexInt = setInterval(() => {
+      //   db.raw('SELECT 1') //
+      // }, 3000)
     }
   }
   getClientType() {
