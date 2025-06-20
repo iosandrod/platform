@@ -1,8 +1,7 @@
 // For more information about this file see https://dove.feathersjs.com/guides/cli/application.html
 import { feathers, HookContext } from '@feathersjs/feathers'
 import 'reflect-metadata'
-import { koa, bodyParser, errorHandler, parseAuthentication, cors, serveStatic } from '@feathersjs/koa'
-import socketio from '@feathersjs/socketio'
+import { bodyParser, errorHandler, parseAuthentication, cors, serveStatic } from '@feathersjs/koa'
 import { rest } from './rest'
 import { services } from './services/index'
 import { configurationValidator } from './configuration'
@@ -18,20 +17,21 @@ import { mainAuth } from './auth'
 import { redis } from './redis'
 import featherBlob from 'feathers-blob'
 import { configureSocketio } from './socketio'
-export let appArr = [
-  {
-    companyid: '1',
-    name: 'erp',
-    companyId: 1,
+import { koa } from './koa'
+// export let appArr = [
+//   {
+//     companyid: '1',
+//     name: 'erp',
+//     companyId: 1,
 
-    appName: 'erp',
-    userid: 1
-  }
-] //
+//     appName: 'erp',
+//     userid: 1
+//   }
+// ] //
 export async function createApp() {
   let f = createFeathers()
   //@ts-ignore
-  let app: Application = koa(f) //
+  let app: Application = koa(f)
   app.configure(configuration)
   app.use(cors())
   app.use(serveStatic(app.get('public')))
@@ -51,7 +51,8 @@ export async function createApp() {
   let fn = configureSocketio({ cors: { origin: app.get('origins') } })
   await fn(app) //
   // await app.configure(postgresql) ////
-  await postgresql(app) //
+  // await postgresql(app) //
+  await app.initKnexClient(app.get('postgresql')) //
   // await services(app) //
   await app.initTableService() //
   app.configure(channels)
@@ -79,10 +80,10 @@ export async function createApp() {
     }
   })
   // console.log(company, 'testCompany') //
-  // console.log(allCompany,'testCompany')//
   for (const sApp of company) {
-    //@ts-ignore
-    // await app.registerSubApp(sApp)
+    // console.log(sApp, 'testCompany')//
+    // //@ts-ignore
+    await app.registerSubApp(sApp)
   }
   // Register application setup and teardown hooks here
   app.hooks({

@@ -5,6 +5,7 @@ import { Channel } from './channel/base'
 import { CombinedChannel } from './channel/combined'
 import { channelMixin, publishMixin, keys, PublishMixin, Event, Publisher } from './mixins'
 import EventEmitter from 'events'
+import { myFeathers } from '@/feather'
 
 const debug = createDebug('@feathersjs/transport-commons/channels')
 const { CHANNELS } = keys
@@ -65,10 +66,17 @@ export function channels() {
       serviceEvents.forEach((event: string) => {
         service.on(event, function (data, hook) {
           console.log(event, '执行了') //
+          //@ts-ignore
+          let _app = service?.app || app
+          app = _app || app//
           if (!hook) {
             // Fake hook for custom events
             hook = { path, service, app, result: data }
           }
+          //@ts-ignore
+          //@ts-ignore
+          // console.log(app.getIsMain(), '执行了12123') //
+          // console.log(_app.getIsMain(), '执行了12123111') //
           debug('Publishing event', event, hook.path)
           let logError = (error: any) => debug(`Error in '${hook.path} ${event}' publisher`, error)
           let servicePublishers = ((service as unknown) as PublishMixin)[keys.PUBLISHERS]
@@ -86,7 +94,6 @@ export function channels() {
             appPublishers[keys.ALL_EVENTS] ||
             // 5. No publisher
             (() => {})
-
           try {
             Promise.resolve(publisher(data, hook))
               .then((result: any) => {
@@ -99,6 +106,8 @@ export function channels() {
                   : ([result] as Channel[])
                 const channel = new CombinedChannel(results)
 
+                let _app: myFeathers = app as any
+                console.log(_app.getIsMain(), 'sfskldfjsklfsdjl') //
                 if (channel && channel.length > 0) {
                   app.emit('publish', event, channel, hook, data)
                 } else {

@@ -13,10 +13,7 @@ export class RouteNode<T = any> {
   children: { [key: string]: RouteNode } = {}
   placeholders: RouteNode[] = []
 
-  constructor(
-    public name: string,
-    public depth: number
-  ) {}
+  constructor(public name: string, public depth: number) {}
 
   get hasChildren() {
     return Object.keys(this.children).length !== 0 || this.placeholders.length !== 0
@@ -38,7 +35,7 @@ export class RouteNode<T = any> {
     if (current.startsWith(':')) {
       // Insert a placeholder node like /messages/:id
       const placeholderName = current.substring(1)
-      let placeholder = this.placeholders.find((p) => p.name === placeholderName)
+      let placeholder = this.placeholders.find(p => p.name === placeholderName)
 
       if (!placeholder) {
         placeholder = new RouteNode(placeholderName, nextDepth)
@@ -65,10 +62,10 @@ export class RouteNode<T = any> {
 
     if (current.startsWith(':')) {
       const placeholderName = current.substring(1)
-      const placeholder :any= this.placeholders.find((p) => p.name === placeholderName)
+      const placeholder: any = this.placeholders.find(p => p.name === placeholderName)
 
       placeholder.remove(path)
-      this.placeholders = this.placeholders.filter((p) => p !== placeholder)
+      this.placeholders = this.placeholders.filter(p => p !== placeholder)
     } else if (this.children[current]) {
       const child = this.children[current]
 
@@ -100,17 +97,14 @@ export class RouteNode<T = any> {
         return lookup
       }
     }
-
     // This will return the first placeholder that matches early
     for (const placeholder of this.placeholders) {
       const result = placeholder.lookup(path, info)
-
       if (result !== null) {
         result.params[placeholder.name] = current
         return result
       }
     }
-
     return null
   }
 }
@@ -124,7 +118,7 @@ export class Router<T = any> {
     const result = stripSlashes(path).split('/')
 
     if (!this.caseSensitive) {
-      return result.map((p) => (p.startsWith(':') ? p : p.toLowerCase()))
+      return result.map(p => (p.startsWith(':') ? p : p.toLowerCase()))
     }
 
     return result

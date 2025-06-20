@@ -3,7 +3,8 @@ import {
   AuthenticationParams,
   AuthenticationRequest,
   AuthenticationResult,
-  AuthenticationService
+  AuthenticationService,
+  JwtVerifyOptions
 } from '@feathersjs/authentication'
 import { Application, HookContext, NextFunction, Params } from '@feathersjs/feathers'
 import { IncomingMessage, ServerResponse } from 'http'
@@ -11,7 +12,7 @@ import { JWTStrategy } from '@feathersjs/authentication'
 import { LocalStrategy } from '@feathersjs/authentication-local'
 import { NotAuthenticated } from '@feathersjs/errors'
 import { debug } from 'feathers-hooks-common'
-import jsonwebtoken from 'jsonwebtoken'
+import jsonwebtoken, { Secret } from 'jsonwebtoken'
 import { get, merge, set } from 'lodash'
 import bcrypt from 'bcryptjs'
 import { AuthenticateHookSettings } from '@feathersjs/authentication/lib/hooks/authenticate'
@@ -178,6 +179,7 @@ export class myAuth extends AuthenticationService {
   }
   //@ts-ignore
   async parse(req: IncomingMessage, res: ServerResponse, ...names: string[]) {
+    console.log('正在解析') //
     const strategies = this.getStrategies(...names).filter(current => typeof current.parse === 'function')
     for (const authStrategy of strategies) {
       //@ts-ignore
@@ -188,6 +190,28 @@ export class myAuth extends AuthenticationService {
       }
     }
     return null
+  }
+  async verifyAccessToken(accessToken: string, optsOverride?: JwtVerifyOptions, secretOverride?: Secret) {
+    const { secret, jwtOptions } = this.configuration
+    const jwtSecret = secretOverride || secret
+    const options = merge({}, jwtOptions, optsOverride)
+    const { algorithm } = options
+
+    // Normalize the `algorithm` setting into the algorithms array
+    if (algorithm && !options.algorithms) {
+      //@ts-ignore
+      options.algorithms = (Array.isArray(algorithm) ? algorithm : [algorithm]) as Algorithm[]
+      delete options.algorithm
+    }
+
+    try {
+      const verified = jsonwebtoken.verify(accessToken, jwtSecret, options)
+      return verified as any
+    } catch (error) {
+      let _e: any = error
+      // throw new NotAuthenticated(_e.message, error) //
+      return null //
+    }
   }
   @useCaptCha({}) //
   //@ts-ignore

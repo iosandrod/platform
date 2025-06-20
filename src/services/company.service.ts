@@ -1,5 +1,5 @@
 import { HookContext } from '@feathersjs/feathers'
-import { useHook, useRoute } from '../decoration'
+import { useHook, useRoute, useUnAuthenticate } from '../decoration'
 import { BaseService } from './base.service'
 import { myFeathers } from '../feather'
 import { errors } from '@feathersjs/errors'
@@ -45,11 +45,9 @@ import { errors } from '@feathersjs/errors'
         data.connection = `${defaultConnection.connection}/${key}`
       } //
       await next()
-      console.log('创建数据库')
       let app: myFeathers = context.app //
       let _this: CompanyService = app.service('company') as any //
       let res = context.result
-      console.log(res, 'res')
       for (const item of res) {
         // await _this.createCompany(item.appName, item.userid) //
         await _this.createCompany(item) //
@@ -124,6 +122,33 @@ export class CompanyService extends BaseService {
         return item
       })
       .filter((item: any) => item.user != null) //
+    return allCompany //
+  }
+  // @useUnAuthenticate() //
+  @useRoute()
+  @useUnAuthenticate() //
+  getAppConfig(data: any) {
+    let appName = data.appName //
+    let config = {}
+    if (appName == 'erp') {
+      config = {
+        url: 'http://localhost:3004'
+      }
+    } //
+    return config
+  }
+  @useRoute()
+  getAllAppCompany(data: any) {
+    let appName = data?.appName
+    if (appName == null) {
+      return
+    }
+    let query = {
+      appName
+    }
+    let allCompany = this.find({
+      query
+    }) //
     return allCompany //
   }
 }

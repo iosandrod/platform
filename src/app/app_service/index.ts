@@ -14,6 +14,7 @@ import { myFeathers } from '../../feather'
 import BaseService from './base.service'
 import EntityService from '../../services/entity.service'
 import CaptchaService from '../../services/captcha.service'
+import { createMap } from '../../services/index' //
 export async function importModulesFromFolder(directory: string = __dirname, mainApp?: Application) {
   const files = await fs.readdirSync(directory)
   const modules = [] as any
@@ -36,13 +37,13 @@ export async function importModulesFromFolder(directory: string = __dirname, mai
   }
   return modules
 }
-const createMap = {
-  users: UsersService,
-  roles: RoleService,
-  permissions: PermissionService,//
-  entity: EntityService,
-  captcha: CaptchaService//
-}
+// const createMap = {
+//   users: UsersService,
+//   roles: RoleService,
+//   permissions: PermissionService,//
+//   entity: EntityService,
+//   captcha: CaptchaService//
+// }
 
 export const services = async (app: Application, mainApp: myFeathers) => {
   let names = Object.keys(createMap) //
@@ -63,7 +64,7 @@ export const services = async (app: Application, mainApp: myFeathers) => {
         let _key = primaryKey[0]['column_name']
         id = _key
       } else {
-        console.log('表格没有主键字段', name, ids) ////
+        // console.log('表格没有主键字段', name, ids) ////
       }
     }
     let opt = {

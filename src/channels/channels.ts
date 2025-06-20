@@ -13,7 +13,6 @@ export const channels = (app: any) => {
     const socketMap = app.get('socketMap')
     if (socketMap) {
       let client = socketMap.get(connection)
-      // console.log(client, 'testClient') //
       let user = client?.feathers?.user
       if (user) {
         if (client) {

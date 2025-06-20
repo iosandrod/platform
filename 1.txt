@@ -640,3 +640,66 @@ WHERE datname = '${appName}'
   //   }
   // }
   // console.log(socket.handshake.auth,'sjfksfjslkfs')//
+
+  // let isView = false
+      // let id = 'id'
+      // let ids = [] //
+      // let _t = allT[name]
+      // if (_t) {
+      //   let _isView = _t.isView
+      //   if (_isView == true) {
+      //     isView = true
+      //   }
+      //   let primaryKey = _t.columns.filter((col: any) => col['is_primary_key'] == true)
+      //   ids = primaryKey.map((col: any) => col['column_name'])
+      //   // console.log(name, ids)//
+      //   if (ids.length > 0) {
+      //     let _key = primaryKey[0]['column_name']
+      //     id = _key
+      //   } else {
+      //     console.log('表格没有主键字段', name, ids) ////
+      //   }
+      // }
+      // let opt = {
+      //   serviceName: name,
+      //   id,
+      //   ids,
+      //   isView
+      // }
+
+      // export function getDispatcher(emit: string, socketMap: WeakMap<RealTimeConnection, any>, socketKey?: any) {
+//   return function (event: string, channel: CombinedChannel, context: HookContext, data?: any) {
+//     channel.connections.forEach(connection => {
+//       // The reference between connection and socket is set in `app.setup`
+//       const socket = socketKey ? connection[socketKey] : socketMap.get(connection)
+
+//       if (socket) {
+//         const eventName = `${context.path || ''} ${event}`.trim()
+
+//         let result = channel.dataFor(connection) || context.dispatch || context.result
+
+//         // If we are getting events from an array but try to dispatch individual data
+//         // try to get the individual item to dispatch from the correct index.
+//         if (!Array.isArray(data) && Array.isArray(context.result) && Array.isArray(result)) {
+//           result = result.find(resultData => isEqual(resultData, data))
+//         }
+//         console.log(eventName, 'testEventName') //
+//         socket[emit](eventName, result)
+//       }else{
+//         console.log('找不到socket12123')
+//       }
+//     })
+//   }
+// }
+
+// if (this.io) {
+          //   resolve(this.io)
+          // } else {
+          //   reject('找不到父级IO实例')
+          // }
+
+            // console.log(tpath)
+      // mainApp?.use(tpath, ts)//
+      // console.log(ts)//
+      // console.log(pre)//
+      // mainApp?.use(pre, ts)

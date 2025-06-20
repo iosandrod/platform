@@ -24,7 +24,17 @@ import _, { result } from 'lodash'
 
 //@ts-ignore
 import { format } from '@scaleleap/pg-format'
-import { defaultServiceMethods, Id, NullableId, Paginated, Params, Query } from '@feathersjs/feathers'
+import {
+  defaultServiceMethods,
+  FeathersApplication,
+  Id,
+  normalizeServiceOptions,
+  NullableId,
+  Paginated,
+  Params,
+  Query,
+  SERVICE
+} from '@feathersjs/feathers'
 import { TObject, TPick, Type } from '@feathersjs/typebox'
 import Ajv, { ValidateFunction } from 'ajv'
 import { addFormats } from '@feathersjs/schema'
@@ -200,13 +210,11 @@ export class BaseService extends KnexService implements bs {
       return
     }
     //@ts-ignore
-
     //@ts-ignore
     this.app = mainApp
     let Model = this.Model
     let appName = this.getAppName()
     let companyid = this.getCompanyId()
-    // let allT = await this.app.getCompanyTable(companyid, appName) //
     let allT = await this.app.getCompanyTable({
       companyid,
       appName
@@ -1069,8 +1077,8 @@ WHERE table_name = '${schema}'
     let routesMethods = routes.map((route: any) => route.path) //
     let _routeMethods = _routes.map((route: any) => route.path) //
     let p = serviceName //
-    //@ts-ignore
-    let ts = app.use(p, service, {
+    // _app.use('sfksldfs',)
+    let options = {
       //
       //@ts-ignore
       methods: [...defaultServiceMethods, ...routesMethods, ..._routeMethods], // //
@@ -1091,8 +1099,23 @@ WHERE table_name = '${schema}'
           }
         ]
       }
-    })
-  } //
+    }
+    let _options = normalizeServiceOptions(this, options)
+    //@ts-ignore
+    this[SERVICE] = _options //
+    //@ts-ignore
+    let ts = app.use(p, service, options)
+    let _app: myFeathers = app
+    if (!_app.getIsMain()) {
+      let mainApp = _app.getMainApp()
+      let pre = _app.get('prefix')
+      let tpath = `${pre}/${path}`
+      let s = _app.service(p)
+      mainApp?.use(tpath, s) //
+    
+    }
+    return ts
+  } // 
   //批量
   // @useRoute()
   @useGlobalRoute()

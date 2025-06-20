@@ -21,12 +21,12 @@ export function parseAuthentication(settings: any = {}): Middleware {
             debug('No `authStrategies` or `parseStrategies` found in authentication configuration')
             return next()
         }
-        
-        const authentication = await service.parse(ctx.req, ctx.res, ...authStrategies)
-        // console.log(authentication,'testAuth')//
-        if (authentication) {
-            debug('Parsed authentication from HTTP header', authentication)
-            ctx.feathers = { ...ctx.feathers, authentication }
+        try {
+            let authentication = await service.parse(ctx.req, ctx.res, ...authStrategies)
+            if (authentication) {
+                ctx.feathers = { ...ctx.feathers, authentication }
+            }
+        } catch (error) {
         }
         return next()
     }
@@ -48,7 +48,6 @@ const serviceMiddleware = (): Middleware => {
         }
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         let method = http.getServiceMethod(httpMethod, id, methodOverride)
-        // console.log(method, httpMethod, methodOverride, 'testMethods')////
         let _obj = getServiceOptions(service)
         // let { methods } = getServiceOptions(service)
         let methods: any = _obj.methods
@@ -77,6 +76,8 @@ const servicesMiddleware = (): Middleware => {
     return async (ctx: any, next: any) => {
         const app = ctx.app
         const lookup = app.lookup(ctx.request.path)
+        // console.log(app.routes)//
+        // console.log(lookup,ctx.request.path,'testLookup123123')//
         if (!lookup) {
             return next()
         }

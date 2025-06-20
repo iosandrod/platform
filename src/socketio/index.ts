@@ -1,10 +1,10 @@
-import { Application, getServiceOptions, Params, RealTimeConnection } from '@feathersjs/feathers'
+import { Application, Params, RealTimeConnection, SERVICE, ServiceOptions } from '@feathersjs/feathers'
 import { createDebug } from '@feathersjs/commons'
 import { Socket } from 'socket.io'
 import { Server, ServerOptions } from 'socket.io'
 import http from 'http'
 import { SocketOptions } from '@feathersjs/transport-commons/lib/socket'
-import { routing } from '@feathersjs/transport-commons'
+// import { routing } from '@feathersjs/transport-commons'
 import { createContext, HookContext } from '@feathersjs/feathers'
 import { CombinedChannel } from '@feathersjs/transport-commons'
 // import { DEFAULT_PARAMS_POSITION, normalizeError, paramsPositions, } from '@feathersjs/transport-commons/src/socket/utils'
@@ -13,10 +13,15 @@ import isEqual from 'lodash/isEqual'
 import { BadRequest, MethodNotAllowed, NotFound } from '@feathersjs/errors'
 // import { socket } from '@feathersjs/transport-commons'
 import { channels } from './channels'
+import { routing } from './routing'
+import { myFeathers } from '@/feather'
 export type ParamsGetter = (socket: Socket) => any
 export type NextFunction = (err?: any) => void
 export interface FeathersSocket extends Socket {
   feathers?: Params & { [key: string]: any }
+}
+export function getServiceOptions(service: any): ServiceOptions {
+  return service[SERVICE]
 }
 export const disconnect = (
   app: Application,
@@ -102,7 +107,8 @@ export function configureSocketio(port?: any, options?: any, config?: any) {
     options = {} //
   } ////
 
-  return (app: Application) => {
+  return (_app: Application) => {
+    let app: myFeathers | any = _app as any
     // Function that gets the connection
     const getParams: any = (socket: FeathersSocket) => {
       return socket.feathers
@@ -131,6 +137,31 @@ export function configureSocketio(port?: any, options?: any, config?: any) {
         },
 
         async setup(this: any, server: http.Server, ...rest: any[]) {
+          let app1: myFeathers = app
+          let isMain = app1.getIsMain()
+          if (isMain == false) {
+            let mainApp: Application = app1.mainApp as any
+            let _io = mainApp.io
+            if (_io) {
+              let namespace = options.namespace
+              if (namespace == null) {
+                console.log('namespace is null',options)//
+                throw new Error('namespace is null') //
+              }
+              let io = _io.of(namespace)
+              io.use(disconnect(app, getParams, socketMap))
+              io.use(params(app, socketMap))
+              io.use(authentication(app, getParams))
+              // io.sockets.setMaxListeners(64)
+              this.io = io
+            }
+
+            resolve(this.io)
+            return setup.call(this, server, ...rest)
+          }
+          if (server == null) {
+            return
+          }
           if (!this.io) {
             const io = (this.io = new Server(port || server, options))
             let oldEmit = io.emit
@@ -144,7 +175,6 @@ export function configureSocketio(port?: any, options?: any, config?: any) {
             })
             io.sockets.setMaxListeners(64)
           }
-
           if (typeof config === 'function') {
             config.call(this, this.io)
           } ////
@@ -153,7 +183,7 @@ export function configureSocketio(port?: any, options?: any, config?: any) {
         }
       })
     })
-    app.set('socketMap', socketMap)//
+    app.set('socketMap', socketMap) //
     app.configure(
       //
       socket({
@@ -174,7 +204,7 @@ export function socket({ done, emit, socketMap, socketKey, getParams }: any) {
         app.channel(app.channels).leave(connection)
       }
     }
-    app.configure(channels())
+    app.configure(channels()) //
     app.configure(routing())
     app.on('publish', getDispatcher(emit, socketMap, socketKey))
     app.on('disconnect', leaveChannels)
@@ -193,8 +223,11 @@ export function socket({ done, emit, socketMap, socketKey, getParams }: any) {
     //@ts-ignore
     done.then(provider =>
       provider.on('connection', (connection: Socket) => {
-        const methodHandlers = Object.keys(app.services).reduce((result, name: any) => {
-          const { methods } = getServiceOptions(app.service(name))
+        let allS = app.services
+        let methodHandlers = Object.keys(app.services).reduce((result, name: any) => {
+          //
+          // console.log(app.service(name))//
+          let { methods } = getServiceOptions(app.service(name))
           //@ts-ignore
           methods.forEach(method => {
             if (!result[method]) {
@@ -220,30 +253,6 @@ export function socket({ done, emit, socketMap, socketKey, getParams }: any) {
   }
 }
 
-// export function getDispatcher(emit: string, socketMap: WeakMap<RealTimeConnection, any>, socketKey?: any) {
-//   return function (event: string, channel: CombinedChannel, context: HookContext, data?: any) {
-//     channel.connections.forEach(connection => {
-//       // The reference between connection and socket is set in `app.setup`
-//       const socket = socketKey ? connection[socketKey] : socketMap.get(connection)
-
-//       if (socket) {
-//         const eventName = `${context.path || ''} ${event}`.trim()
-
-//         let result = channel.dataFor(connection) || context.dispatch || context.result
-
-//         // If we are getting events from an array but try to dispatch individual data
-//         // try to get the individual item to dispatch from the correct index.
-//         if (!Array.isArray(data) && Array.isArray(context.result) && Array.isArray(result)) {
-//           result = result.find(resultData => isEqual(resultData, data))
-//         }
-//         console.log(eventName, 'testEventName') //
-//         socket[emit](eventName, result)
-//       }else{
-//         console.log('找不到socket12123')
-//       }
-//     })
-//   }
-// }
 export function getDispatcher(emit: string, socketMap: WeakMap<RealTimeConnection, any>, socketKey?: any) {
   const throttleMap = new Map<
     string,
@@ -296,7 +305,7 @@ export function getDispatcher(emit: string, socketMap: WeakMap<RealTimeConnectio
     const basePath = context.path || ''
     const rawEventName = `${basePath} ${event}`.trim()
     const changedEventName = `${basePath} changed`
-    console.log(rawEventName, basePath, 'testEventName') //
+    // console.log(rawEventName, basePath, 'testEventName') //
     const connections = channel.connections
     ////
     connections.forEach(connection => {
@@ -362,8 +371,10 @@ export async function runMethod(
     callback(normalizeError(error))
   }
   try {
+    // console.log('执行到这里了', path, 'testPath') // //
     //@ts-ignore
-    const lookup = app.lookup(path)
+    let lookup = app.lookup(path)
+    // console.log(lookup,'testLookup')//
     // No valid service was found throw a NotFound error
     if (lookup === null) {
       throw new NotFound(path === null ? `Invalid service path` : `Service '${path}' not found`)

@@ -1,5 +1,14 @@
-import { Feathers } from '@feathersjs/feathers'
-// import { Service } from '@feathersjs/feathers'
+import {
+  Feathers,
+  FeathersService,
+  getServiceOptions,
+  protectedMethods,
+  Service,
+  ServiceInterface,
+  ServiceOptions,
+  wrapService
+} from '@feathersjs/feathers'
+import { stripSlashes } from '@feathersjs/commons'
 import { Application } from './declarations'
 import { createApp } from './app/app_index'
 import _ from 'lodash'
@@ -12,14 +21,17 @@ import { BaseService } from './services/base.service'
 import { createMap, defaultServiceMethods } from './services'
 import { columnToTable, createNewApp } from './featherFn'
 import { channels } from './channels/channels'
+import { options } from 'svg-captcha'
 // const nanoid = () => 'xxxxx' //
 export const subAppCreateMap = {
   erp: createApp //
 }
 //构建自己的feather
 export class myFeathers extends Feathers<any, any> {
+  knexInt: any
   publish(arg0: string, arg1: {}) {
-    throw new Error('Method not implemented.')
+    // throw new Error('Method not implemented.')
+    return
   }
   subAppCreateMap = subAppCreateMap
   captchaData: any = {}
@@ -49,8 +61,8 @@ export class myFeathers extends Feathers<any, any> {
     return company
   } //
   async createCompany(config: any) {
-    let s1 = await this.createService({ serviceName: 'company1' }) //
-
+    // debugger//
+    // let s1 = await this.createService({ serviceName: 'company1' }) //
     let appName = config.appName //
     let userid = config.userid //
     //创建数据库//
@@ -62,20 +74,24 @@ export class myFeathers extends Feathers<any, any> {
       appName, //
       userid
     }
-    let hasRows = await companyS.find({
-      query
-    })
     let tCompany = null
-    if (hasRows.length == 0) {
-      // throw new errors.BadRequest('公司已存在')
-      let companies = await companyS.create({
-        appName,
-        userid
-      })
-      // hasRows=[...companies]
-      tCompany = companies[0]
+    if (config.id && config.connection) {
+      tCompany = config
     } else {
-      tCompany = hasRows[0]
+      let hasRows = await companyS.find({
+        query
+      })
+      if (hasRows.length == 0) {
+        // throw new errors.BadRequest('公司已存在')
+        let companies = await companyS.create({
+          appName,
+          userid
+        })
+        // hasRows=[...companies]
+        tCompany = companies[0]
+      } else {
+        tCompany = hasRows[0]
+      }
     }
     let app = this
     let sql1 = `SELECT pg_terminate_backend(pid)
@@ -95,7 +111,7 @@ export class myFeathers extends Feathers<any, any> {
     let sql3 = `SELECT EXISTS(SELECT FROM pg_database WHERE datname = '${appName}');`
     let data = await pgClient.raw(sql2) //
     let data1 = await pgClient.raw(sql3) //
-    let isExist = data.rows[0].exists //
+    let isExist = data.rows[0].exists ////
     let isExist1 = data1.rows[0].exists //
     if (isExist1 == false) {
       throw new errors.BadRequest('不存在相关app')
@@ -112,18 +128,18 @@ export class myFeathers extends Feathers<any, any> {
     if (typeof createFn !== 'function') {
       throw new errors.BadRequest('不存在相关app')
     } //
+    await this.getCompanyConnection({ ...tCompany, ...config }) //
     //@ts-ignore
     let _app: myFeathers = await this.registerSubApp({ ...tCompany, ...config }) //
     let sers = _app.services //
     let alls: any[] = Object.values(sers)
     for (const s of alls) {
-      // console.log(s,'testS')////
       let _s: BaseService = s
       if (typeof s.init === 'function') {
         await _s.init(_app as any) //
       }
-    }
-  } //
+    } //
+  }
   @cacheValue() //
   async getRoles(userid: string) {
     // let client = this.getPgClient()
@@ -169,9 +185,11 @@ export class myFeathers extends Feathers<any, any> {
   //@ts-ignore
   // async getCompanyConnection(company?: any, appName?: string): Promise<Knex> {
   async getCompanyConnection(config): Promise<Knex> {
-    let { company, appName } = config
+    let { company, appName, companyid, userid } = config
+    company = company || companyid || userid //
     let client = this.getClient()
-    if (typeof company === 'number') {
+    if (company != null && appName != null) {
+      //
       let cacheKnex = this.cacheKnex
       let _key = `${appName}--${company}`
       let _knex = cacheKnex[_key]
@@ -181,18 +199,25 @@ export class myFeathers extends Feathers<any, any> {
       if (appName == null || company == null) {
         return this.getPgClient() //
       } //
-      let companyInfo = await client('company')
-        .where({
-          userid: company, //
-          appName: appName
-        })
-        .select() ////
-      let row = companyInfo[0]
+      let row = null
+      if (config.connection && config.id) {
+        row = config
+      } else {
+        let companyInfo = await client('company')
+          .where({
+            userid: company, //
+            appName: appName
+          })
+          .select() ////
+        row = companyInfo[0]
+      }
       if (row == null) {
         throw new Error(`company ${company} not found`) //
       }
-      let connection = companyInfo[0].connection //
-      let type = companyInfo[0].type //
+      // let connection = companyInfo[0].connection //
+      // let type = companyInfo[0].type //
+      let connection = row.connection //
+      let type = row.type //
       let _client = knex({
         client: type,
         connection: connection
@@ -200,7 +225,7 @@ export class myFeathers extends Feathers<any, any> {
       cacheKnex[_key] = _client ////
       return _client
     }
-    if (typeof company === 'object') {
+    if (typeof company == 'object') {
       let connection = company.connection
       let type = company.type
       let name = company.name
@@ -224,16 +249,24 @@ export class myFeathers extends Feathers<any, any> {
     config = config || {}
     let { companyid, appName } = config //
     if (companyid == null) {
-      companyid = '' // 
+      companyid = '' //
     }
     if (appName == null) {
       appName = ''
     }
     return `${companyid}--${appName}`
-  })
+  }) //
   //获取所有的表结构
   // async getCompanyTable(companyid?: string, appName?: string) {
-  async getCompanyTable(config?: any) {
+  async getCompanyTable(config?: any): Promise<any> {
+    let mainApp = this.getMainApp()
+    if (mainApp != this) {
+      let appName = config?.appName || this.get('appName')
+      let companyid = config?.companyid || this.get('companyid')
+      //@ts-ignore
+      let _t = await mainApp.getCompanyTable({ ...config, appName, companyid })
+      return _t
+    } //
     let { companyid, appName } = config || {}
     //@ts-ignore
     let _this: myFeathers = this.getMainApp()
@@ -242,8 +275,7 @@ export class myFeathers extends Feathers<any, any> {
     if (companyid == null) {
       _connect = this.get('postgresqlClient')
     } else {
-      // _connect = await _this.getCompanyConnection(companyid, appName) //
-      _connect = await _this.getCompanyConnection({ company: companyid, appName }) //
+      _connect = await _this.getCompanyConnection({ ...(config || {}), company: companyid, appName })
     }
     if (_connect == null) {
       _connect = this.getPgClient() //
@@ -283,6 +315,23 @@ ORDER BY
     let tables = columnToTable(allColumns) //
     return tables //
   } //
+  getStaticCompanyTable() {
+    let isMain = this.getIsMain()
+    if (isMain) {
+      let cache = this.cache
+      let key = 'getCompanyTable----'
+      return cache[key]
+    } else {
+      let mainApp: any = this.getMainApp()
+      let appName = this.get('appName')
+      let companyid = this.get('companyid')
+      let cache = mainApp.cache
+      // console.log(Object.keys(cache))
+      let key = `getCompanyTable--${companyid}--${appName}`
+      // console.log(key)
+      return cache[key] //
+    }
+  }
   clearCache(fnName: string, key?: string) {
     //
     if (fnName == null) {
@@ -309,7 +358,11 @@ ORDER BY
     if (typeof createFn !== 'function') return // 不存在的服务不需要注册
     //@ts-ignore
     let subApp = await createFn(this, config) //
+    subApp.set('companyid', companyId)
+    subApp.set('appName', appName) //
+    //前置路由
     let key = `${appName}_${companyId}` //
+    subApp.set('prefix', key)
     let routePath = `/${key}` //
     this.use(routePath, subApp)
     let subAppMap = this.subApp //
@@ -410,28 +463,93 @@ ORDER BY
     //
     this.hooks({
       all: [
-        //
         async (context: any, next: any) => {
           //
           await next()
-          let params = context.params || {}
-          // let provider = params.provider
-          // const service = context.service//
-          // if (provider == 'socketio') {
-          //   context.result = {
-          //     data: context.result,
-          //     code: 200
-          //   } //
-          // }
+          let params = context.params || {} //
         }
       ]
     })
   }
+  getAddOptions(name: string, allT: any) {
+    let isView = false
+    let id = 'id'
+    let ids = [] //
+    let _t = allT[name]
+    if (_t) {
+      let _isView = _t.isView
+      if (_isView == true) {
+        isView = true
+      }
+      let primaryKey = _t.columns.filter((col: any) => col['is_primary_key'] == true)
+      ids = primaryKey.map((col: any) => col['column_name'])
+      // console.log(name, ids)//
+      if (ids.length > 0) {
+        let _key = primaryKey[0]['column_name']
+        id = _key
+      } else {
+        // console.log('表格没有主键字段', name, ids) ////
+      }
+    }
+    let opt = {
+      serviceName: name,
+      id,
+      ids,
+      isView
+    }
+    return opt //
+  }
+  // lookup(path:any) {
+  //   console.log('执行到这了')//
+  //   let _this:any=this
+  //   const result = _this.routes.lookup(path)
+  //   if (result === null) {
+  //     return null
+  //   }
+  //   const {
+  //     params: colonParams,
+  //     //@ts-ignore
+  //     data: { service, params: dataParams }
+  //   } = result
+
+  //   const params = dataParams ? { ...dataParams, ...colonParams } : colonParams
+
+  //   return { service, params }
+  // }
+  service<L extends string>(location: L): FeathersService<this, Service> {
+    let path = (stripSlashes(location) || '/') as L
+    let current = this.services.hasOwnProperty(path) ? this.services[path] : undefined
+    // let allTable=this.getCompanyTable()
+    let allTable = this.cache['getCompanyTable----']
+    // console.log(Object.keys(this.cache),'testTable')//
+    if (typeof current === 'undefined') {
+      if (allTable != null && allTable[path] != null) {
+        let targetTable = allTable[path]
+        if (targetTable != null) {
+          let opt = this.getAddOptions(path, allTable)
+          current = this.addService({
+            //
+            options: opt,
+            serviceName: path //
+          })
+          this.services[path] = current //
+        }
+        return current //
+      } else {
+        //
+        this.use(path, this.defaultService(path) as any)
+      }
+      // return this.service(path) //
+    } //
+    return current as any
+  }
+  defaultService(location: string): ServiceInterface {
+    throw new Error(`Can not find service '${location}'`)
+  }
   async initTableService() {
-    let names: any[] = Object.keys(createMap) //
+    let names: any[] = Object.keys(createMap) ////
     let app = this
     let _names = await app.getCompanyTable()
-
     let allT = _names
     _names = Object.keys(_names) ////
     names = [...names, ..._names].filter((name, i) => {
@@ -439,36 +557,32 @@ ORDER BY
     })
     names = names.filter((name, i) => names.indexOf(name) == i) //
     // let arr = []
-    for (const name of names) {
-      let isView = false
-      let id = 'id'
-      let ids = [] //
-      let _t = allT[name]
-      if (_t) {
-        let _isView = _t.isView
-        if (_isView == true) {
-          isView = true
-        }
-        let primaryKey = _t.columns.filter((col: any) => col['is_primary_key'] == true)
-        ids = primaryKey.map((col: any) => col['column_name'])
-        // console.log(name, ids)//
-        if (ids.length > 0) {
-          let _key = primaryKey[0]['column_name']
-          id = _key
-        } else {
-          console.log('表格没有主键字段', name, ids) ////
-        }
-      }
-      let opt = {
-        serviceName: name,
-        id,
-        ids,
-        isView
-      }
-      await this.addService({ options: opt, serviceName: name }) //
-    }
+    console.time('initTableService')
+    // if (this.getIsMain() == false) {
+    //   return
+    // } //
+    // for (const name of names) {
+    //   let opt = this.getAddOptions(name, allT)
+    //   await this.addService({ options: opt, serviceName: name }) //
+    // }
+    console.timeEnd('initTableService')
   }
-  async addService(
+  getIsMain() {
+    let a = this.getMainApp()
+    if (a == this) {
+      return true
+    }
+    return false
+  }
+  getAllTableName() {
+    let staticTableName = this.getStaticCompanyTable()
+    // console.log('就是浪费时间龙口粉丝进啦', staticTableName)//
+    let names = Object.keys(staticTableName)
+    let createNames = Object.keys(createMap)
+    names = [...names, ...createNames]
+    return names
+  }
+  addService(
     config: {
       options: {
         id: string
@@ -482,12 +596,16 @@ ORDER BY
     if (_service) {
       return //
     }
-    let s = await this.createService(config)
-    await s.initHooks(this) //
+    // let options = config.options
+    // // console.log(options)
+    // options.name = options.name || config.serviceName //
+    let s = this.createService(config) //
+    s.initHooks(this) //
     //@ts-ignore
     s.init(this)
+    return s //
   } //
-  async createService(config: any) {
+  createService(config: any) {
     let serviceName = config.serviceName //
     let app = this
     //创建类
@@ -495,6 +613,7 @@ ORDER BY
     let _options = config.options || {}
     let methods = defaultServiceMethods
     let Model = this.get('postgresqlClient')
+    // console.log(config.options)
     _.merge(_options, {
       methods,
       name: serviceName, //
@@ -507,6 +626,7 @@ ORDER BY
       //
       createClass = _sClass
     }
+    // console.log(Object.keys(_options))//
     let service = new createClass(_options) //
     service.serviceName = serviceName //服务名称
     return service
@@ -589,6 +709,80 @@ ORDER BY
     let data = await this.getPgClient().raw(sql)
     let realTableName = data.rows?.[0]?.['realTableName']
     return realTableName
+  }
+  use<L extends keyof any & string>(
+    path: L,
+    service: keyof any extends keyof any ? ServiceInterface | Application : any[L],
+    options?: ServiceOptions<keyof any extends keyof any ? string : keyof any[L]>
+  ): this {
+    if (typeof path !== 'string') {
+      throw new Error(`'${path}' is not a valid service path.`)
+    } //
+    let location = (stripSlashes(path) || '/') as L
+    let subApp = service as Application
+    let isSubApp = typeof subApp.service === 'function' && subApp.services
+
+    if (isSubApp) {
+      Object.keys(subApp.services).forEach(subPath =>
+        this.use(`${location}/${subPath}` as any, subApp.service(subPath) as any)
+      )
+
+      return this
+    }
+
+    let protoService = wrapService(location, service, options as ServiceOptions)
+    let serviceOptions: any = getServiceOptions(protoService)
+
+    for (const name of protectedMethods) {
+      if (serviceOptions.methods.includes(name)) {
+        throw new Error(`'${name}' on service '${location}' is not allowed as a custom method name`)
+      }
+    }
+
+    // Add all the mixins
+    this.mixins.forEach(fn => fn.call(this, protoService, location, serviceOptions))
+
+    this.services[location] = protoService
+
+    // If we ran setup already, set this service up explicitly, this will not `await`
+    if (this._isSetup && typeof protoService.setup === 'function') {
+      protoService.setup(this, location)
+    }
+
+    return this
+  }
+  async initKnexClient(config: any) {
+    if (config.client == null) config.client = this.getClientType() //
+    let isMain = this.getIsMain() //
+    let pool = config.pool
+    if (pool == null) {
+      pool = {
+        min: 2,
+        max: 50
+      }
+      config.pool = pool
+    }
+    if (isMain) {
+      let db = knex(config)
+      await db.raw('SET TIME ZONE "Asia/Shanghai"')
+      this.set('postgresqlClient', db)
+    } else {
+      let companyid = this.get('companyid')
+      let appName = this.get('appName')
+      let mainApp = this.getMainApp()
+      let db = knex(config)
+      this.set('postgresqlClient', db)
+      mainApp?.set(`postgresqlClient_${companyid}_${appName}`, db)
+    } //
+    let db = this.get('postgresqlClient')
+    if (db) {
+      this.knexInt = setInterval(() => {
+        db.raw('SELECT 1') //
+      }, 3000)
+    }
+  }
+  getClientType() {
+    return 'pg'
   }
 }
 export const createFeathers = () => {

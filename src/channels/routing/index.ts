@@ -22,6 +22,7 @@ declare module '@feathersjs/feathers/lib/declarations' {
 export * from './router'
 
 const lookup = function (this: Application, path: string) {
+  console.log("执行到这了是否水电费水电费是的")//
   const result = this.routes.lookup(path)
 
   if (result === null) {

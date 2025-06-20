@@ -15,7 +15,7 @@ declare module './declarations' {
 }
 
 export const postgresql = async (app: Application) => {
-  let config: any = app.get('postgresql')
+  let config: any = app.get('postgresql') //
   let pool = config?.pool
   if (pool == null) {
     pool = {
@@ -24,12 +24,18 @@ export const postgresql = async (app: Application) => {
     }
     config.pool = pool
   }
-  pool.afterCreate = (conn: any, done: any) => {
-    conn.query(`SET TIME ZONE 'Asia/Shanghai';`, (err: any) => {
-      done(err, conn)
-    })
+  // pool.afterCreate = (conn: any, done: any) => {
+  //   conn.query(`SET TIME ZONE 'Asia/Shanghai';`, (err: any) => {
+  //     done(err, conn)
+  //   })
+  // }
+  config = {
+    ...config
   }
   let db = knex(config!)
+  setTimeout(() => {
+    db.raw('SELECT 1') //
+  }, 2000)
   await db.raw('SET TIME ZONE "Asia/Shanghai"')
   // console.log('run here')//
   app.set('postgresqlClient', db)

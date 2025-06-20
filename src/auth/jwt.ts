@@ -150,6 +150,9 @@ export class myJwtStrategy extends JWTStrategy {
     strategy: string
     accessToken: string
   } | null> {
+    // if (1 == 1) {
+    //   return null
+    // }
     const { header, schemes }: { header: string; schemes: string[] } = this.configuration
     const headerValue = req.headers && req.headers[header.toLowerCase()]
 
@@ -170,8 +173,7 @@ export class myJwtStrategy extends JWTStrategy {
     }
     let params = {}
     let accessToken = obj.accessToken
-    const payload = await this.authentication!.verifyAccessToken(accessToken)
-    // console.log(payload, 'testPayload') //
+    let payload = await this.authentication!.verifyAccessToken(accessToken)
     if (payload) {
       obj.authentication = {
         strategy: 'jwt',
