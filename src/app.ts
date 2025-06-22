@@ -18,6 +18,20 @@ import { redis } from './redis'
 import featherBlob from 'feathers-blob'
 import { configureSocketio } from './socketio'
 import { koa } from './koa'
+import dotenv from 'dotenv'
+dotenv.config() //
+import pg from 'pg'
+import moment from 'moment-timezone'
+import { Knex } from 'knex'
+pg.types.setTypeParser(1184, (val: any) => moment.tz(val, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'))
+
+// 可选：也处理 timestamp without time zone
+pg.types.setTypeParser(1114, (val: any) => moment.tz(val, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'))
+declare module './declarations' {
+  interface Configuration {
+    postgresqlClient: Knex
+  }
+}
 // export let appArr = [
 //   {
 //     companyid: '1',
@@ -50,8 +64,6 @@ export async function createApp() {
   // )
   let fn = configureSocketio({ cors: { origin: app.get('origins') } })
   await fn(app) //
-  // await app.configure(postgresql) ////
-  // await postgresql(app) //
   await app.initKnexClient(app.get('postgresql')) //
   // await services(app) //
   await app.initTableService() //

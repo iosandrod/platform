@@ -107,7 +107,6 @@ export function channels() {
                 const channel = new CombinedChannel(results)
 
                 let _app: myFeathers = app as any
-                console.log(_app.getIsMain(), 'sfskldfjsklfsdjl') //
                 if (channel && channel.length > 0) {
                   app.emit('publish', event, channel, hook, data)
                 } else {

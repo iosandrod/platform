@@ -179,7 +179,6 @@ export class myAuth extends AuthenticationService {
   }
   //@ts-ignore
   async parse(req: IncomingMessage, res: ServerResponse, ...names: string[]) {
-    console.log('正在解析') //
     const strategies = this.getStrategies(...names).filter(current => typeof current.parse === 'function')
     for (const authStrategy of strategies) {
       //@ts-ignore

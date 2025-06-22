@@ -9,6 +9,7 @@ import { createPasswordTransform } from '../generateHooks'
 import { Params } from '@feathersjs/feathers'
 import { myFeathers } from '../feather'
 import { mergeCols, mergeEditCols } from '../utils'
+import { batchInsert } from '../featherFn'
 @useHook({
   find: [
     async (context: HookContext, next) => {
@@ -95,8 +96,7 @@ import { mergeCols, mergeEditCols } from '../utils'
             let _config = await _this.getTableConfig(tableName)
             let _columns = _config?.columns || []
             let keyCol = _columns.find((col: any) => col.primary != null)
-          } //
-          // res.columns = allCol //
+          }
           if (Array.isArray(fields)) {
             for (const f of fields) {
               let type = f?.type
@@ -274,9 +274,38 @@ export class EntityService extends BaseService {
     let _tableName = tableName.tableName
     if (Boolean(_tableName) == false) {
       throw new errors.BadGateway('找不到表格配置信息')
-    }//
+    } //
     let app = this.app
     return app.getTableConfig(_tableName) //
+  }
+  @useRoute() //
+  async syncTableData(data: any) {
+    let app = this.app
+    if (app.getIsMain()) {
+      return []
+    }
+    let appName = app.getAppName() //
+    // console.log(appName, 'testName') //
+    let dCon = await app.getDefaultAppConnection(appName)
+    /* 
+    {
+      appName,
+      companyid: app.getCompanyId()//
+    }
+    */
+    let mCon = await app.getCompanyConnection() //
+    let tableName = data?.tableName || data //
+    if (tableName == null) {
+      return []
+    }
+    if (!Array.isArray(tableName)) {
+      tableName = [tableName]
+    }
+    for (const name of tableName) {
+      await batchInsert(dCon, mCon, name) //
+    }
+    return '同步数据成功' //
+    //获取相关链接
   }
 }
 

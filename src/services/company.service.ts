@@ -129,13 +129,11 @@ export class CompanyService extends BaseService {
   @useUnAuthenticate() //
   getAppConfig(data: any) {
     let appName = data.appName //
-    let config = {}
-    if (appName == 'erp') {
-      config = {
-        url: 'http://localhost:3004'
-      }
-    } //
-    return config
+    let config = {} //
+    let NODE_ENV: any = process.env.NODE_ENV
+    let _config: any = this.app.get(NODE_ENV) //
+    let _config1 = _config?.[appName] || {}
+    return _config1 //
   }
   @useRoute()
   getAllAppCompany(data: any) {

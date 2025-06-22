@@ -5,7 +5,7 @@ import type { Application } from './declarations'
 import pg from 'pg'
 import moment from 'moment-timezone'
 pg.types.setTypeParser(1184, (val: any) => moment.tz(val, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'))
-
+//
 // 可选：也处理 timestamp without time zone
 pg.types.setTypeParser(1114, (val: any) => moment.tz(val, 'Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss'))
 declare module './declarations' {

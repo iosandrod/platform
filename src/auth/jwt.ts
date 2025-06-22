@@ -112,7 +112,12 @@ export class myJwtStrategy extends JWTStrategy {
   }
 
   async getEntityId(authResult: AuthenticationResult, _params: Params) {
-    return authResult.authentication.payload.sub
+    // console.log(authResult,'sfjsdlkfjdslfsd')//
+    let sub = authResult.authentication?.payload?.sub
+    if (sub == null) {
+      throw new NotAuthenticated('Could not find entity id') //
+    }
+    return sub
   }
 
   async authenticate(authentication: AuthenticationRequest, params: AuthenticationParams) {
