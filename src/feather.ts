@@ -22,6 +22,7 @@ import { createMap, defaultServiceMethods } from './services'
 import { columnToTable } from './featherFn'
 import { channels } from './channels/channels'
 import { options } from 'svg-captcha'
+import { connect } from 'node:http2'
 // const nanoid = () => 'xxxxx' //
 export const subAppCreateMap = {
   erp: createApp //
@@ -61,11 +62,8 @@ export class myFeathers extends Feathers<any, any> {
     return company
   } //
   async createCompany(config: any) {
-    // debugger//
-    // let s1 = await this.createService({ serviceName: 'company1' }) //
     let appName = config.appName //
     let userid = config.userid //
-    //创建数据库//
     if (userid == null) {
       throw new errors.BadRequest('用户不能为空') //
     }
@@ -83,16 +81,17 @@ export class myFeathers extends Feathers<any, any> {
       })
       if (hasRows.length == 0) {
         // throw new errors.BadRequest('公司已存在')
-        let companies = await companyS.create({
-          appName,
-          userid
-        })
-        // hasRows=[...companies]
-        tCompany = companies[0]
+        // let companies = await companyS.create({
+        //   appName,
+        //   userid
+        // })
+        // tCompany = companies[0]
+        throw new errors.BadRequest('没有想过的账套') //
       } else {
         tCompany = hasRows[0]
       }
     }
+
     let app = this
     let sql1 = `SELECT pg_terminate_backend(pid)
     FROM pg_stat_activity
@@ -116,6 +115,7 @@ export class myFeathers extends Feathers<any, any> {
     if (isExist1 == false) {
       throw new errors.BadRequest('不存在相关app')
     } //
+    // console.log('createCompany', appName, userid,isExist)//
     if (isExist == false) {
       await pgClient.raw(sql)
     }
@@ -177,6 +177,37 @@ export class myFeathers extends Feathers<any, any> {
     permissions = permissions.filter((p: any) => roleid.includes(p.roleid)) ////
     return permissions
   }
+  getUser(context: any) {
+    if (context?.params == null) {
+      context = {
+        params: context //
+      }
+    }
+    let id = context?.params?.user
+    let authenticationId = context?.params?.authentication?.user
+    if (id == null) {
+      id = authenticationId
+    }
+    if (id == null) {
+      return null //
+    }
+    return id //
+  }
+  getUserId(context: any) {
+    if (context?.params == null) {
+      context = {
+        params: context //
+      }
+    }
+    let id = context?.params?.user?.id
+    let authenticationId = context?.params?.authentication?.user?.id
+    if (id == null) {
+      id = authenticationId
+    }
+    if (id == null) {
+    }
+    return id //
+  }
   @cacheValue()
   getUserPermissions(userid: string) {
     let roles = this.getRoles(userid)
@@ -198,8 +229,9 @@ export class myFeathers extends Feathers<any, any> {
     if (_knex != null) {
       return _knex
     }
-    let defaultConnection = process.env.postgresql_connection_default
-    let _connection = `${defaultConnection}/${appName}`
+    // let defaultConnection = process.env.postgresql_connection_default
+    // let _connection = `${defaultConnection}/${appName}`
+    let _connection = this.getLocalDefaultConnection(appName, config?.userid)
     let client = _this.getClientType()
     let obj = {
       client: client,
@@ -257,10 +289,12 @@ export class myFeathers extends Feathers<any, any> {
       // let type = companyInfo[0].type //
       let connection = row.connection //
       let type = row.type //
-      let _client = knex({
+      let obj = {
         client: type,
         connection: connection
-      })
+      }
+      // console.log(obj) //
+      let _client = knex(obj)
       cacheKnex[_key] = _client ////
       return _client
     }
@@ -365,9 +399,7 @@ ORDER BY
       let appName = this.get('appName')
       let companyid = this.get('companyid')
       let cache = mainApp.cache
-      // console.log(Object.keys(cache))
       let key = `getCompanyTable--${companyid}--${appName}`
-      // console.log(key)
       return cache[key] //
     }
   }
@@ -790,6 +822,25 @@ ORDER BY
 
     return this
   }
+  getMainDefaultConnection() {
+    let NODE_ENV: any = process.env.NODE_ENV
+    let _config = this.get(NODE_ENV)
+    let pgconnection = _config?.['pgconnection']
+    return pgconnection //
+  }
+  getLocalDefaultConnection(appName: string, userid?: any) {
+    let NODE_ENV: any = process.env.NODE_ENV
+    let _config = this.get(NODE_ENV)
+    let _config1 = _config?.[appName] || {}
+    let pgconnection = _config1?.['pgconnection']
+    let _name = `${appName}`
+    if (userid != null) {
+      _name = `${_name}_${userid}`
+    }
+    let c = `${pgconnection}/${_name}` //
+    // return pgconnection
+    return c
+  }
   async initKnexClient(config: any) {
     if (config.client == null) config.client = this.getClientType() //
     let isMain = this.getIsMain() //
@@ -802,22 +853,27 @@ ORDER BY
       }
       config.pool = pool
     }
-    let isLocal = process.env.environment == 'local'
+    let isLocal = process.env.NODE_ENV == 'development'
+    let node_env: any = process.env.NODE_ENV
+    let _config = this.get(node_env)
     if (isMain) {
-      if (isLocal) {
-        config.connection = process.env.postgresql_connection
-      }
+      // if (isLocal) {
+      //   config.connection = this.get('')
+      // }
+      // config.connection = _config?.['platform']?.['pgconnection']
+      let _pConfig = this.getLocalDefaultConnection('platform')
+      config.connection = _pConfig
       let db = knex(config) //
       await db.raw('SET TIME ZONE "Asia/Shanghai"')
       this.set('postgresqlClient', db)
     } else {
       let companyid = this.get('companyid')
       let appName = this.get('appName')
-      let mainApp = this.getMainApp()
-      if (isLocal) {
-        //
-        config.connection = `${process.env.postgresql_connection_default}/${appName}_${companyid}` //
-      }
+      let mainApp = this.getMainApp()!
+      // let _appConfig = mainApp.get(node_env)?.[appName]?.['pgconnection']
+      let _appConfig = mainApp.getLocalDefaultConnection(appName, companyid)
+      // config.connection = `${_appConfig}/${appName}_${companyid}` //
+      config.connection = `${_appConfig}` //
       let db = knex(config)
       await db.raw('SET TIME ZONE "Asia/Shanghai"')
       this.set('postgresqlClient', db)

@@ -20,24 +20,29 @@ import { useCaptCha } from '../decoration'
 import { hooks } from '@feathersjs/hooks'
 import { myJwtStrategy } from './jwt'
 export class myLocalStrategy extends LocalStrategy {
+  async hashPassword(password: string, _params: Params) {
+    return bcrypt.hash(password, this.configuration.hashSize)
+  }
   //@ts-ignore
   async authenticate(data: AuthenticationRequest, params: Params) {
     const { passwordField, usernameField, entity, errorMessage } = this.configuration
     const username = get(data, usernameField)
     const password = get(data, passwordField)
     if (!password) {
-      // exit early if there is no password
+      console.log('1231313123213') //
       throw new NotAuthenticated(errorMessage)
     }
     const { provider, ...paramsWithoutProvider } = params
+    // console.log(username,'sjkfjksdlkfsdjlkfdsf')//
     const result = await this.findEntity(username, paramsWithoutProvider)
     await this.comparePassword(result, password)
     let _res = await this.getEntity(result, params)
     let _res1 = _res?.data || _res
-    return {
+    let obj1 = {
       authentication: { strategy: this.name },
       [entity]: _res1 ////
     }
+    return obj1 //
   }
   get configuration() {
     //@ts-ignore
@@ -72,20 +77,36 @@ export class myLocalStrategy extends LocalStrategy {
       [entity]: result
     }) //
   }
+  async _comparePassword(entity: any, password: string) {
+    const { entityPasswordField, errorMessage } = this.configuration
+    let hash = get(entity, entityPasswordField)
+
+    // if (!hash) {
+    //   debug(`Record is missing the '${entityPasswordField}' password field`)
+    //   throw new NotAuthenticated(errorMessage)
+    // }
+    debug('Verifying password')
+    let result = await bcrypt.compare(password, hash)
+    if (result) {
+      return true //
+    }
+    return false //
+  }
   async comparePassword(entity: any, password: string) {
     const { entityPasswordField, errorMessage } = this.configuration
-    const hash = get(entity, entityPasswordField)
+    let hash = get(entity, entityPasswordField)
 
     if (!hash) {
       debug(`Record is missing the '${entityPasswordField}' password field`)
       throw new NotAuthenticated(errorMessage)
     }
     debug('Verifying password')
-    const result = await bcrypt.compare(password, hash)
+    let result = await bcrypt.compare(password, hash)
+    console.log(result, 'testResult') //
     if (result) {
       return entity
     }
-    throw new NotAuthenticated(errorMessage)
+    throw new NotAuthenticated('用户名或者密码不对')//
   }
   async findEntity(username: string, params: any) {
     const { entityUsernameField, errorMessage } = this.configuration
@@ -100,14 +121,11 @@ export class myLocalStrategy extends LocalStrategy {
       },
       params
     )
-    // console.log(query, 'testQuery')//
     const findParams = Object.assign({}, params, { query })
     const entityService = this.entityService
-    // debug('Finding entity with query', params.query)
     const result = await entityService.find(findParams)
     const list = Array.isArray(result) ? result : result.data
     if (!Array.isArray(list) || list.length === 0) {
-      // throw new Error('没找到用户') //
       throw new NotAuthenticated('用户名或者密码不对') //
     }
     const [entity] = list
@@ -128,6 +146,11 @@ export class myAuth extends AuthenticationService {
       }
     } //
     //@ts-ignore
+  }
+  async hashPassword(password: string, _params: Params) {
+    let strategy: myLocalStrategy = this.getStrategy('local') as any
+    let res = await strategy.hashPassword(password, _params)
+    return res
   }
   //@ts-ignore
   serviceName = 'authentication'
@@ -155,6 +178,11 @@ export class myAuth extends AuthenticationService {
       authenticated: true
     })
     return _res?.data || _res //
+  }
+  async comparePassword(entity: any, password: string) {
+    let strategy: myLocalStrategy = this.getStrategy('local') as any
+    let res = await strategy._comparePassword(entity, password)
+    return res //
   }
   async getTokenOptions(authResult: AuthenticationResult, params: AuthenticationParams) {
     const { service, entity, entityId } = this.configuration
@@ -283,55 +311,5 @@ export const _auth = (
       // throw new NotAuthenticated('Not authenticated')
     }
     return next()
-  }
-}
-
-let obj = {
-  provider: 'socketio',
-  headers: {
-    host: 'localhost:3031',
-    connection: 'Upgrade',
-    pragma: 'no-cache',
-    'cache-control': 'no-cache',
-    'user-agent':
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0',
-    upgrade: 'websocket',
-    origin: 'http://localhost:3003',
-    'sec-websocket-version': '13',
-    'accept-encoding': 'gzip, deflate, br, zstd',
-    'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6,fr;q=0.5',
-    cookie:
-      'session=U2FsdGVkX1/8m7tAhv2rq4Pbjsd8DSbsri1CXZ3/DrkZ6xv/YGE1bbXA5gosoyewwOyoHKvqmvgKOrhcWetEn8hw7P8nOxCE1QuIIdo6bY07MOCnERli9o5lpoOGozUB/x4XbJmg3UApx5guO+cX/g==; Hm_lvt_52eb07460b7dc3e27bb80c78c0988671=1743073927',
-    'sec-websocket-key': 'nNcGSegcHH6Xz4eFSp4D0A==',
-    'sec-websocket-extensions': 'permessage-deflate; client_max_window_bits',
-    authorization:
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJpYXQiOjE3NTAwNDc3MjQsImV4cCI6MTc1MDEzNDEyNCwiYXVkIjoiaHR0cHM6Ly95b3VyZG9tYWluLmNvbSIsInN1YiI6IjEiLCJqdGkiOiJiM2Q3ODZhOC0wNTQ4LTRkZGMtYTIyYS00NTc4Y2RjZGUxN2YifQ.f0nLDh680HhW0MyK-Nrz_aEgmTG1QovFqx_1GvUgh0Q'
-  },
-  authentication: {
-    strategy: 'jwt',
-    accessToken:
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJpYXQiOjE3NTAwNDc3MjQsImV4cCI6MTc1MDEzNDEyNCwiYXVkIjoiaHR0cHM6Ly95b3VyZG9tYWluLmNvbSIsInN1YiI6IjEiLCJqdGkiOiJiM2Q3ODZhOC0wNTQ4LTRkZGMtYTIyYS00NTc4Y2RjZGUxN2YifQ.f0nLDh680HhW0MyK-Nrz_aEgmTG1QovFqx_1GvUgh0Q',
-    authentication: {
-      strategy: 'jwt',
-      accessToken:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6ImFjY2VzcyJ9.eyJpYXQiOjE3NTAwNDc3MjQsImV4cCI6MTc1MDEzNDEyNCwiYXVkIjoiaHR0cHM6Ly95b3VyZG9tYWluLmNvbSIsInN1YiI6IjEiLCJqdGkiOiJiM2Q3ODZhOC0wNTQ4LTRkZGMtYTIyYS00NTc4Y2RjZGUxN2YifQ.f0nLDh680HhW0MyK-Nrz_aEgmTG1QovFqx_1GvUgh0Q',
-      payload: [Object]
-    },
-    user: {
-      id: 1,
-      createdAt: '2025-05-24 09:13:24',
-      updatedAt: '2025-05-24 09:13:24',
-      username: 'dxf',
-      email: '1151685410@qq.com',
-      password: '$2b$10$mtmxQd1lFzh6ORBsVOsfvOzH2XN107xINOtc3AmggeDO9.CfXztXm',
-      appName: null,
-      companyName: 'newC',
-      companyCnName: '新公司',
-      companyType: null,
-      companyId: null,
-      phone: null,
-      avatar: '/images/7332066ce14ee350ac57f9d74393a604d7c7ba4fdd3e15f3a47daa59bbc647f9.jpg',
-      companyLogo: '/images/7332066ce14ee350ac57f9d74393a604d7c7ba4fdd3e15f3a47daa59bbc647f9.jpg'
-    }
   }
 }

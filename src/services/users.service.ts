@@ -14,6 +14,7 @@ import { cloneDeep, get, set } from 'lodash'
 import { debug } from 'feathers-hooks-common'
 import { createPasswordTransform } from '../generateHooks'
 import { myFeathers } from '../feather'
+import { myAuth } from '@/auth'
 @useHook({
   addFriend: [
     async (context, next) => {
@@ -125,5 +126,42 @@ export class UsersService extends BaseService {
   } //
   @useRoute() //
   async joinGroup() {}
+  @useRoute()
+  @useAuthenticate() //
+  async updatePassword(data: any, params: any) {
+    let newPassword = data.newPassword //
+    let oldPassword = data.oldPassword //
+    let userid = this.app.getUserId(params)
+    let user = this.app.getUser(params) //
+
+    if (userid == null) {
+      return new errors.BadRequest('用户不存在') //
+    }
+    let authService: myAuth = this.app.service('authentication') as any
+    // console.log(data, 'estP') //
+    let confirm = await authService.comparePassword(user, oldPassword) //
+    if (confirm == false) {
+      return new errors.BadRequest('旧密码错误') //
+    }
+    if (Boolean(newPassword) == false) {
+      return new errors.BadRequest('新密码不能为空') //
+    }
+    let _newPassword = await authService.hashPassword(newPassword, {})
+    let newObj = {
+      password: _newPassword
+    }
+    await this.update(userid, newObj) //
+    return '修改密码成功'
+    // let msg = ''
+    // console.log(isTrue, 'isTrue') //
+    // if (isTrue == false) {
+    //   msg = '旧密码错误'
+    // } else {
+    //   msg = '旧密码正确' //
+    // }
+    // return msg //
+  }
+  @useRoute()
+  async forgetPassword(data: any) {}
 }
 export default UsersService

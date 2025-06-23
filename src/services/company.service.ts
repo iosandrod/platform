@@ -28,28 +28,32 @@ import { errors } from '@feathersjs/errors'
   create: [
     async function (context: any, next: any) {
       let data = context.data //
-      let uid = context?.params?.user?.id || data.userid //
+      let uid = context.app.getUserId(context) || data.userid //
+      // console.log(context.params) //
       let _data = null
       if (!Array.isArray(data)) {
         _data = [data]
       } else {
         _data = data
       }
+      // console.log(_data) //
       for (const data of _data) {
         if (uid) {
           data.userid = uid
         }
         data.type = 'pg'
-        let defaultConnection = context.app.get('defaultConnection')
-        let key = `${data.appName}_${data.userid}`
-        data.connection = `${defaultConnection.connection}/${key}`
+        // let defaultConnection = context.app.get('defaultConnection')
+
+        // let defaultConnection = context.app.getDefaultAppConnection(data)
+        // let key = `${data.appName}_${data.userid}`
+        // data.connection = `${defaultConnection.connection}/${key}`
+        data.connection = context.app.getLocalDefaultConnection(data.appName, data.userid) //
       } //
       await next()
       let app: myFeathers = context.app //
       let _this: CompanyService = app.service('company') as any //
       let res = context.result
       for (const item of res) {
-        // await _this.createCompany(item.appName, item.userid) //
         await _this.createCompany(item) //
       } //
     }
@@ -72,11 +76,12 @@ export class CompanyService extends BaseService {
     let _res = await super.create(...args) //
     return _res //
   }
-  //生成公司数据库
   async createCompany(config: any) {
     let app = this.app
     await app.createCompany(config)
   }
+  @useRoute()
+  async initCompany(data: any) {}
   @useRoute()
   async getAllApp() {
     let _data = await this.find({
@@ -115,7 +120,7 @@ export class CompanyService extends BaseService {
           $in: query
         }
       }
-    }) //
+    })
     allCompany = allCompany
       .map((item: any) => {
         item.user = users.find((user: any) => user.id == item.userid)
@@ -149,6 +154,9 @@ export class CompanyService extends BaseService {
     }) //
     return allCompany //
   }
+  //
+  @useRoute()
+  async a123() {}
 }
 
 export default CompanyService
