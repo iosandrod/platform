@@ -307,6 +307,15 @@ export class EntityService extends BaseService {
     return '同步数据成功' //
     //获取相关链接
   }
+  @useRoute()
+  async getDefaultButtons(data: any) {
+    //
+    let type = data.type
+    if (!['main', 'edit'].includes(type)) {
+      return []
+    } //
+    let _buttons = []
+  }
 }
 
 export default EntityService

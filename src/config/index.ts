@@ -77,4 +77,4 @@ export function init(schema?: Schema<any> | Validator) {
     return config
   }
 }
-export const configuration = init(configurationValidator)
+export const configuration = init()

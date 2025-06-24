@@ -274,8 +274,6 @@ export class myAuth extends AuthenticationService {
 }
 export const mainAuth = (app: Application) => {
   let s = new myAuth(app, 'authentication', {}) //
-  // s.register('jwt', new JWTStrategy())
-  // s.register('local', new myLocalStrategy())
   app.use('authentication', s)
 }
 

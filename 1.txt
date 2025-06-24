@@ -1010,3 +1010,52 @@ let obj = {
 // console.log(params,'testP')//
     // console.log(userid)
     // return userid || '123' //
+
+     // let msg = ''
+    // console.log(isTrue, 'isTrue') //
+    // if (isTrue == false) {
+    //   msg = '旧密码错误'
+    // } else {
+    //   msg = '旧密码正确' //
+    // }
+    // return msg //
+
+    //处理用户认证的事情//
+  // app.configure(
+  //   configureSocketio({
+  //     cors: {
+  //       origin: app.get('origins')
+  //     }
+  //   })
+  // )
+
+  // if (typeof createFn !== 'function') return // 不存在的服务不需要注册
+    //@ts-ignore
+    // let subApp = await createFn(this, config) //
+    // subApp.set('companyid', companyId)
+    // subApp.set('appName', appName) //
+
+     @useRoute()
+  async getDefaultPageLayout(data: any, context: any) {
+    let app = this.app //
+    let tableName = data.tableName
+    if (tableName == null) {
+      return null
+    }
+    let targetTable = app.getDefaultPageLayout(tableName) //
+    return targetTable //
+  }
+
+  /* 
+  export interface Message {
+  id: string
+  content: string 
+  type: ContentType 
+  toContactId: number
+  fromUser: FromUser
+  sendTime: number
+  status: SendMessageStatus
+  fileName?: string
+  fileSize?: number
+}
+*/

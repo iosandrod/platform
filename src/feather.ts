@@ -23,6 +23,10 @@ import { columnToTable } from './featherFn'
 import { channels } from './channels/channels'
 import { options } from 'svg-captcha'
 import { connect } from 'node:http2'
+import { myAuth } from './auth'
+import { configuration } from './config'
+import { routing } from './socketio/routing'
+import { configureSocketio } from './socketio'
 // const nanoid = () => 'xxxxx' //
 export const subAppCreateMap = {
   erp: createApp //
@@ -122,7 +126,6 @@ export class myFeathers extends Feathers<any, any> {
     //添加相关的数据库
     let mainApp = this.getMainApp()
     //添加相关数据源的app
-
     let createMap = this.subAppCreateMap //
     //@ts-ignore
     let createFn = createMap[appName]
@@ -420,22 +423,46 @@ ORDER BY
   getClient() {
     return this.get('postgresqlClient')
   }
+  async createSubApp(config: any, mainApp: any): Promise<myFeathers> {
+    const app1 = createFeathers() //
+    let companyId = config.userid || config.companyid
+    const app = app1
+    let appName = config.appName //
+    //@ts-ignore
+    app.mainApp = mainApp //
+    app.set('appName', appName) //
+    app.set('companyid', companyId) //公司ID就是用户ID
+    // app.configure(configuration()) //
+    await app.initDefaultConfig() //
+    // app.configure(routing()) //设置路由和认证相关的
+    await app.initRouteClass() //
+    //前台需要知道用户的角色和ID才可以进行操作
+    await app.initKnexClient(config)
+    await app.initTableService() //
+    await app.initAuth() //
+    await app.initAppSocket()
+    // app.configure(appAuthenticate) //设置认证
+    // let fn = configureSocketio({ cors: { origin: app.get('origins') }, namespace: `erp_${companyId}` })
+    // await fn(app) //
+    return app
+  }
   async registerSubApp(config: any) {
     let appName = config.appName //
     let companyId = config.userid || config.companyid //
     //@ts-ignore
-    const createFn = subAppCreateMap[appName] //
-    let company = config.company
-    if (typeof createFn !== 'function') return // 不存在的服务不需要注册
-    //@ts-ignore
-    let subApp = await createFn(this, config) //
-    subApp.set('companyid', companyId)
-    subApp.set('appName', appName) //
+    // const createFn = subAppCreateMap[appName] //
+    // let company = config.company
+    let subApps = this.get('subApps')
+    if (!subApps.includes(appName)) {
+      return
+    }
+    let subApp = await this.createSubApp(config, this.getMainApp()!) //
+    
     //前置路由
     let key = `${appName}_${companyId}` //
     subApp.set('prefix', key)
     let routePath = `/${key}` //
-    this.use(routePath, subApp)
+    this.use(routePath, subApp as any)
     let subAppMap = this.subApp //
     //@ts-ignore
     subAppMap[key] = subApp
@@ -443,6 +470,7 @@ ORDER BY
     let server = mainApp.server
     if (server) {
       console.log('server 已经初始化') //
+      //@ts-ignore
       await subApp.setup(server)
       subApp.configure(channels) //
     }
@@ -718,16 +746,19 @@ ORDER BY
     if (!Array.isArray(fields) || fields.length == 0) {
       return {}
     }
+    let _fields = fields.map((item: any) => {
+      return `'${item}'` //
+    })
     let ds = this.service('DataDictionary')
     // console.log(fields, 'testF') //
     let data = await ds.find({
       query: {
         DictionaryName: {
-          //
           $in: fields //
         }
       }
     })
+    // console.log(data, 'testD') //
     let _arr: any[] = []
     data = data.filter((item: any) => {
       let sql = item.cDefine1
@@ -744,7 +775,12 @@ ORDER BY
     for (const item of _arr) {
       let sql = item.cDefine1 //
       let client = this.getPgClient()
-      let data = await client.raw(sql)
+      let data: any = {
+        rows: []
+      }
+      try {
+        // data = await client.raw(sql) //
+      } catch (error) {}
       let rows = data.rows //
       let r0 = rows[0] || {}
       if (Object.keys(r0).includes('key')) {
@@ -885,6 +921,26 @@ ORDER BY
       //   db.raw('SELECT 1') //
       // }, 3000)
     }
+  }
+  async initAuth() {
+    let s = new myAuth(this, 'authentication', {})
+    this.use('authentication', s) //
+  }
+  async initDefaultConfig() {
+    configuration(this as any) //
+  }
+  async initRouteClass() {
+    //
+    routing()(this as any)
+  }
+  async initAppSocket() {
+    let appName = this.get('appName')
+    let companyId = this.get('companyid')
+    let fn = configureSocketio({
+      cors: { origin: this.get('origins') },
+      namespace: `${appName}_${companyId}`
+    })
+    await fn(this as any)
   }
   getClientType() {
     return 'pg'

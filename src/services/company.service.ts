@@ -15,7 +15,7 @@ import { errors } from '@feathersjs/errors'
       const app: myFeathers = context.app //
       // let users = await context.app.service('users').find()
       // console.log(users, 'testUsers')//
-      for (const res of result) {
+      for (const res of result) {//
         //获取所有表格//
         let name = res.companyid //
         // let allTable = await app.getCompanyTable(name) //

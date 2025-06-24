@@ -23,19 +23,7 @@ export class Conversation extends BaseEntity {
   createrId: number //
 } //
 
-/* 
-  export interface Message {
-  id: string
-  content: string 
-  type: ContentType 
-  toContactId: number
-  fromUser: FromUser
-  sendTime: number
-  status: SendMessageStatus
-  fileName?: string
-  fileSize?: number
-}
-*/
+
 @Entity('messages')
 export class Message extends BaseEntity {
   @Column({ type: 'varchar', nullable: true })
@@ -92,5 +80,4 @@ export class Attachment extends BaseEntity {
   @Column({ type: 'varchar', nullable: true })
   mimetype?: string
 }
-//
 export const charArr = [Conversation, Message, Attachment, GroupUser, Friend] //

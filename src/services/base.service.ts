@@ -776,8 +776,16 @@ WHERE table_name = '${schema}'
         //
       } //
     } //
+    let _q=builder.toQuery()
     let query = builder.toSQL() //
-    console.log(query.sql, query.bindings) ////
+    // let _b:Knex=builder.toQuery()
+    //@ts-ignore
+    let k:Knex.QueryBuilder=null
+    // k.queryBuilder()
+    // _b.table('user').select('*').toQuery()
+    // let _query=builder.getQuery()
+    // console.log(query.sql, query.bindings) ////
+    // console.log(_q)//
     let data = filters.$limit === 0 ? [] : await builder.catch(errorHandler)
 
     if (paginate && paginate.default) {

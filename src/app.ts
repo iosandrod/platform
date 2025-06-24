@@ -54,22 +54,15 @@ export async function createApp() {
   app.use(bodyParser()) //
   app.configure(rest())
   await redis(app) //
-  //处理用户认证的事情//
-  // app.configure(
-  //   configureSocketio({
-  //     cors: {
-  //       origin: app.get('origins')
-  //     }
-  //   })
-  // )
+  
   let fn = configureSocketio({ cors: { origin: app.get('origins') } })
   await fn(app) //
   await app.initKnexClient(app.get('postgresql')) //
-  // await services(app) //
   await app.initTableService() //
+  await app.initAuth() //
   app.configure(channels)
   //设置用户认证
-  app.configure(mainAuth) //
+  // app.configure(mainAuth) //
   app.hooks({
     around: {
       all: [logError]

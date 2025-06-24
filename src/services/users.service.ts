@@ -141,10 +141,10 @@ export class UsersService extends BaseService {
     // console.log(data, 'estP') //
     let confirm = await authService.comparePassword(user, oldPassword) //
     if (confirm == false) {
-      return new errors.BadRequest('旧密码错误') //
+      throw new errors.BadRequest('旧密码错误') //
     }
     if (Boolean(newPassword) == false) {
-      return new errors.BadRequest('新密码不能为空') //
+      throw new errors.BadRequest('新密码不能为空') //
     }
     let _newPassword = await authService.hashPassword(newPassword, {})
     let newObj = {
@@ -152,14 +152,7 @@ export class UsersService extends BaseService {
     }
     await this.update(userid, newObj) //
     return '修改密码成功'
-    // let msg = ''
-    // console.log(isTrue, 'isTrue') //
-    // if (isTrue == false) {
-    //   msg = '旧密码错误'
-    // } else {
-    //   msg = '旧密码正确' //
-    // }
-    // return msg //
+   
   }
   @useRoute()
   async forgetPassword(data: any) {}
@@ -180,7 +173,7 @@ export class UsersService extends BaseService {
   async canOpenSubApp(data: any, params: any) {
     let appName = data.appName //
     let userid = data.userid
-    let mainApp = this.app.getMainApp()!
+    let mainApp = this.app.getMainApp()! //
     let key = `${appName}_${userid}` //
     let subApp = mainApp.subApp
     let tApp = subApp[key]

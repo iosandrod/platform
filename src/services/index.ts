@@ -21,10 +21,10 @@ import TableService from './table.service'
 import CaptchaService from './captcha.service'
 import { myAuth } from '../auth'
 import { UploadService } from './upload.service'
-import PermissionService from '../app/app_service/permissions.service'
 import GroupService from './chat/group.service'
 import MessageService from './chat/message.service'
 import FriendShipService from './chat/friendship.service'
+import PermissionService from './permission.service'
 export const defaultServiceMethods = ['find', 'get', 'create', 'update', 'patch', 'remove']
 export const services = async (app: myFeathers) => {
   let names = Object.keys(createMap) //
@@ -104,8 +104,8 @@ export const createMap = {
   messages: MessageService, //
   captcha: CaptchaService, //
   friends: FriendShipService,
-  uploads: UploadService,
-  permissions: PermissionService,
+  uploads: UploadService, //
+  permissions: PermissionService, //
   tableview: TableService
 } //
 export async function importModulesFromFolder(directory: string) {
