@@ -163,5 +163,31 @@ export class UsersService extends BaseService {
   }
   @useRoute()
   async forgetPassword(data: any) {}
+  @useRoute()
+  async canOpenApp(data: any, params: any) {
+    let userid = this.app.getUserId(params) //
+    let appName = data.appName
+    let mainApp = this.app.getMainApp()!
+    let key = `${appName}_${userid}` //
+    let subApp = mainApp.subApp
+    let tApp = subApp[key]
+    if (tApp == null) {
+      throw new errors.BadRequest('没有权限')
+    }
+    return 'success' //
+  }
+  @useRoute()
+  async canOpenSubApp(data: any, params: any) {
+    let appName = data.appName //
+    let userid = data.userid
+    let mainApp = this.app.getMainApp()!
+    let key = `${appName}_${userid}` //
+    let subApp = mainApp.subApp
+    let tApp = subApp[key]
+    if (tApp == null) {
+      throw new errors.BadRequest('请选择正确账套') //
+    } //
+    return 'success' //
+  }
 }
 export default UsersService

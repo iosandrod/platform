@@ -18,5 +18,7 @@ export class Company extends BaseEntity {
   description: string //
   @Column({ nullable: true, type: 'integer' })
   userid: number //
+  @Column({ nullable: true, type: 'varchar' })
+  cnName: string //
 }
 export default Company //

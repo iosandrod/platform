@@ -18,8 +18,8 @@ import { errors } from '@feathersjs/errors'
       for (const res of result) {
         //获取所有表格//
         let name = res.companyid //
-        let allTable = await app.getCompanyTable(name) //
-        res.entities = allTable //
+        // let allTable = await app.getCompanyTable(name) //
+        // res.entities = allTable //
       }
     }
   ]
@@ -156,7 +156,27 @@ export class CompanyService extends BaseService {
   }
   //
   @useRoute()
-  async a123() {}
+  async getAllAccountCompany(data: any) {
+    let mainApp = this.app.getMainApp()!
+    let mainService = mainApp.service('company')
+    let appName = data?.appName
+    if (appName == null) {
+      throw new errors.BadRequest('应用不能为空')
+    }
+    let query = {
+      appName: {
+        $like: `${appName}%` //
+      },
+      //id大于0
+      userid: {
+        $gt: 0
+      }
+    } //
+    let allCompany = await mainService.find({
+      query
+    })
+    return allCompany //
+  }
 }
 
 export default CompanyService

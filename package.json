@@ -37,7 +37,7 @@
     "lib/**/*.d.ts",
     "lib/**/*.shared.js"
   ],
-  "main": "lib/client",
+  "main": "lib/client", 
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon  --watch src --ignore public --exec \"node -r ts-node/register\" src/main_index.ts",
     "dev:debug": "nodemon --exec \"node --inspect=9229 -r ts-node/register\" src/main_index.ts",
