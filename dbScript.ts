@@ -22,27 +22,13 @@ import { setCurrentDbType } from './src/entity/json/jsonColumnFactory'
 import { TableView } from './src/entity/tableview.entity'
 import { charArr } from './src/entity/chat.entity' //
 async function main() {
-  // let _knex = knex({
-  //   client: 'pg',
-  //   connection: 'postgres://postgres:123456@localhost:5432/platform'
-  // })
-  // setCurrentDbType('mssql')////
-  // await _knex('users').delete() //
   let dbConfig: DataSourceOptions = {
     type: 'postgres',
     host: 'localhost',
     username: 'postgres',
     password: '123456', //
     database: 'platform', //
-    // type: 'mssql',
-    // host: 'localhost\\MSSQLSERVER2016',
-    // options: {
-    //   encrypt: true,
-    //   trustServerCertificate: true // 👈 关键配置
-    // }, //
-    // username: 'sa', //
-    // password: '123456',
-    // database: 'HeTai', //
+   
     port: 5432, //
     synchronize: true, ////
     entities: [
@@ -50,8 +36,8 @@ async function main() {
       Selection,
       FieldEntity,
       Entity,
-      TableView,
-      User, //
+      TableView, //
+      User,
       Role,
       Permission,
       RolePermission,
@@ -69,4 +55,5 @@ async function main() {
     console.log('主数据库创建成功') //
   }) //
 }
-main()
+// main()
+

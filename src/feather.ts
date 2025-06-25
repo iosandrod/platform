@@ -10,7 +10,7 @@ import {
 } from '@feathersjs/feathers'
 import { stripSlashes } from '@feathersjs/commons'
 import { Application } from './declarations'
-import { createApp } from './app/app_index'
+// import { createApp } from './app/app_index'
 import _ from 'lodash'
 import knex, { Knex } from 'knex'
 import { cacheValue } from './decoration'
@@ -28,9 +28,9 @@ import { configuration } from './config'
 import { routing } from './socketio/routing'
 import { configureSocketio } from './socketio'
 // const nanoid = () => 'xxxxx' //
-export const subAppCreateMap = {
-  erp: createApp //
-}
+// export const subAppCreateMap = {
+//   erp: createApp //
+// }
 //构建自己的feather
 export class myFeathers extends Feathers<any, any> {
   knexInt: any
@@ -38,7 +38,7 @@ export class myFeathers extends Feathers<any, any> {
     // throw new Error('Method not implemented.')
     return
   }
-  subAppCreateMap = subAppCreateMap
+  // subAppCreateMap = subAppCreateMap
   captchaData: any = {}
   mainApp?: myFeathers
   cache: { [key: string]: any } = {}
@@ -84,22 +84,17 @@ export class myFeathers extends Feathers<any, any> {
         query
       })
       if (hasRows.length == 0) {
-        // throw new errors.BadRequest('公司已存在')
-        // let companies = await companyS.create({
-        //   appName,
-        //   userid
-        // })
-        // tCompany = companies[0]
-        throw new errors.BadRequest('没有想过的账套') //
+        throw new errors.BadRequest('没有相关的账套') //
       } else {
         tCompany = hasRows[0]
       }
     }
 
     let app = this
+    let fromAppName = `${appName}_1`
     let sql1 = `SELECT pg_terminate_backend(pid)
     FROM pg_stat_activity
-    WHERE datname = '${appName}'
+    WHERE datname = '${fromAppName}'
       AND pid <> pg_backend_pid();` //
     let pgClient = app.get('postgresqlClient') //
 
@@ -108,7 +103,7 @@ export class myFeathers extends Feathers<any, any> {
     let sql = `CREATE DATABASE ${_key}
         WITH
         OWNER = postgres
-        TEMPLATE = ${appName};` //
+        TEMPLATE = ${fromAppName};` //
     //检查数据库是否存在
     let sql2 = `SELECT EXISTS(SELECT FROM pg_database WHERE datname = '${_key}');`
     let sql3 = `SELECT EXISTS(SELECT FROM pg_database WHERE datname = '${appName}');`
@@ -117,21 +112,24 @@ export class myFeathers extends Feathers<any, any> {
     let isExist = data.rows[0].exists ////
     let isExist1 = data1.rows[0].exists //
     if (isExist1 == false) {
-      throw new errors.BadRequest('不存在相关app')
+      throw new errors.BadRequest('不存在相关应用') //
     } //
-    // console.log('createCompany', appName, userid,isExist)//
     if (isExist == false) {
       await pgClient.raw(sql)
     }
     //添加相关的数据库
     let mainApp = this.getMainApp()
     //添加相关数据源的app
-    let createMap = this.subAppCreateMap //
-    //@ts-ignore
-    let createFn = createMap[appName]
-    if (typeof createFn !== 'function') {
-      throw new errors.BadRequest('不存在相关app')
-    } //
+    // let createMap = this.subAppCreateMap //
+    // //@ts-ignore
+    // let createFn = createMap[appName]
+    // if (typeof createFn !== 'function') {
+    //   throw new errors.BadRequest('不存在相关app')
+    // } //
+    let subApps = this.get('subApps')
+    if (!subApps.includes(appName)) {
+      throw new errors.BadRequest('不存在相关应用') //
+    }
     let k = await this.getCompanyConnection({ ...tCompany, ...config })
     //@ts-ignore
     let _app: myFeathers = await this.registerSubApp({ ...tCompany, ...config }) //
@@ -457,7 +455,7 @@ ORDER BY
       return
     }
     let subApp = await this.createSubApp(config, this.getMainApp()!) //
-    
+
     //前置路由
     let key = `${appName}_${companyId}` //
     subApp.set('prefix', key)
@@ -654,18 +652,8 @@ ORDER BY
     names = [...names, ..._names].filter((name, i) => {
       return name != null
     })
-    names = names.filter((name, i) => names.indexOf(name) == i) //
-    // let arr = []
-    console.time('initTableService')
-    // if (this.getIsMain() == false) {
-    //   return
-    // } //
-    // for (const name of names) {
-    //   let opt = this.getAddOptions(name, allT)
-    //   await this.addService({ options: opt, serviceName: name }) //
-    // }
-    console.timeEnd('initTableService')
-  }
+    names = names.filter((name, i) => names.indexOf(name) == i)
+  } //
   getIsMain() {
     let a = this.getMainApp()
     if (a == this) {
@@ -873,8 +861,7 @@ ORDER BY
     if (userid != null) {
       _name = `${_name}_${userid}`
     }
-    let c = `${pgconnection}/${_name}` //
-    // return pgconnection
+    let c = `${pgconnection}/${_name}`
     return c
   }
   async initKnexClient(config: any) {
@@ -950,6 +937,14 @@ ORDER BY
   } //
   getCompanyId() {
     return this.get('companyid')
+  }
+  async checkIsAdmin(params: any) {
+    let userid = this.getUserId(params) //
+    console.log(userid, 'testId') //
+    if (userid == 1) {
+      return true
+    }
+    return false //
   }
 }
 export const createFeathers = () => {

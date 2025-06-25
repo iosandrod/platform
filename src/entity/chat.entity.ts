@@ -23,7 +23,6 @@ export class Conversation extends BaseEntity {
   createrId: number //
 } //
 
-
 @Entity('messages')
 export class Message extends BaseEntity {
   @Column({ type: 'varchar', nullable: true })

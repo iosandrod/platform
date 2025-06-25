@@ -140,6 +140,31 @@ export function useAuthenticate(config?: useAuthConfig) {
     return descriptor
   }
 }
+export function useIsAdmin(config?: any) {
+  //@ts-ignore
+  return function (target, propertyKey, descriptor) {
+    let _target = target
+    let hooksMetaData = _target.hooksMetaData
+    if (hooksMetaData == null || !Array.isArray(hooksMetaData)) {
+      _target.hooksMetaData = []
+      hooksMetaData = _target.hooksMetaData
+    }
+    let _config: HookOptions<any, any> = {
+      [propertyKey]: [
+        async function (context, next) {
+          let app: myFeathers = context.app //
+          let isAdmin = await app.checkIsAdmin(context)
+          if (isAdmin == false) {
+            throw new errors.Forbidden('此接口为管理员专用') //
+          }
+          await next() //
+        }
+      ] ////
+    }
+    hooksMetaData.push(_config) //
+    return descriptor //
+  }
+}
 export function useGlobalAuthenticate(config?: useAuthConfig) {
   //@ts-ignore
   return function (target, propertyKey, descriptor) {

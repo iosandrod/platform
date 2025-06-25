@@ -71,6 +71,10 @@
     "platform": {
       "url": "http://localhost:3003",
       "pgconnection": "postgres://postgres:123456@localhost:5432"
+    },
+    "gantt": {
+      "url": "http://localhost:3005",
+      "pgconnection": "postgres://postgres:123456@localhost:5432"
     }
   },
   "redis": {
@@ -79,6 +83,7 @@
     "password": "123456"
   },
   "subApps": [
-    "erp"
+    "erp",
+    "gantt"
   ]
 }

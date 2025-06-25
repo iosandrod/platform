@@ -1,5 +1,5 @@
 import { HookContext } from '@feathersjs/feathers'
-import { useHook, useRoute, useUnAuthenticate } from '../decoration'
+import { useHook, useIsAdmin, useRoute, useUnAuthenticate } from '../decoration'
 import { BaseService } from './base.service'
 import { myFeathers } from '../feather'
 import { errors } from '@feathersjs/errors'
@@ -15,7 +15,8 @@ import { errors } from '@feathersjs/errors'
       const app: myFeathers = context.app //
       // let users = await context.app.service('users').find()
       // console.log(users, 'testUsers')//
-      for (const res of result) {//
+      for (const res of result) {
+        //
         //获取所有表格//
         let name = res.companyid //
         // let allTable = await app.getCompanyTable(name) //
@@ -176,6 +177,11 @@ export class CompanyService extends BaseService {
       query
     })
     return allCompany //
+  }
+  @useRoute()
+  @useIsAdmin()
+  async testC() {
+    return 'success' //
   }
 }
 

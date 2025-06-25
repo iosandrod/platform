@@ -37,7 +37,7 @@
     "lib/**/*.d.ts",
     "lib/**/*.shared.js"
   ],
-  "main": "lib/client", 
+  "main": "lib/client",
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon  --watch src --ignore public --exec \"node -r ts-node/register\" src/main_index.ts",
     "dev:debug": "nodemon --exec \"node --inspect=9229 -r ts-node/register\" src/main_index.ts",
@@ -51,7 +51,8 @@
     "migrate": "knex migrate:latest",
     "migrate:make": "knex migrate:make",
     "migrate:app": "cross-env NODE_ENV=development ts-node ./appDbScript.ts",
-    "migrate:main": "cross-env NODE_ENV=main ts-node ./dbScript.ts"
+    "migrate:main": "cross-env NODE_ENV=main ts-node ./dbScript.ts",
+    "migrate:gantt": "cross-env NODE_ENV=development NODE_DB=gantt ts-node -r tsconfig-paths/register ./src/db/index.ts"
   },
   "dependencies": {
     "@casl/ability": "^6.7.3",
@@ -108,6 +109,7 @@
     "prettier": "^3.5.2",
     "shx": "0.3.4",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "5.7.3",
     "vue-tsc": "1.8.22"
   }
